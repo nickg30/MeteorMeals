@@ -10,7 +10,6 @@ Template.ShoppingList.helpers({
 		return Recipes.find({inMenu: true});
 	},
 	checkoutButton: ()=> {
-		//console.log(Recipes.findOne({name: "BisBurger"}))
 		 return Recipes.findOne({inMenu: true});
 	}
 });
