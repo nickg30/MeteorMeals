@@ -11,11 +11,6 @@ Template.ShoppingList.helpers({
 	},
 	checkoutButton: ()=> {
 		//console.log(Recipes.findOne({name: "BisBurger"}))
-		if(Recipes.findOne({inMenu: true})) {
-			return true;
-		} else {
-			return false;
-		}
-		return false;
+		 return Recipes.findOne({inMenu: true});
 	}
 });
