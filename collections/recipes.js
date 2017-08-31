@@ -15,6 +15,9 @@ Ingredient = new SimpleSchema({
 	},
 	amount: {
 		type: String
+	},
+	price: {
+		type: String
 	}
 });
 
@@ -29,6 +32,10 @@ RecipeSchema = new SimpleSchema({
 	},
 	ingredients: {
 		type: [Ingredient]
+	},
+	totalPrice: {
+		type: String,
+		label: "Total Meal Cost:"
 	},
 	inMenu: {
 		type: Boolean,

@@ -26,7 +26,6 @@ fastclick@1.0.13
 raix:handlebar-helpers
 aldeed:collection2
 aldeed:autoform
-accounts-ui@1.1.9
 accounts-password@1.4.0
 matb33:bootstrap-glyphicons
 zimme:active-route
@@ -39,3 +38,5 @@ standard-minifier-css
 standard-minifier-js
 shell-server
 dynamic-import
+ian:accounts-ui-bootstrap-3
+twbs:bootstrap

@@ -5,9 +5,12 @@
 			{{#each ingredients}}
 				<li>{{name}} - <span class="amount">{{amount}}</span></li>
 			{{/each}}
-				<button>checkout</button>
+
 		{{else}}
 			<li>Uh, oh. Please add <a href="/recipe-book">entrees</a> to your box.</li>
 		{{/each}}
+		{{#if checkoutButton}}
+		<button>checkout</button>
+		{{/if}}
 	</ul>
 </template>

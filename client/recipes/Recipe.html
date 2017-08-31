@@ -8,7 +8,9 @@
 			<p>
 				{{#each ingredients}}
 					<span class="ingredient">{{name}} - {{amount}}</span>
-				{{/each}} 
+				{{/each}}
+				<hr />
+				<h4><strong>Total: {{totalPrice}} </strong></h4>
 			</p>
 			<a href="/recipe/{{_id}}">View Details</a>
 			{{#if inMenu}}
