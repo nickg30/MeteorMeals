@@ -1,0 +1,1 @@
+{"head":"","body":"","js":"\nTemplate.__checkName(\"RecipeSingle\");\nTemplate[\"RecipeSingle\"] = new Template(\"Template.RecipeSingle\", (function() {\n  var view = this;\n  return HTML.H1(Blaze.View(\"lookup:recipe.name\", function() {\n    return Spacebars.mustache(Spacebars.dot(view.lookup(\"recipe\"), \"name\"));\n  }));\n}));\n","bodyAttrs":{}}
