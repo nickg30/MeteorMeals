@@ -16126,6 +16126,7 @@ footer p {
   color: #fdfffc;
   text-align: center;
   padding: 24px;
+  font-family: 'Lato';
 }
 
 footer {
@@ -16253,6 +16254,7 @@ a {
 
 .billboard h4 {
   color: #fffbb4;
+  font-family: 'Lato';
 }
 
 .main-layout {
@@ -16726,7 +16728,10 @@ textarea.static-input {
 }
 
 @font-face {
-
+  font-family: Lato;
+  src: url("fonts/Lato-Regular.ttf");
+  font-family: Baloo Bhaijaan;
+  src: url("fonts/BalooBhaijaan-Regular.ttf");
 }
 
 .shopping-list {
