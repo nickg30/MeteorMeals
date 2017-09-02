@@ -23,7 +23,6 @@ var ReactiveVar = Package['reactive-var'].ReactiveVar;
 var DDP = Package['ddp-client'].DDP;
 var Mongo = Package.mongo.Mongo;
 var meteorInstall = Package.modules.meteorInstall;
-var process = Package.modules.process;
 var meteorBabelHelpers = Package['babel-runtime'].meteorBabelHelpers;
 var Promise = Package.promise.Promise;
 var Symbol = Package['ecmascript-runtime-client'].Symbol;

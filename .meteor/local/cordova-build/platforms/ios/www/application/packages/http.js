@@ -17,7 +17,6 @@ var meteorEnv = Package.meteor.meteorEnv;
 var _ = Package.underscore._;
 var URL = Package.url.URL;
 var meteorInstall = Package.modules.meteorInstall;
-var process = Package.modules.process;
 var meteorBabelHelpers = Package['babel-runtime'].meteorBabelHelpers;
 var Promise = Package.promise.Promise;
 var Symbol = Package['ecmascript-runtime-client'].Symbol;

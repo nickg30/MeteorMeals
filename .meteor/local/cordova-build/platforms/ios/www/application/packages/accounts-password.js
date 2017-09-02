@@ -23,7 +23,6 @@ var check = Package.check.check;
 var Match = Package.check.Match;
 var _ = Package.underscore._;
 var meteorInstall = Package.modules.meteorInstall;
-var process = Package.modules.process;
 var meteorBabelHelpers = Package['babel-runtime'].meteorBabelHelpers;
 var Promise = Package.promise.Promise;
 var Symbol = Package['ecmascript-runtime-client'].Symbol;

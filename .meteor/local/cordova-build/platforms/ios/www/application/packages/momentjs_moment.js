@@ -20,3244 +20,4501 @@ var moment;
 
 (function(){
 
-///////////////////////////////////////////////////////////////////////
-//                                                                   //
-// packages/momentjs_moment/packages/momentjs_moment.js              //
-//                                                                   //
-///////////////////////////////////////////////////////////////////////
-                                                                     //
-(function () {                                                       // 1
-                                                                     // 2
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                                                     //
-// packages/momentjs:moment/moment.js                                                                                  //
-//                                                                                                                     //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                                                                                                                       //
-//! moment.js                                                                                                          // 1
-//! version : 2.10.6                                                                                                   // 2
-//! authors : Tim Wood, Iskren Chernev, Moment.js contributors                                                         // 3
-//! license : MIT                                                                                                      // 4
-//! momentjs.com                                                                                                       // 5
-                                                                                                                       // 6
-(function (global, factory) {                                                                                          // 7
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :                        // 8
-    typeof define === 'function' && define.amd ? define(factory) :                                                     // 9
-    global.moment = factory()                                                                                          // 10
-}(this, function () { 'use strict';                                                                                    // 11
-                                                                                                                       // 12
-    var hookCallback;                                                                                                  // 13
-                                                                                                                       // 14
-    function utils_hooks__hooks () {                                                                                   // 15
-        return hookCallback.apply(null, arguments);                                                                    // 16
-    }                                                                                                                  // 17
-                                                                                                                       // 18
-    // This is done to register the method called with moment()                                                        // 19
-    // without creating circular dependencies.                                                                         // 20
-    function setHookCallback (callback) {                                                                              // 21
-        hookCallback = callback;                                                                                       // 22
-    }                                                                                                                  // 23
-                                                                                                                       // 24
-    function isArray(input) {                                                                                          // 25
-        return Object.prototype.toString.call(input) === '[object Array]';                                             // 26
-    }                                                                                                                  // 27
-                                                                                                                       // 28
-    function isDate(input) {                                                                                           // 29
-        return input instanceof Date || Object.prototype.toString.call(input) === '[object Date]';                     // 30
-    }                                                                                                                  // 31
-                                                                                                                       // 32
-    function map(arr, fn) {                                                                                            // 33
-        var res = [], i;                                                                                               // 34
-        for (i = 0; i < arr.length; ++i) {                                                                             // 35
-            res.push(fn(arr[i], i));                                                                                   // 36
-        }                                                                                                              // 37
-        return res;                                                                                                    // 38
-    }                                                                                                                  // 39
-                                                                                                                       // 40
-    function hasOwnProp(a, b) {                                                                                        // 41
-        return Object.prototype.hasOwnProperty.call(a, b);                                                             // 42
-    }                                                                                                                  // 43
-                                                                                                                       // 44
-    function extend(a, b) {                                                                                            // 45
-        for (var i in b) {                                                                                             // 46
-            if (hasOwnProp(b, i)) {                                                                                    // 47
-                a[i] = b[i];                                                                                           // 48
-            }                                                                                                          // 49
-        }                                                                                                              // 50
-                                                                                                                       // 51
-        if (hasOwnProp(b, 'toString')) {                                                                               // 52
-            a.toString = b.toString;                                                                                   // 53
-        }                                                                                                              // 54
-                                                                                                                       // 55
-        if (hasOwnProp(b, 'valueOf')) {                                                                                // 56
-            a.valueOf = b.valueOf;                                                                                     // 57
-        }                                                                                                              // 58
-                                                                                                                       // 59
-        return a;                                                                                                      // 60
-    }                                                                                                                  // 61
-                                                                                                                       // 62
-    function create_utc__createUTC (input, format, locale, strict) {                                                   // 63
-        return createLocalOrUTC(input, format, locale, strict, true).utc();                                            // 64
-    }                                                                                                                  // 65
-                                                                                                                       // 66
-    function defaultParsingFlags() {                                                                                   // 67
-        // We need to deep clone this object.                                                                          // 68
-        return {                                                                                                       // 69
-            empty           : false,                                                                                   // 70
-            unusedTokens    : [],                                                                                      // 71
-            unusedInput     : [],                                                                                      // 72
-            overflow        : -2,                                                                                      // 73
-            charsLeftOver   : 0,                                                                                       // 74
-            nullInput       : false,                                                                                   // 75
-            invalidMonth    : null,                                                                                    // 76
-            invalidFormat   : false,                                                                                   // 77
-            userInvalidated : false,                                                                                   // 78
-            iso             : false                                                                                    // 79
-        };                                                                                                             // 80
-    }                                                                                                                  // 81
-                                                                                                                       // 82
-    function getParsingFlags(m) {                                                                                      // 83
-        if (m._pf == null) {                                                                                           // 84
-            m._pf = defaultParsingFlags();                                                                             // 85
-        }                                                                                                              // 86
-        return m._pf;                                                                                                  // 87
-    }                                                                                                                  // 88
-                                                                                                                       // 89
-    function valid__isValid(m) {                                                                                       // 90
-        if (m._isValid == null) {                                                                                      // 91
-            var flags = getParsingFlags(m);                                                                            // 92
-            m._isValid = !isNaN(m._d.getTime()) &&                                                                     // 93
-                flags.overflow < 0 &&                                                                                  // 94
-                !flags.empty &&                                                                                        // 95
-                !flags.invalidMonth &&                                                                                 // 96
-                !flags.invalidWeekday &&                                                                               // 97
-                !flags.nullInput &&                                                                                    // 98
-                !flags.invalidFormat &&                                                                                // 99
-                !flags.userInvalidated;                                                                                // 100
-                                                                                                                       // 101
-            if (m._strict) {                                                                                           // 102
-                m._isValid = m._isValid &&                                                                             // 103
-                    flags.charsLeftOver === 0 &&                                                                       // 104
-                    flags.unusedTokens.length === 0 &&                                                                 // 105
-                    flags.bigHour === undefined;                                                                       // 106
-            }                                                                                                          // 107
-        }                                                                                                              // 108
-        return m._isValid;                                                                                             // 109
-    }                                                                                                                  // 110
-                                                                                                                       // 111
-    function valid__createInvalid (flags) {                                                                            // 112
-        var m = create_utc__createUTC(NaN);                                                                            // 113
-        if (flags != null) {                                                                                           // 114
-            extend(getParsingFlags(m), flags);                                                                         // 115
-        }                                                                                                              // 116
-        else {                                                                                                         // 117
-            getParsingFlags(m).userInvalidated = true;                                                                 // 118
-        }                                                                                                              // 119
-                                                                                                                       // 120
-        return m;                                                                                                      // 121
-    }                                                                                                                  // 122
-                                                                                                                       // 123
-    var momentProperties = utils_hooks__hooks.momentProperties = [];                                                   // 124
-                                                                                                                       // 125
-    function copyConfig(to, from) {                                                                                    // 126
-        var i, prop, val;                                                                                              // 127
-                                                                                                                       // 128
-        if (typeof from._isAMomentObject !== 'undefined') {                                                            // 129
-            to._isAMomentObject = from._isAMomentObject;                                                               // 130
-        }                                                                                                              // 131
-        if (typeof from._i !== 'undefined') {                                                                          // 132
-            to._i = from._i;                                                                                           // 133
-        }                                                                                                              // 134
-        if (typeof from._f !== 'undefined') {                                                                          // 135
-            to._f = from._f;                                                                                           // 136
-        }                                                                                                              // 137
-        if (typeof from._l !== 'undefined') {                                                                          // 138
-            to._l = from._l;                                                                                           // 139
-        }                                                                                                              // 140
-        if (typeof from._strict !== 'undefined') {                                                                     // 141
-            to._strict = from._strict;                                                                                 // 142
-        }                                                                                                              // 143
-        if (typeof from._tzm !== 'undefined') {                                                                        // 144
-            to._tzm = from._tzm;                                                                                       // 145
-        }                                                                                                              // 146
-        if (typeof from._isUTC !== 'undefined') {                                                                      // 147
-            to._isUTC = from._isUTC;                                                                                   // 148
-        }                                                                                                              // 149
-        if (typeof from._offset !== 'undefined') {                                                                     // 150
-            to._offset = from._offset;                                                                                 // 151
-        }                                                                                                              // 152
-        if (typeof from._pf !== 'undefined') {                                                                         // 153
-            to._pf = getParsingFlags(from);                                                                            // 154
-        }                                                                                                              // 155
-        if (typeof from._locale !== 'undefined') {                                                                     // 156
-            to._locale = from._locale;                                                                                 // 157
-        }                                                                                                              // 158
-                                                                                                                       // 159
-        if (momentProperties.length > 0) {                                                                             // 160
-            for (i in momentProperties) {                                                                              // 161
-                prop = momentProperties[i];                                                                            // 162
-                val = from[prop];                                                                                      // 163
-                if (typeof val !== 'undefined') {                                                                      // 164
-                    to[prop] = val;                                                                                    // 165
-                }                                                                                                      // 166
-            }                                                                                                          // 167
-        }                                                                                                              // 168
-                                                                                                                       // 169
-        return to;                                                                                                     // 170
-    }                                                                                                                  // 171
-                                                                                                                       // 172
-    var updateInProgress = false;                                                                                      // 173
-                                                                                                                       // 174
-    // Moment prototype object                                                                                         // 175
-    function Moment(config) {                                                                                          // 176
-        copyConfig(this, config);                                                                                      // 177
-        this._d = new Date(config._d != null ? config._d.getTime() : NaN);                                             // 178
-        // Prevent infinite loop in case updateOffset creates new moment                                               // 179
-        // objects.                                                                                                    // 180
-        if (updateInProgress === false) {                                                                              // 181
-            updateInProgress = true;                                                                                   // 182
-            utils_hooks__hooks.updateOffset(this);                                                                     // 183
-            updateInProgress = false;                                                                                  // 184
-        }                                                                                                              // 185
-    }                                                                                                                  // 186
-                                                                                                                       // 187
-    function isMoment (obj) {                                                                                          // 188
-        return obj instanceof Moment || (obj != null && obj._isAMomentObject != null);                                 // 189
-    }                                                                                                                  // 190
-                                                                                                                       // 191
-    function absFloor (number) {                                                                                       // 192
-        if (number < 0) {                                                                                              // 193
-            return Math.ceil(number);                                                                                  // 194
-        } else {                                                                                                       // 195
-            return Math.floor(number);                                                                                 // 196
-        }                                                                                                              // 197
-    }                                                                                                                  // 198
-                                                                                                                       // 199
-    function toInt(argumentForCoercion) {                                                                              // 200
-        var coercedNumber = +argumentForCoercion,                                                                      // 201
-            value = 0;                                                                                                 // 202
-                                                                                                                       // 203
-        if (coercedNumber !== 0 && isFinite(coercedNumber)) {                                                          // 204
-            value = absFloor(coercedNumber);                                                                           // 205
-        }                                                                                                              // 206
-                                                                                                                       // 207
-        return value;                                                                                                  // 208
-    }                                                                                                                  // 209
-                                                                                                                       // 210
-    function compareArrays(array1, array2, dontConvert) {                                                              // 211
-        var len = Math.min(array1.length, array2.length),                                                              // 212
-            lengthDiff = Math.abs(array1.length - array2.length),                                                      // 213
-            diffs = 0,                                                                                                 // 214
-            i;                                                                                                         // 215
-        for (i = 0; i < len; i++) {                                                                                    // 216
-            if ((dontConvert && array1[i] !== array2[i]) ||                                                            // 217
-                (!dontConvert && toInt(array1[i]) !== toInt(array2[i]))) {                                             // 218
-                diffs++;                                                                                               // 219
-            }                                                                                                          // 220
-        }                                                                                                              // 221
-        return diffs + lengthDiff;                                                                                     // 222
-    }                                                                                                                  // 223
-                                                                                                                       // 224
-    function Locale() {                                                                                                // 225
-    }                                                                                                                  // 226
-                                                                                                                       // 227
-    var locales = {};                                                                                                  // 228
-    var globalLocale;                                                                                                  // 229
-                                                                                                                       // 230
-    function normalizeLocale(key) {                                                                                    // 231
-        return key ? key.toLowerCase().replace('_', '-') : key;                                                        // 232
-    }                                                                                                                  // 233
-                                                                                                                       // 234
-    // pick the locale from the array                                                                                  // 235
-    // try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each                       // 236
-    // substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
-    function chooseLocale(names) {                                                                                     // 238
-        var i = 0, j, next, locale, split;                                                                             // 239
-                                                                                                                       // 240
-        while (i < names.length) {                                                                                     // 241
-            split = normalizeLocale(names[i]).split('-');                                                              // 242
-            j = split.length;                                                                                          // 243
-            next = normalizeLocale(names[i + 1]);                                                                      // 244
-            next = next ? next.split('-') : null;                                                                      // 245
-            while (j > 0) {                                                                                            // 246
-                locale = loadLocale(split.slice(0, j).join('-'));                                                      // 247
-                if (locale) {                                                                                          // 248
-                    return locale;                                                                                     // 249
-                }                                                                                                      // 250
-                if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {                           // 251
-                    //the next array item is better than a shallower substring of this one                             // 252
-                    break;                                                                                             // 253
-                }                                                                                                      // 254
-                j--;                                                                                                   // 255
-            }                                                                                                          // 256
-            i++;                                                                                                       // 257
-        }                                                                                                              // 258
-        return null;                                                                                                   // 259
-    }                                                                                                                  // 260
-                                                                                                                       // 261
-    function loadLocale(name) {                                                                                        // 262
-        var oldLocale = null;                                                                                          // 263
-        // TODO: Find a better way to register and load all the locales in Node                                        // 264
-        if (!locales[name] && typeof module !== 'undefined' &&                                                         // 265
-                module && module.exports) {                                                                            // 266
-            try {                                                                                                      // 267
-                oldLocale = globalLocale._abbr;                                                                        // 268
-                require('./locale/' + name);                                                                           // 269
-                // because defineLocale currently also sets the global locale, we                                      // 270
-                // want to undo that for lazy loaded locales                                                           // 271
-                locale_locales__getSetGlobalLocale(oldLocale);                                                         // 272
-            } catch (e) { }                                                                                            // 273
-        }                                                                                                              // 274
-        return locales[name];                                                                                          // 275
-    }                                                                                                                  // 276
-                                                                                                                       // 277
-    // This function will load locale and then set the global locale.  If                                              // 278
-    // no arguments are passed in, it will simply return the current global                                            // 279
-    // locale key.                                                                                                     // 280
-    function locale_locales__getSetGlobalLocale (key, values) {                                                        // 281
-        var data;                                                                                                      // 282
-        if (key) {                                                                                                     // 283
-            if (typeof values === 'undefined') {                                                                       // 284
-                data = locale_locales__getLocale(key);                                                                 // 285
-            }                                                                                                          // 286
-            else {                                                                                                     // 287
-                data = defineLocale(key, values);                                                                      // 288
-            }                                                                                                          // 289
-                                                                                                                       // 290
-            if (data) {                                                                                                // 291
-                // moment.duration._locale = moment._locale = data;                                                    // 292
-                globalLocale = data;                                                                                   // 293
-            }                                                                                                          // 294
-        }                                                                                                              // 295
-                                                                                                                       // 296
-        return globalLocale._abbr;                                                                                     // 297
-    }                                                                                                                  // 298
-                                                                                                                       // 299
-    function defineLocale (name, values) {                                                                             // 300
-        if (values !== null) {                                                                                         // 301
-            values.abbr = name;                                                                                        // 302
-            locales[name] = locales[name] || new Locale();                                                             // 303
-            locales[name].set(values);                                                                                 // 304
-                                                                                                                       // 305
-            // backwards compat for now: also set the locale                                                           // 306
-            locale_locales__getSetGlobalLocale(name);                                                                  // 307
-                                                                                                                       // 308
-            return locales[name];                                                                                      // 309
-        } else {                                                                                                       // 310
-            // useful for testing                                                                                      // 311
-            delete locales[name];                                                                                      // 312
-            return null;                                                                                               // 313
-        }                                                                                                              // 314
-    }                                                                                                                  // 315
-                                                                                                                       // 316
-    // returns locale data                                                                                             // 317
-    function locale_locales__getLocale (key) {                                                                         // 318
-        var locale;                                                                                                    // 319
-                                                                                                                       // 320
-        if (key && key._locale && key._locale._abbr) {                                                                 // 321
-            key = key._locale._abbr;                                                                                   // 322
-        }                                                                                                              // 323
-                                                                                                                       // 324
-        if (!key) {                                                                                                    // 325
-            return globalLocale;                                                                                       // 326
-        }                                                                                                              // 327
-                                                                                                                       // 328
-        if (!isArray(key)) {                                                                                           // 329
-            //short-circuit everything else                                                                            // 330
-            locale = loadLocale(key);                                                                                  // 331
-            if (locale) {                                                                                              // 332
-                return locale;                                                                                         // 333
-            }                                                                                                          // 334
-            key = [key];                                                                                               // 335
-        }                                                                                                              // 336
-                                                                                                                       // 337
-        return chooseLocale(key);                                                                                      // 338
-    }                                                                                                                  // 339
-                                                                                                                       // 340
-    var aliases = {};                                                                                                  // 341
-                                                                                                                       // 342
-    function addUnitAlias (unit, shorthand) {                                                                          // 343
-        var lowerCase = unit.toLowerCase();                                                                            // 344
-        aliases[lowerCase] = aliases[lowerCase + 's'] = aliases[shorthand] = unit;                                     // 345
-    }                                                                                                                  // 346
-                                                                                                                       // 347
-    function normalizeUnits(units) {                                                                                   // 348
-        return typeof units === 'string' ? aliases[units] || aliases[units.toLowerCase()] : undefined;                 // 349
-    }                                                                                                                  // 350
-                                                                                                                       // 351
-    function normalizeObjectUnits(inputObject) {                                                                       // 352
-        var normalizedInput = {},                                                                                      // 353
-            normalizedProp,                                                                                            // 354
-            prop;                                                                                                      // 355
-                                                                                                                       // 356
-        for (prop in inputObject) {                                                                                    // 357
-            if (hasOwnProp(inputObject, prop)) {                                                                       // 358
-                normalizedProp = normalizeUnits(prop);                                                                 // 359
-                if (normalizedProp) {                                                                                  // 360
-                    normalizedInput[normalizedProp] = inputObject[prop];                                               // 361
-                }                                                                                                      // 362
-            }                                                                                                          // 363
-        }                                                                                                              // 364
-                                                                                                                       // 365
-        return normalizedInput;                                                                                        // 366
-    }                                                                                                                  // 367
-                                                                                                                       // 368
-    function makeGetSet (unit, keepTime) {                                                                             // 369
-        return function (value) {                                                                                      // 370
-            if (value != null) {                                                                                       // 371
-                get_set__set(this, unit, value);                                                                       // 372
-                utils_hooks__hooks.updateOffset(this, keepTime);                                                       // 373
-                return this;                                                                                           // 374
-            } else {                                                                                                   // 375
-                return get_set__get(this, unit);                                                                       // 376
-            }                                                                                                          // 377
-        };                                                                                                             // 378
-    }                                                                                                                  // 379
-                                                                                                                       // 380
-    function get_set__get (mom, unit) {                                                                                // 381
-        return mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]();                                                     // 382
-    }                                                                                                                  // 383
-                                                                                                                       // 384
-    function get_set__set (mom, unit, value) {                                                                         // 385
-        return mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);                                                // 386
-    }                                                                                                                  // 387
-                                                                                                                       // 388
-    // MOMENTS                                                                                                         // 389
-                                                                                                                       // 390
-    function getSet (units, value) {                                                                                   // 391
-        var unit;                                                                                                      // 392
-        if (typeof units === 'object') {                                                                               // 393
-            for (unit in units) {                                                                                      // 394
-                this.set(unit, units[unit]);                                                                           // 395
-            }                                                                                                          // 396
-        } else {                                                                                                       // 397
-            units = normalizeUnits(units);                                                                             // 398
-            if (typeof this[units] === 'function') {                                                                   // 399
-                return this[units](value);                                                                             // 400
-            }                                                                                                          // 401
-        }                                                                                                              // 402
-        return this;                                                                                                   // 403
-    }                                                                                                                  // 404
-                                                                                                                       // 405
-    function zeroFill(number, targetLength, forceSign) {                                                               // 406
-        var absNumber = '' + Math.abs(number),                                                                         // 407
-            zerosToFill = targetLength - absNumber.length,                                                             // 408
-            sign = number >= 0;                                                                                        // 409
-        return (sign ? (forceSign ? '+' : '') : '-') +                                                                 // 410
-            Math.pow(10, Math.max(0, zerosToFill)).toString().substr(1) + absNumber;                                   // 411
-    }                                                                                                                  // 412
-                                                                                                                       // 413
-    var formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,9}|x|X|zz?|ZZ?|.)/g;
-                                                                                                                       // 415
-    var localFormattingTokens = /(\[[^\[]*\])|(\\)?(LTS|LT|LL?L?L?|l{1,4})/g;                                          // 416
-                                                                                                                       // 417
-    var formatFunctions = {};                                                                                          // 418
-                                                                                                                       // 419
-    var formatTokenFunctions = {};                                                                                     // 420
-                                                                                                                       // 421
-    // token:    'M'                                                                                                   // 422
-    // padded:   ['MM', 2]                                                                                             // 423
-    // ordinal:  'Mo'                                                                                                  // 424
-    // callback: function () { this.month() + 1 }                                                                      // 425
-    function addFormatToken (token, padded, ordinal, callback) {                                                       // 426
-        var func = callback;                                                                                           // 427
-        if (typeof callback === 'string') {                                                                            // 428
-            func = function () {                                                                                       // 429
-                return this[callback]();                                                                               // 430
-            };                                                                                                         // 431
-        }                                                                                                              // 432
-        if (token) {                                                                                                   // 433
-            formatTokenFunctions[token] = func;                                                                        // 434
-        }                                                                                                              // 435
-        if (padded) {                                                                                                  // 436
-            formatTokenFunctions[padded[0]] = function () {                                                            // 437
-                return zeroFill(func.apply(this, arguments), padded[1], padded[2]);                                    // 438
-            };                                                                                                         // 439
-        }                                                                                                              // 440
-        if (ordinal) {                                                                                                 // 441
-            formatTokenFunctions[ordinal] = function () {                                                              // 442
-                return this.localeData().ordinal(func.apply(this, arguments), token);                                  // 443
-            };                                                                                                         // 444
-        }                                                                                                              // 445
-    }                                                                                                                  // 446
-                                                                                                                       // 447
-    function removeFormattingTokens(input) {                                                                           // 448
-        if (input.match(/\[[\s\S]/)) {                                                                                 // 449
-            return input.replace(/^\[|\]$/g, '');                                                                      // 450
-        }                                                                                                              // 451
-        return input.replace(/\\/g, '');                                                                               // 452
-    }                                                                                                                  // 453
-                                                                                                                       // 454
-    function makeFormatFunction(format) {                                                                              // 455
-        var array = format.match(formattingTokens), i, length;                                                         // 456
-                                                                                                                       // 457
-        for (i = 0, length = array.length; i < length; i++) {                                                          // 458
-            if (formatTokenFunctions[array[i]]) {                                                                      // 459
-                array[i] = formatTokenFunctions[array[i]];                                                             // 460
-            } else {                                                                                                   // 461
-                array[i] = removeFormattingTokens(array[i]);                                                           // 462
-            }                                                                                                          // 463
-        }                                                                                                              // 464
-                                                                                                                       // 465
-        return function (mom) {                                                                                        // 466
-            var output = '';                                                                                           // 467
-            for (i = 0; i < length; i++) {                                                                             // 468
-                output += array[i] instanceof Function ? array[i].call(mom, format) : array[i];                        // 469
-            }                                                                                                          // 470
-            return output;                                                                                             // 471
-        };                                                                                                             // 472
-    }                                                                                                                  // 473
-                                                                                                                       // 474
-    // format date using native date object                                                                            // 475
-    function formatMoment(m, format) {                                                                                 // 476
-        if (!m.isValid()) {                                                                                            // 477
-            return m.localeData().invalidDate();                                                                       // 478
-        }                                                                                                              // 479
-                                                                                                                       // 480
-        format = expandFormat(format, m.localeData());                                                                 // 481
-        formatFunctions[format] = formatFunctions[format] || makeFormatFunction(format);                               // 482
-                                                                                                                       // 483
-        return formatFunctions[format](m);                                                                             // 484
-    }                                                                                                                  // 485
-                                                                                                                       // 486
-    function expandFormat(format, locale) {                                                                            // 487
-        var i = 5;                                                                                                     // 488
-                                                                                                                       // 489
-        function replaceLongDateFormatTokens(input) {                                                                  // 490
-            return locale.longDateFormat(input) || input;                                                              // 491
-        }                                                                                                              // 492
-                                                                                                                       // 493
-        localFormattingTokens.lastIndex = 0;                                                                           // 494
-        while (i >= 0 && localFormattingTokens.test(format)) {                                                         // 495
-            format = format.replace(localFormattingTokens, replaceLongDateFormatTokens);                               // 496
-            localFormattingTokens.lastIndex = 0;                                                                       // 497
-            i -= 1;                                                                                                    // 498
-        }                                                                                                              // 499
-                                                                                                                       // 500
-        return format;                                                                                                 // 501
-    }                                                                                                                  // 502
-                                                                                                                       // 503
-    var match1         = /\d/;            //       0 - 9                                                               // 504
-    var match2         = /\d\d/;          //      00 - 99                                                              // 505
-    var match3         = /\d{3}/;         //     000 - 999                                                             // 506
-    var match4         = /\d{4}/;         //    0000 - 9999                                                            // 507
-    var match6         = /[+-]?\d{6}/;    // -999999 - 999999                                                          // 508
-    var match1to2      = /\d\d?/;         //       0 - 99                                                              // 509
-    var match1to3      = /\d{1,3}/;       //       0 - 999                                                             // 510
-    var match1to4      = /\d{1,4}/;       //       0 - 9999                                                            // 511
-    var match1to6      = /[+-]?\d{1,6}/;  // -999999 - 999999                                                          // 512
-                                                                                                                       // 513
-    var matchUnsigned  = /\d+/;           //       0 - inf                                                             // 514
-    var matchSigned    = /[+-]?\d+/;      //    -inf - inf                                                             // 515
-                                                                                                                       // 516
-    var matchOffset    = /Z|[+-]\d\d:?\d\d/gi; // +00:00 -00:00 +0000 -0000 or Z                                       // 517
-                                                                                                                       // 518
-    var matchTimestamp = /[+-]?\d+(\.\d{1,3})?/; // 123456789 123456789.123                                            // 519
-                                                                                                                       // 520
-    // any word (or two) characters or numbers including two/three word month in arabic.                               // 521
-    var matchWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i;
-                                                                                                                       // 523
-    var regexes = {};                                                                                                  // 524
-                                                                                                                       // 525
-    function isFunction (sth) {                                                                                        // 526
-        // https://github.com/moment/moment/issues/2325                                                                // 527
-        return typeof sth === 'function' &&                                                                            // 528
-            Object.prototype.toString.call(sth) === '[object Function]';                                               // 529
-    }                                                                                                                  // 530
-                                                                                                                       // 531
-                                                                                                                       // 532
-    function addRegexToken (token, regex, strictRegex) {                                                               // 533
-        regexes[token] = isFunction(regex) ? regex : function (isStrict) {                                             // 534
-            return (isStrict && strictRegex) ? strictRegex : regex;                                                    // 535
-        };                                                                                                             // 536
-    }                                                                                                                  // 537
-                                                                                                                       // 538
-    function getParseRegexForToken (token, config) {                                                                   // 539
-        if (!hasOwnProp(regexes, token)) {                                                                             // 540
-            return new RegExp(unescapeFormat(token));                                                                  // 541
-        }                                                                                                              // 542
-                                                                                                                       // 543
-        return regexes[token](config._strict, config._locale);                                                         // 544
-    }                                                                                                                  // 545
-                                                                                                                       // 546
-    // Code from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript            // 547
-    function unescapeFormat(s) {                                                                                       // 548
-        return s.replace('\\', '').replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) { // 549
-            return p1 || p2 || p3 || p4;                                                                               // 550
-        }).replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');                                                                  // 551
-    }                                                                                                                  // 552
-                                                                                                                       // 553
-    var tokens = {};                                                                                                   // 554
-                                                                                                                       // 555
-    function addParseToken (token, callback) {                                                                         // 556
-        var i, func = callback;                                                                                        // 557
-        if (typeof token === 'string') {                                                                               // 558
-            token = [token];                                                                                           // 559
-        }                                                                                                              // 560
-        if (typeof callback === 'number') {                                                                            // 561
-            func = function (input, array) {                                                                           // 562
-                array[callback] = toInt(input);                                                                        // 563
-            };                                                                                                         // 564
-        }                                                                                                              // 565
-        for (i = 0; i < token.length; i++) {                                                                           // 566
-            tokens[token[i]] = func;                                                                                   // 567
-        }                                                                                                              // 568
-    }                                                                                                                  // 569
-                                                                                                                       // 570
-    function addWeekParseToken (token, callback) {                                                                     // 571
-        addParseToken(token, function (input, array, config, token) {                                                  // 572
-            config._w = config._w || {};                                                                               // 573
-            callback(input, config._w, config, token);                                                                 // 574
-        });                                                                                                            // 575
-    }                                                                                                                  // 576
-                                                                                                                       // 577
-    function addTimeToArrayFromToken(token, input, config) {                                                           // 578
-        if (input != null && hasOwnProp(tokens, token)) {                                                              // 579
-            tokens[token](input, config._a, config, token);                                                            // 580
-        }                                                                                                              // 581
-    }                                                                                                                  // 582
-                                                                                                                       // 583
-    var YEAR = 0;                                                                                                      // 584
-    var MONTH = 1;                                                                                                     // 585
-    var DATE = 2;                                                                                                      // 586
-    var HOUR = 3;                                                                                                      // 587
-    var MINUTE = 4;                                                                                                    // 588
-    var SECOND = 5;                                                                                                    // 589
-    var MILLISECOND = 6;                                                                                               // 590
-                                                                                                                       // 591
-    function daysInMonth(year, month) {                                                                                // 592
-        return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();                                                    // 593
-    }                                                                                                                  // 594
-                                                                                                                       // 595
-    // FORMATTING                                                                                                      // 596
-                                                                                                                       // 597
-    addFormatToken('M', ['MM', 2], 'Mo', function () {                                                                 // 598
-        return this.month() + 1;                                                                                       // 599
-    });                                                                                                                // 600
-                                                                                                                       // 601
-    addFormatToken('MMM', 0, 0, function (format) {                                                                    // 602
-        return this.localeData().monthsShort(this, format);                                                            // 603
-    });                                                                                                                // 604
-                                                                                                                       // 605
-    addFormatToken('MMMM', 0, 0, function (format) {                                                                   // 606
-        return this.localeData().months(this, format);                                                                 // 607
-    });                                                                                                                // 608
-                                                                                                                       // 609
-    // ALIASES                                                                                                         // 610
-                                                                                                                       // 611
-    addUnitAlias('month', 'M');                                                                                        // 612
-                                                                                                                       // 613
-    // PARSING                                                                                                         // 614
-                                                                                                                       // 615
-    addRegexToken('M',    match1to2);                                                                                  // 616
-    addRegexToken('MM',   match1to2, match2);                                                                          // 617
-    addRegexToken('MMM',  matchWord);                                                                                  // 618
-    addRegexToken('MMMM', matchWord);                                                                                  // 619
-                                                                                                                       // 620
-    addParseToken(['M', 'MM'], function (input, array) {                                                               // 621
-        array[MONTH] = toInt(input) - 1;                                                                               // 622
-    });                                                                                                                // 623
-                                                                                                                       // 624
-    addParseToken(['MMM', 'MMMM'], function (input, array, config, token) {                                            // 625
-        var month = config._locale.monthsParse(input, token, config._strict);                                          // 626
-        // if we didn't find a month name, mark the date as invalid.                                                   // 627
-        if (month != null) {                                                                                           // 628
-            array[MONTH] = month;                                                                                      // 629
-        } else {                                                                                                       // 630
-            getParsingFlags(config).invalidMonth = input;                                                              // 631
-        }                                                                                                              // 632
-    });                                                                                                                // 633
-                                                                                                                       // 634
-    // LOCALES                                                                                                         // 635
-                                                                                                                       // 636
-    var defaultLocaleMonths = 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_');
-    function localeMonths (m) {                                                                                        // 638
-        return this._months[m.month()];                                                                                // 639
-    }                                                                                                                  // 640
-                                                                                                                       // 641
-    var defaultLocaleMonthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_');                       // 642
-    function localeMonthsShort (m) {                                                                                   // 643
-        return this._monthsShort[m.month()];                                                                           // 644
-    }                                                                                                                  // 645
-                                                                                                                       // 646
-    function localeMonthsParse (monthName, format, strict) {                                                           // 647
-        var i, mom, regex;                                                                                             // 648
-                                                                                                                       // 649
-        if (!this._monthsParse) {                                                                                      // 650
-            this._monthsParse = [];                                                                                    // 651
-            this._longMonthsParse = [];                                                                                // 652
-            this._shortMonthsParse = [];                                                                               // 653
-        }                                                                                                              // 654
-                                                                                                                       // 655
-        for (i = 0; i < 12; i++) {                                                                                     // 656
-            // make the regex if we don't have it already                                                              // 657
-            mom = create_utc__createUTC([2000, i]);                                                                    // 658
-            if (strict && !this._longMonthsParse[i]) {                                                                 // 659
-                this._longMonthsParse[i] = new RegExp('^' + this.months(mom, '').replace('.', '') + '$', 'i');         // 660
-                this._shortMonthsParse[i] = new RegExp('^' + this.monthsShort(mom, '').replace('.', '') + '$', 'i');   // 661
-            }                                                                                                          // 662
-            if (!strict && !this._monthsParse[i]) {                                                                    // 663
-                regex = '^' + this.months(mom, '') + '|^' + this.monthsShort(mom, '');                                 // 664
-                this._monthsParse[i] = new RegExp(regex.replace('.', ''), 'i');                                        // 665
-            }                                                                                                          // 666
-            // test the regex                                                                                          // 667
-            if (strict && format === 'MMMM' && this._longMonthsParse[i].test(monthName)) {                             // 668
-                return i;                                                                                              // 669
-            } else if (strict && format === 'MMM' && this._shortMonthsParse[i].test(monthName)) {                      // 670
-                return i;                                                                                              // 671
-            } else if (!strict && this._monthsParse[i].test(monthName)) {                                              // 672
-                return i;                                                                                              // 673
-            }                                                                                                          // 674
-        }                                                                                                              // 675
-    }                                                                                                                  // 676
-                                                                                                                       // 677
-    // MOMENTS                                                                                                         // 678
-                                                                                                                       // 679
-    function setMonth (mom, value) {                                                                                   // 680
-        var dayOfMonth;                                                                                                // 681
-                                                                                                                       // 682
-        // TODO: Move this out of here!                                                                                // 683
-        if (typeof value === 'string') {                                                                               // 684
-            value = mom.localeData().monthsParse(value);                                                               // 685
-            // TODO: Another silent failure?                                                                           // 686
-            if (typeof value !== 'number') {                                                                           // 687
-                return mom;                                                                                            // 688
-            }                                                                                                          // 689
-        }                                                                                                              // 690
-                                                                                                                       // 691
-        dayOfMonth = Math.min(mom.date(), daysInMonth(mom.year(), value));                                             // 692
-        mom._d['set' + (mom._isUTC ? 'UTC' : '') + 'Month'](value, dayOfMonth);                                        // 693
-        return mom;                                                                                                    // 694
-    }                                                                                                                  // 695
-                                                                                                                       // 696
-    function getSetMonth (value) {                                                                                     // 697
-        if (value != null) {                                                                                           // 698
-            setMonth(this, value);                                                                                     // 699
-            utils_hooks__hooks.updateOffset(this, true);                                                               // 700
-            return this;                                                                                               // 701
-        } else {                                                                                                       // 702
-            return get_set__get(this, 'Month');                                                                        // 703
-        }                                                                                                              // 704
-    }                                                                                                                  // 705
-                                                                                                                       // 706
-    function getDaysInMonth () {                                                                                       // 707
-        return daysInMonth(this.year(), this.month());                                                                 // 708
-    }                                                                                                                  // 709
-                                                                                                                       // 710
-    function checkOverflow (m) {                                                                                       // 711
-        var overflow;                                                                                                  // 712
-        var a = m._a;                                                                                                  // 713
-                                                                                                                       // 714
-        if (a && getParsingFlags(m).overflow === -2) {                                                                 // 715
-            overflow =                                                                                                 // 716
-                a[MONTH]       < 0 || a[MONTH]       > 11  ? MONTH :                                                   // 717
-                a[DATE]        < 1 || a[DATE]        > daysInMonth(a[YEAR], a[MONTH]) ? DATE :                         // 718
-                a[HOUR]        < 0 || a[HOUR]        > 24 || (a[HOUR] === 24 && (a[MINUTE] !== 0 || a[SECOND] !== 0 || a[MILLISECOND] !== 0)) ? HOUR :
-                a[MINUTE]      < 0 || a[MINUTE]      > 59  ? MINUTE :                                                  // 720
-                a[SECOND]      < 0 || a[SECOND]      > 59  ? SECOND :                                                  // 721
-                a[MILLISECOND] < 0 || a[MILLISECOND] > 999 ? MILLISECOND :                                             // 722
-                -1;                                                                                                    // 723
-                                                                                                                       // 724
-            if (getParsingFlags(m)._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {                       // 725
-                overflow = DATE;                                                                                       // 726
-            }                                                                                                          // 727
-                                                                                                                       // 728
-            getParsingFlags(m).overflow = overflow;                                                                    // 729
-        }                                                                                                              // 730
-                                                                                                                       // 731
-        return m;                                                                                                      // 732
-    }                                                                                                                  // 733
-                                                                                                                       // 734
-    function warn(msg) {                                                                                               // 735
-        if (utils_hooks__hooks.suppressDeprecationWarnings === false && typeof console !== 'undefined' && console.warn) {
-            console.warn('Deprecation warning: ' + msg);                                                               // 737
-        }                                                                                                              // 738
-    }                                                                                                                  // 739
-                                                                                                                       // 740
-    function deprecate(msg, fn) {                                                                                      // 741
-        var firstTime = true;                                                                                          // 742
-                                                                                                                       // 743
-        return extend(function () {                                                                                    // 744
-            if (firstTime) {                                                                                           // 745
-                warn(msg + '\n' + (new Error()).stack);                                                                // 746
-                firstTime = false;                                                                                     // 747
-            }                                                                                                          // 748
-            return fn.apply(this, arguments);                                                                          // 749
-        }, fn);                                                                                                        // 750
-    }                                                                                                                  // 751
-                                                                                                                       // 752
-    var deprecations = {};                                                                                             // 753
-                                                                                                                       // 754
-    function deprecateSimple(name, msg) {                                                                              // 755
-        if (!deprecations[name]) {                                                                                     // 756
-            warn(msg);                                                                                                 // 757
-            deprecations[name] = true;                                                                                 // 758
-        }                                                                                                              // 759
-    }                                                                                                                  // 760
-                                                                                                                       // 761
-    utils_hooks__hooks.suppressDeprecationWarnings = false;                                                            // 762
-                                                                                                                       // 763
-    var from_string__isoRegex = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/;
-                                                                                                                       // 765
-    var isoDates = [                                                                                                   // 766
-        ['YYYYYY-MM-DD', /[+-]\d{6}-\d{2}-\d{2}/],                                                                     // 767
-        ['YYYY-MM-DD', /\d{4}-\d{2}-\d{2}/],                                                                           // 768
-        ['GGGG-[W]WW-E', /\d{4}-W\d{2}-\d/],                                                                           // 769
-        ['GGGG-[W]WW', /\d{4}-W\d{2}/],                                                                                // 770
-        ['YYYY-DDD', /\d{4}-\d{3}/]                                                                                    // 771
-    ];                                                                                                                 // 772
-                                                                                                                       // 773
-    // iso time formats and regexes                                                                                    // 774
-    var isoTimes = [                                                                                                   // 775
-        ['HH:mm:ss.SSSS', /(T| )\d\d:\d\d:\d\d\.\d+/],                                                                 // 776
-        ['HH:mm:ss', /(T| )\d\d:\d\d:\d\d/],                                                                           // 777
-        ['HH:mm', /(T| )\d\d:\d\d/],                                                                                   // 778
-        ['HH', /(T| )\d\d/]                                                                                            // 779
-    ];                                                                                                                 // 780
-                                                                                                                       // 781
-    var aspNetJsonRegex = /^\/?Date\((\-?\d+)/i;                                                                       // 782
-                                                                                                                       // 783
-    // date from iso format                                                                                            // 784
-    function configFromISO(config) {                                                                                   // 785
-        var i, l,                                                                                                      // 786
-            string = config._i,                                                                                        // 787
-            match = from_string__isoRegex.exec(string);                                                                // 788
-                                                                                                                       // 789
-        if (match) {                                                                                                   // 790
-            getParsingFlags(config).iso = true;                                                                        // 791
-            for (i = 0, l = isoDates.length; i < l; i++) {                                                             // 792
-                if (isoDates[i][1].exec(string)) {                                                                     // 793
-                    config._f = isoDates[i][0];                                                                        // 794
-                    break;                                                                                             // 795
-                }                                                                                                      // 796
-            }                                                                                                          // 797
-            for (i = 0, l = isoTimes.length; i < l; i++) {                                                             // 798
-                if (isoTimes[i][1].exec(string)) {                                                                     // 799
-                    // match[6] should be 'T' or space                                                                 // 800
-                    config._f += (match[6] || ' ') + isoTimes[i][0];                                                   // 801
-                    break;                                                                                             // 802
-                }                                                                                                      // 803
-            }                                                                                                          // 804
-            if (string.match(matchOffset)) {                                                                           // 805
-                config._f += 'Z';                                                                                      // 806
-            }                                                                                                          // 807
-            configFromStringAndFormat(config);                                                                         // 808
-        } else {                                                                                                       // 809
-            config._isValid = false;                                                                                   // 810
-        }                                                                                                              // 811
-    }                                                                                                                  // 812
-                                                                                                                       // 813
-    // date from iso format or fallback                                                                                // 814
-    function configFromString(config) {                                                                                // 815
-        var matched = aspNetJsonRegex.exec(config._i);                                                                 // 816
-                                                                                                                       // 817
-        if (matched !== null) {                                                                                        // 818
-            config._d = new Date(+matched[1]);                                                                         // 819
-            return;                                                                                                    // 820
-        }                                                                                                              // 821
-                                                                                                                       // 822
-        configFromISO(config);                                                                                         // 823
-        if (config._isValid === false) {                                                                               // 824
-            delete config._isValid;                                                                                    // 825
-            utils_hooks__hooks.createFromInputFallback(config);                                                        // 826
-        }                                                                                                              // 827
-    }                                                                                                                  // 828
-                                                                                                                       // 829
-    utils_hooks__hooks.createFromInputFallback = deprecate(                                                            // 830
-        'moment construction falls back to js Date. This is ' +                                                        // 831
-        'discouraged and will be removed in upcoming major ' +                                                         // 832
-        'release. Please refer to ' +                                                                                  // 833
-        'https://github.com/moment/moment/issues/1407 for more info.',                                                 // 834
-        function (config) {                                                                                            // 835
-            config._d = new Date(config._i + (config._useUTC ? ' UTC' : ''));                                          // 836
-        }                                                                                                              // 837
-    );                                                                                                                 // 838
-                                                                                                                       // 839
-    function createDate (y, m, d, h, M, s, ms) {                                                                       // 840
-        //can't just apply() to create a date:                                                                         // 841
-        //http://stackoverflow.com/questions/181348/instantiating-a-javascript-object-by-calling-prototype-constructor-apply
-        var date = new Date(y, m, d, h, M, s, ms);                                                                     // 843
-                                                                                                                       // 844
-        //the date constructor doesn't accept years < 1970                                                             // 845
-        if (y < 1970) {                                                                                                // 846
-            date.setFullYear(y);                                                                                       // 847
-        }                                                                                                              // 848
-        return date;                                                                                                   // 849
-    }                                                                                                                  // 850
-                                                                                                                       // 851
-    function createUTCDate (y) {                                                                                       // 852
-        var date = new Date(Date.UTC.apply(null, arguments));                                                          // 853
-        if (y < 1970) {                                                                                                // 854
-            date.setUTCFullYear(y);                                                                                    // 855
-        }                                                                                                              // 856
-        return date;                                                                                                   // 857
-    }                                                                                                                  // 858
-                                                                                                                       // 859
-    addFormatToken(0, ['YY', 2], 0, function () {                                                                      // 860
-        return this.year() % 100;                                                                                      // 861
-    });                                                                                                                // 862
-                                                                                                                       // 863
-    addFormatToken(0, ['YYYY',   4],       0, 'year');                                                                 // 864
-    addFormatToken(0, ['YYYYY',  5],       0, 'year');                                                                 // 865
-    addFormatToken(0, ['YYYYYY', 6, true], 0, 'year');                                                                 // 866
-                                                                                                                       // 867
-    // ALIASES                                                                                                         // 868
-                                                                                                                       // 869
-    addUnitAlias('year', 'y');                                                                                         // 870
-                                                                                                                       // 871
-    // PARSING                                                                                                         // 872
-                                                                                                                       // 873
-    addRegexToken('Y',      matchSigned);                                                                              // 874
-    addRegexToken('YY',     match1to2, match2);                                                                        // 875
-    addRegexToken('YYYY',   match1to4, match4);                                                                        // 876
-    addRegexToken('YYYYY',  match1to6, match6);                                                                        // 877
-    addRegexToken('YYYYYY', match1to6, match6);                                                                        // 878
-                                                                                                                       // 879
-    addParseToken(['YYYYY', 'YYYYYY'], YEAR);                                                                          // 880
-    addParseToken('YYYY', function (input, array) {                                                                    // 881
-        array[YEAR] = input.length === 2 ? utils_hooks__hooks.parseTwoDigitYear(input) : toInt(input);                 // 882
-    });                                                                                                                // 883
-    addParseToken('YY', function (input, array) {                                                                      // 884
-        array[YEAR] = utils_hooks__hooks.parseTwoDigitYear(input);                                                     // 885
-    });                                                                                                                // 886
-                                                                                                                       // 887
-    // HELPERS                                                                                                         // 888
-                                                                                                                       // 889
-    function daysInYear(year) {                                                                                        // 890
-        return isLeapYear(year) ? 366 : 365;                                                                           // 891
-    }                                                                                                                  // 892
-                                                                                                                       // 893
-    function isLeapYear(year) {                                                                                        // 894
-        return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;                                               // 895
-    }                                                                                                                  // 896
-                                                                                                                       // 897
-    // HOOKS                                                                                                           // 898
-                                                                                                                       // 899
-    utils_hooks__hooks.parseTwoDigitYear = function (input) {                                                          // 900
-        return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);                                                       // 901
-    };                                                                                                                 // 902
-                                                                                                                       // 903
-    // MOMENTS                                                                                                         // 904
-                                                                                                                       // 905
-    var getSetYear = makeGetSet('FullYear', false);                                                                    // 906
-                                                                                                                       // 907
-    function getIsLeapYear () {                                                                                        // 908
-        return isLeapYear(this.year());                                                                                // 909
-    }                                                                                                                  // 910
-                                                                                                                       // 911
-    addFormatToken('w', ['ww', 2], 'wo', 'week');                                                                      // 912
-    addFormatToken('W', ['WW', 2], 'Wo', 'isoWeek');                                                                   // 913
-                                                                                                                       // 914
-    // ALIASES                                                                                                         // 915
-                                                                                                                       // 916
-    addUnitAlias('week', 'w');                                                                                         // 917
-    addUnitAlias('isoWeek', 'W');                                                                                      // 918
-                                                                                                                       // 919
-    // PARSING                                                                                                         // 920
-                                                                                                                       // 921
-    addRegexToken('w',  match1to2);                                                                                    // 922
-    addRegexToken('ww', match1to2, match2);                                                                            // 923
-    addRegexToken('W',  match1to2);                                                                                    // 924
-    addRegexToken('WW', match1to2, match2);                                                                            // 925
-                                                                                                                       // 926
-    addWeekParseToken(['w', 'ww', 'W', 'WW'], function (input, week, config, token) {                                  // 927
-        week[token.substr(0, 1)] = toInt(input);                                                                       // 928
-    });                                                                                                                // 929
-                                                                                                                       // 930
-    // HELPERS                                                                                                         // 931
-                                                                                                                       // 932
-    // firstDayOfWeek       0 = sun, 6 = sat                                                                           // 933
-    //                      the day of the week that starts the week                                                   // 934
-    //                      (usually sunday or monday)                                                                 // 935
-    // firstDayOfWeekOfYear 0 = sun, 6 = sat                                                                           // 936
-    //                      the first week is the week that contains the first                                         // 937
-    //                      of this day of the week                                                                    // 938
-    //                      (eg. ISO weeks use thursday (4))                                                           // 939
-    function weekOfYear(mom, firstDayOfWeek, firstDayOfWeekOfYear) {                                                   // 940
-        var end = firstDayOfWeekOfYear - firstDayOfWeek,                                                               // 941
-            daysToDayOfWeek = firstDayOfWeekOfYear - mom.day(),                                                        // 942
-            adjustedMoment;                                                                                            // 943
-                                                                                                                       // 944
-                                                                                                                       // 945
-        if (daysToDayOfWeek > end) {                                                                                   // 946
-            daysToDayOfWeek -= 7;                                                                                      // 947
-        }                                                                                                              // 948
-                                                                                                                       // 949
-        if (daysToDayOfWeek < end - 7) {                                                                               // 950
-            daysToDayOfWeek += 7;                                                                                      // 951
-        }                                                                                                              // 952
-                                                                                                                       // 953
-        adjustedMoment = local__createLocal(mom).add(daysToDayOfWeek, 'd');                                            // 954
-        return {                                                                                                       // 955
-            week: Math.ceil(adjustedMoment.dayOfYear() / 7),                                                           // 956
-            year: adjustedMoment.year()                                                                                // 957
-        };                                                                                                             // 958
-    }                                                                                                                  // 959
-                                                                                                                       // 960
-    // LOCALES                                                                                                         // 961
-                                                                                                                       // 962
-    function localeWeek (mom) {                                                                                        // 963
-        return weekOfYear(mom, this._week.dow, this._week.doy).week;                                                   // 964
-    }                                                                                                                  // 965
-                                                                                                                       // 966
-    var defaultLocaleWeek = {                                                                                          // 967
-        dow : 0, // Sunday is the first day of the week.                                                               // 968
-        doy : 6  // The week that contains Jan 1st is the first week of the year.                                      // 969
-    };                                                                                                                 // 970
-                                                                                                                       // 971
-    function localeFirstDayOfWeek () {                                                                                 // 972
-        return this._week.dow;                                                                                         // 973
-    }                                                                                                                  // 974
-                                                                                                                       // 975
-    function localeFirstDayOfYear () {                                                                                 // 976
-        return this._week.doy;                                                                                         // 977
-    }                                                                                                                  // 978
-                                                                                                                       // 979
-    // MOMENTS                                                                                                         // 980
-                                                                                                                       // 981
-    function getSetWeek (input) {                                                                                      // 982
-        var week = this.localeData().week(this);                                                                       // 983
-        return input == null ? week : this.add((input - week) * 7, 'd');                                               // 984
-    }                                                                                                                  // 985
-                                                                                                                       // 986
-    function getSetISOWeek (input) {                                                                                   // 987
-        var week = weekOfYear(this, 1, 4).week;                                                                        // 988
-        return input == null ? week : this.add((input - week) * 7, 'd');                                               // 989
-    }                                                                                                                  // 990
-                                                                                                                       // 991
-    addFormatToken('DDD', ['DDDD', 3], 'DDDo', 'dayOfYear');                                                           // 992
-                                                                                                                       // 993
-    // ALIASES                                                                                                         // 994
-                                                                                                                       // 995
-    addUnitAlias('dayOfYear', 'DDD');                                                                                  // 996
-                                                                                                                       // 997
-    // PARSING                                                                                                         // 998
-                                                                                                                       // 999
-    addRegexToken('DDD',  match1to3);                                                                                  // 1000
-    addRegexToken('DDDD', match3);                                                                                     // 1001
-    addParseToken(['DDD', 'DDDD'], function (input, array, config) {                                                   // 1002
-        config._dayOfYear = toInt(input);                                                                              // 1003
-    });                                                                                                                // 1004
-                                                                                                                       // 1005
-    // HELPERS                                                                                                         // 1006
-                                                                                                                       // 1007
-    //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday          // 1008
-    function dayOfYearFromWeeks(year, week, weekday, firstDayOfWeekOfYear, firstDayOfWeek) {                           // 1009
-        var week1Jan = 6 + firstDayOfWeek - firstDayOfWeekOfYear, janX = createUTCDate(year, 0, 1 + week1Jan), d = janX.getUTCDay(), dayOfYear;
-        if (d < firstDayOfWeek) {                                                                                      // 1011
-            d += 7;                                                                                                    // 1012
-        }                                                                                                              // 1013
-                                                                                                                       // 1014
-        weekday = weekday != null ? 1 * weekday : firstDayOfWeek;                                                      // 1015
-                                                                                                                       // 1016
-        dayOfYear = 1 + week1Jan + 7 * (week - 1) - d + weekday;                                                       // 1017
-                                                                                                                       // 1018
-        return {                                                                                                       // 1019
-            year: dayOfYear > 0 ? year : year - 1,                                                                     // 1020
-            dayOfYear: dayOfYear > 0 ?  dayOfYear : daysInYear(year - 1) + dayOfYear                                   // 1021
-        };                                                                                                             // 1022
-    }                                                                                                                  // 1023
-                                                                                                                       // 1024
-    // MOMENTS                                                                                                         // 1025
-                                                                                                                       // 1026
-    function getSetDayOfYear (input) {                                                                                 // 1027
-        var dayOfYear = Math.round((this.clone().startOf('day') - this.clone().startOf('year')) / 864e5) + 1;          // 1028
-        return input == null ? dayOfYear : this.add((input - dayOfYear), 'd');                                         // 1029
-    }                                                                                                                  // 1030
-                                                                                                                       // 1031
-    // Pick the first defined of two or three arguments.                                                               // 1032
-    function defaults(a, b, c) {                                                                                       // 1033
-        if (a != null) {                                                                                               // 1034
-            return a;                                                                                                  // 1035
-        }                                                                                                              // 1036
-        if (b != null) {                                                                                               // 1037
-            return b;                                                                                                  // 1038
-        }                                                                                                              // 1039
-        return c;                                                                                                      // 1040
-    }                                                                                                                  // 1041
-                                                                                                                       // 1042
-    function currentDateArray(config) {                                                                                // 1043
-        var now = new Date();                                                                                          // 1044
-        if (config._useUTC) {                                                                                          // 1045
-            return [now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()];                                        // 1046
-        }                                                                                                              // 1047
-        return [now.getFullYear(), now.getMonth(), now.getDate()];                                                     // 1048
-    }                                                                                                                  // 1049
-                                                                                                                       // 1050
-    // convert an array to a date.                                                                                     // 1051
-    // the array should mirror the parameters below                                                                    // 1052
-    // note: all values past the year are optional and will default to the lowest possible value.                      // 1053
-    // [year, month, day , hour, minute, second, millisecond]                                                          // 1054
-    function configFromArray (config) {                                                                                // 1055
-        var i, date, input = [], currentDate, yearToUse;                                                               // 1056
-                                                                                                                       // 1057
-        if (config._d) {                                                                                               // 1058
-            return;                                                                                                    // 1059
-        }                                                                                                              // 1060
-                                                                                                                       // 1061
-        currentDate = currentDateArray(config);                                                                        // 1062
-                                                                                                                       // 1063
-        //compute day of the year from weeks and weekdays                                                              // 1064
-        if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {                                        // 1065
-            dayOfYearFromWeekInfo(config);                                                                             // 1066
-        }                                                                                                              // 1067
-                                                                                                                       // 1068
-        //if the day of the year is set, figure out what it is                                                         // 1069
-        if (config._dayOfYear) {                                                                                       // 1070
-            yearToUse = defaults(config._a[YEAR], currentDate[YEAR]);                                                  // 1071
-                                                                                                                       // 1072
-            if (config._dayOfYear > daysInYear(yearToUse)) {                                                           // 1073
-                getParsingFlags(config)._overflowDayOfYear = true;                                                     // 1074
-            }                                                                                                          // 1075
-                                                                                                                       // 1076
-            date = createUTCDate(yearToUse, 0, config._dayOfYear);                                                     // 1077
-            config._a[MONTH] = date.getUTCMonth();                                                                     // 1078
-            config._a[DATE] = date.getUTCDate();                                                                       // 1079
-        }                                                                                                              // 1080
-                                                                                                                       // 1081
-        // Default to current date.                                                                                    // 1082
-        // * if no year, month, day of month are given, default to today                                               // 1083
-        // * if day of month is given, default month and year                                                          // 1084
-        // * if month is given, default only year                                                                      // 1085
-        // * if year is given, don't default anything                                                                  // 1086
-        for (i = 0; i < 3 && config._a[i] == null; ++i) {                                                              // 1087
-            config._a[i] = input[i] = currentDate[i];                                                                  // 1088
-        }                                                                                                              // 1089
-                                                                                                                       // 1090
-        // Zero out whatever was not defaulted, including time                                                         // 1091
-        for (; i < 7; i++) {                                                                                           // 1092
-            config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];                       // 1093
-        }                                                                                                              // 1094
-                                                                                                                       // 1095
-        // Check for 24:00:00.000                                                                                      // 1096
-        if (config._a[HOUR] === 24 &&                                                                                  // 1097
-                config._a[MINUTE] === 0 &&                                                                             // 1098
-                config._a[SECOND] === 0 &&                                                                             // 1099
-                config._a[MILLISECOND] === 0) {                                                                        // 1100
-            config._nextDay = true;                                                                                    // 1101
-            config._a[HOUR] = 0;                                                                                       // 1102
-        }                                                                                                              // 1103
-                                                                                                                       // 1104
-        config._d = (config._useUTC ? createUTCDate : createDate).apply(null, input);                                  // 1105
-        // Apply timezone offset from input. The actual utcOffset can be changed                                       // 1106
-        // with parseZone.                                                                                             // 1107
-        if (config._tzm != null) {                                                                                     // 1108
-            config._d.setUTCMinutes(config._d.getUTCMinutes() - config._tzm);                                          // 1109
-        }                                                                                                              // 1110
-                                                                                                                       // 1111
-        if (config._nextDay) {                                                                                         // 1112
-            config._a[HOUR] = 24;                                                                                      // 1113
-        }                                                                                                              // 1114
-    }                                                                                                                  // 1115
-                                                                                                                       // 1116
-    function dayOfYearFromWeekInfo(config) {                                                                           // 1117
-        var w, weekYear, week, weekday, dow, doy, temp;                                                                // 1118
-                                                                                                                       // 1119
-        w = config._w;                                                                                                 // 1120
-        if (w.GG != null || w.W != null || w.E != null) {                                                              // 1121
-            dow = 1;                                                                                                   // 1122
-            doy = 4;                                                                                                   // 1123
-                                                                                                                       // 1124
-            // TODO: We need to take the current isoWeekYear, but that depends on                                      // 1125
-            // how we interpret now (local, utc, fixed offset). So create                                              // 1126
-            // a now version of current config (take local/utc/offset flags, and                                       // 1127
-            // create now).                                                                                            // 1128
-            weekYear = defaults(w.GG, config._a[YEAR], weekOfYear(local__createLocal(), 1, 4).year);                   // 1129
-            week = defaults(w.W, 1);                                                                                   // 1130
-            weekday = defaults(w.E, 1);                                                                                // 1131
-        } else {                                                                                                       // 1132
-            dow = config._locale._week.dow;                                                                            // 1133
-            doy = config._locale._week.doy;                                                                            // 1134
-                                                                                                                       // 1135
-            weekYear = defaults(w.gg, config._a[YEAR], weekOfYear(local__createLocal(), dow, doy).year);               // 1136
-            week = defaults(w.w, 1);                                                                                   // 1137
-                                                                                                                       // 1138
-            if (w.d != null) {                                                                                         // 1139
-                // weekday -- low day numbers are considered next week                                                 // 1140
-                weekday = w.d;                                                                                         // 1141
-                if (weekday < dow) {                                                                                   // 1142
-                    ++week;                                                                                            // 1143
-                }                                                                                                      // 1144
-            } else if (w.e != null) {                                                                                  // 1145
-                // local weekday -- counting starts from begining of week                                              // 1146
-                weekday = w.e + dow;                                                                                   // 1147
-            } else {                                                                                                   // 1148
-                // default to begining of week                                                                         // 1149
-                weekday = dow;                                                                                         // 1150
-            }                                                                                                          // 1151
-        }                                                                                                              // 1152
-        temp = dayOfYearFromWeeks(weekYear, week, weekday, doy, dow);                                                  // 1153
-                                                                                                                       // 1154
-        config._a[YEAR] = temp.year;                                                                                   // 1155
-        config._dayOfYear = temp.dayOfYear;                                                                            // 1156
-    }                                                                                                                  // 1157
-                                                                                                                       // 1158
-    utils_hooks__hooks.ISO_8601 = function () {};                                                                      // 1159
-                                                                                                                       // 1160
-    // date from string and format string                                                                              // 1161
-    function configFromStringAndFormat(config) {                                                                       // 1162
-        // TODO: Move this to another part of the creation flow to prevent circular deps                               // 1163
-        if (config._f === utils_hooks__hooks.ISO_8601) {                                                               // 1164
-            configFromISO(config);                                                                                     // 1165
-            return;                                                                                                    // 1166
-        }                                                                                                              // 1167
-                                                                                                                       // 1168
-        config._a = [];                                                                                                // 1169
-        getParsingFlags(config).empty = true;                                                                          // 1170
-                                                                                                                       // 1171
-        // This array is used to make a Date, either with `new Date` or `Date.UTC`                                     // 1172
-        var string = '' + config._i,                                                                                   // 1173
-            i, parsedInput, tokens, token, skipped,                                                                    // 1174
-            stringLength = string.length,                                                                              // 1175
-            totalParsedInputLength = 0;                                                                                // 1176
-                                                                                                                       // 1177
-        tokens = expandFormat(config._f, config._locale).match(formattingTokens) || [];                                // 1178
-                                                                                                                       // 1179
-        for (i = 0; i < tokens.length; i++) {                                                                          // 1180
-            token = tokens[i];                                                                                         // 1181
-            parsedInput = (string.match(getParseRegexForToken(token, config)) || [])[0];                               // 1182
-            if (parsedInput) {                                                                                         // 1183
-                skipped = string.substr(0, string.indexOf(parsedInput));                                               // 1184
-                if (skipped.length > 0) {                                                                              // 1185
-                    getParsingFlags(config).unusedInput.push(skipped);                                                 // 1186
-                }                                                                                                      // 1187
-                string = string.slice(string.indexOf(parsedInput) + parsedInput.length);                               // 1188
-                totalParsedInputLength += parsedInput.length;                                                          // 1189
-            }                                                                                                          // 1190
-            // don't parse if it's not a known token                                                                   // 1191
-            if (formatTokenFunctions[token]) {                                                                         // 1192
-                if (parsedInput) {                                                                                     // 1193
-                    getParsingFlags(config).empty = false;                                                             // 1194
-                }                                                                                                      // 1195
-                else {                                                                                                 // 1196
-                    getParsingFlags(config).unusedTokens.push(token);                                                  // 1197
-                }                                                                                                      // 1198
-                addTimeToArrayFromToken(token, parsedInput, config);                                                   // 1199
-            }                                                                                                          // 1200
-            else if (config._strict && !parsedInput) {                                                                 // 1201
-                getParsingFlags(config).unusedTokens.push(token);                                                      // 1202
-            }                                                                                                          // 1203
-        }                                                                                                              // 1204
-                                                                                                                       // 1205
-        // add remaining unparsed input length to the string                                                           // 1206
-        getParsingFlags(config).charsLeftOver = stringLength - totalParsedInputLength;                                 // 1207
-        if (string.length > 0) {                                                                                       // 1208
-            getParsingFlags(config).unusedInput.push(string);                                                          // 1209
-        }                                                                                                              // 1210
-                                                                                                                       // 1211
-        // clear _12h flag if hour is <= 12                                                                            // 1212
-        if (getParsingFlags(config).bigHour === true &&                                                                // 1213
-                config._a[HOUR] <= 12 &&                                                                               // 1214
-                config._a[HOUR] > 0) {                                                                                 // 1215
-            getParsingFlags(config).bigHour = undefined;                                                               // 1216
-        }                                                                                                              // 1217
-        // handle meridiem                                                                                             // 1218
-        config._a[HOUR] = meridiemFixWrap(config._locale, config._a[HOUR], config._meridiem);                          // 1219
-                                                                                                                       // 1220
-        configFromArray(config);                                                                                       // 1221
-        checkOverflow(config);                                                                                         // 1222
-    }                                                                                                                  // 1223
-                                                                                                                       // 1224
-                                                                                                                       // 1225
-    function meridiemFixWrap (locale, hour, meridiem) {                                                                // 1226
-        var isPm;                                                                                                      // 1227
-                                                                                                                       // 1228
-        if (meridiem == null) {                                                                                        // 1229
-            // nothing to do                                                                                           // 1230
-            return hour;                                                                                               // 1231
-        }                                                                                                              // 1232
-        if (locale.meridiemHour != null) {                                                                             // 1233
-            return locale.meridiemHour(hour, meridiem);                                                                // 1234
-        } else if (locale.isPM != null) {                                                                              // 1235
-            // Fallback                                                                                                // 1236
-            isPm = locale.isPM(meridiem);                                                                              // 1237
-            if (isPm && hour < 12) {                                                                                   // 1238
-                hour += 12;                                                                                            // 1239
-            }                                                                                                          // 1240
-            if (!isPm && hour === 12) {                                                                                // 1241
-                hour = 0;                                                                                              // 1242
-            }                                                                                                          // 1243
-            return hour;                                                                                               // 1244
-        } else {                                                                                                       // 1245
-            // this is not supposed to happen                                                                          // 1246
-            return hour;                                                                                               // 1247
-        }                                                                                                              // 1248
-    }                                                                                                                  // 1249
-                                                                                                                       // 1250
-    function configFromStringAndArray(config) {                                                                        // 1251
-        var tempConfig,                                                                                                // 1252
-            bestMoment,                                                                                                // 1253
-                                                                                                                       // 1254
-            scoreToBeat,                                                                                               // 1255
-            i,                                                                                                         // 1256
-            currentScore;                                                                                              // 1257
-                                                                                                                       // 1258
-        if (config._f.length === 0) {                                                                                  // 1259
-            getParsingFlags(config).invalidFormat = true;                                                              // 1260
-            config._d = new Date(NaN);                                                                                 // 1261
-            return;                                                                                                    // 1262
-        }                                                                                                              // 1263
-                                                                                                                       // 1264
-        for (i = 0; i < config._f.length; i++) {                                                                       // 1265
-            currentScore = 0;                                                                                          // 1266
-            tempConfig = copyConfig({}, config);                                                                       // 1267
-            if (config._useUTC != null) {                                                                              // 1268
-                tempConfig._useUTC = config._useUTC;                                                                   // 1269
-            }                                                                                                          // 1270
-            tempConfig._f = config._f[i];                                                                              // 1271
-            configFromStringAndFormat(tempConfig);                                                                     // 1272
-                                                                                                                       // 1273
-            if (!valid__isValid(tempConfig)) {                                                                         // 1274
-                continue;                                                                                              // 1275
-            }                                                                                                          // 1276
-                                                                                                                       // 1277
-            // if there is any input that was not parsed add a penalty for that format                                 // 1278
-            currentScore += getParsingFlags(tempConfig).charsLeftOver;                                                 // 1279
-                                                                                                                       // 1280
-            //or tokens                                                                                                // 1281
-            currentScore += getParsingFlags(tempConfig).unusedTokens.length * 10;                                      // 1282
-                                                                                                                       // 1283
-            getParsingFlags(tempConfig).score = currentScore;                                                          // 1284
-                                                                                                                       // 1285
-            if (scoreToBeat == null || currentScore < scoreToBeat) {                                                   // 1286
-                scoreToBeat = currentScore;                                                                            // 1287
-                bestMoment = tempConfig;                                                                               // 1288
-            }                                                                                                          // 1289
-        }                                                                                                              // 1290
-                                                                                                                       // 1291
-        extend(config, bestMoment || tempConfig);                                                                      // 1292
-    }                                                                                                                  // 1293
-                                                                                                                       // 1294
-    function configFromObject(config) {                                                                                // 1295
-        if (config._d) {                                                                                               // 1296
-            return;                                                                                                    // 1297
-        }                                                                                                              // 1298
-                                                                                                                       // 1299
-        var i = normalizeObjectUnits(config._i);                                                                       // 1300
-        config._a = [i.year, i.month, i.day || i.date, i.hour, i.minute, i.second, i.millisecond];                     // 1301
-                                                                                                                       // 1302
-        configFromArray(config);                                                                                       // 1303
-    }                                                                                                                  // 1304
-                                                                                                                       // 1305
-    function createFromConfig (config) {                                                                               // 1306
-        var res = new Moment(checkOverflow(prepareConfig(config)));                                                    // 1307
-        if (res._nextDay) {                                                                                            // 1308
-            // Adding is smart enough around DST                                                                       // 1309
-            res.add(1, 'd');                                                                                           // 1310
-            res._nextDay = undefined;                                                                                  // 1311
-        }                                                                                                              // 1312
-                                                                                                                       // 1313
-        return res;                                                                                                    // 1314
-    }                                                                                                                  // 1315
-                                                                                                                       // 1316
-    function prepareConfig (config) {                                                                                  // 1317
-        var input = config._i,                                                                                         // 1318
-            format = config._f;                                                                                        // 1319
-                                                                                                                       // 1320
-        config._locale = config._locale || locale_locales__getLocale(config._l);                                       // 1321
-                                                                                                                       // 1322
-        if (input === null || (format === undefined && input === '')) {                                                // 1323
-            return valid__createInvalid({nullInput: true});                                                            // 1324
-        }                                                                                                              // 1325
-                                                                                                                       // 1326
-        if (typeof input === 'string') {                                                                               // 1327
-            config._i = input = config._locale.preparse(input);                                                        // 1328
-        }                                                                                                              // 1329
-                                                                                                                       // 1330
-        if (isMoment(input)) {                                                                                         // 1331
-            return new Moment(checkOverflow(input));                                                                   // 1332
-        } else if (isArray(format)) {                                                                                  // 1333
-            configFromStringAndArray(config);                                                                          // 1334
-        } else if (format) {                                                                                           // 1335
-            configFromStringAndFormat(config);                                                                         // 1336
-        } else if (isDate(input)) {                                                                                    // 1337
-            config._d = input;                                                                                         // 1338
-        } else {                                                                                                       // 1339
-            configFromInput(config);                                                                                   // 1340
-        }                                                                                                              // 1341
-                                                                                                                       // 1342
-        return config;                                                                                                 // 1343
-    }                                                                                                                  // 1344
-                                                                                                                       // 1345
-    function configFromInput(config) {                                                                                 // 1346
-        var input = config._i;                                                                                         // 1347
-        if (input === undefined) {                                                                                     // 1348
-            config._d = new Date();                                                                                    // 1349
-        } else if (isDate(input)) {                                                                                    // 1350
-            config._d = new Date(+input);                                                                              // 1351
-        } else if (typeof input === 'string') {                                                                        // 1352
-            configFromString(config);                                                                                  // 1353
-        } else if (isArray(input)) {                                                                                   // 1354
-            config._a = map(input.slice(0), function (obj) {                                                           // 1355
-                return parseInt(obj, 10);                                                                              // 1356
-            });                                                                                                        // 1357
-            configFromArray(config);                                                                                   // 1358
-        } else if (typeof(input) === 'object') {                                                                       // 1359
-            configFromObject(config);                                                                                  // 1360
-        } else if (typeof(input) === 'number') {                                                                       // 1361
-            // from milliseconds                                                                                       // 1362
-            config._d = new Date(input);                                                                               // 1363
-        } else {                                                                                                       // 1364
-            utils_hooks__hooks.createFromInputFallback(config);                                                        // 1365
-        }                                                                                                              // 1366
-    }                                                                                                                  // 1367
-                                                                                                                       // 1368
-    function createLocalOrUTC (input, format, locale, strict, isUTC) {                                                 // 1369
-        var c = {};                                                                                                    // 1370
-                                                                                                                       // 1371
-        if (typeof(locale) === 'boolean') {                                                                            // 1372
-            strict = locale;                                                                                           // 1373
-            locale = undefined;                                                                                        // 1374
-        }                                                                                                              // 1375
-        // object construction must be done this way.                                                                  // 1376
-        // https://github.com/moment/moment/issues/1423                                                                // 1377
-        c._isAMomentObject = true;                                                                                     // 1378
-        c._useUTC = c._isUTC = isUTC;                                                                                  // 1379
-        c._l = locale;                                                                                                 // 1380
-        c._i = input;                                                                                                  // 1381
-        c._f = format;                                                                                                 // 1382
-        c._strict = strict;                                                                                            // 1383
-                                                                                                                       // 1384
-        return createFromConfig(c);                                                                                    // 1385
-    }                                                                                                                  // 1386
-                                                                                                                       // 1387
-    function local__createLocal (input, format, locale, strict) {                                                      // 1388
-        return createLocalOrUTC(input, format, locale, strict, false);                                                 // 1389
-    }                                                                                                                  // 1390
-                                                                                                                       // 1391
-    var prototypeMin = deprecate(                                                                                      // 1392
-         'moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548',           // 1393
-         function () {                                                                                                 // 1394
-             var other = local__createLocal.apply(null, arguments);                                                    // 1395
-             return other < this ? this : other;                                                                       // 1396
-         }                                                                                                             // 1397
-     );                                                                                                                // 1398
-                                                                                                                       // 1399
-    var prototypeMax = deprecate(                                                                                      // 1400
-        'moment().max is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548',            // 1401
-        function () {                                                                                                  // 1402
-            var other = local__createLocal.apply(null, arguments);                                                     // 1403
-            return other > this ? this : other;                                                                        // 1404
-        }                                                                                                              // 1405
-    );                                                                                                                 // 1406
-                                                                                                                       // 1407
-    // Pick a moment m from moments so that m[fn](other) is true for all                                               // 1408
-    // other. This relies on the function fn to be transitive.                                                         // 1409
-    //                                                                                                                 // 1410
-    // moments should either be an array of moment objects or an array, whose                                          // 1411
-    // first element is an array of moment objects.                                                                    // 1412
-    function pickBy(fn, moments) {                                                                                     // 1413
-        var res, i;                                                                                                    // 1414
-        if (moments.length === 1 && isArray(moments[0])) {                                                             // 1415
-            moments = moments[0];                                                                                      // 1416
-        }                                                                                                              // 1417
-        if (!moments.length) {                                                                                         // 1418
-            return local__createLocal();                                                                               // 1419
-        }                                                                                                              // 1420
-        res = moments[0];                                                                                              // 1421
-        for (i = 1; i < moments.length; ++i) {                                                                         // 1422
-            if (!moments[i].isValid() || moments[i][fn](res)) {                                                        // 1423
-                res = moments[i];                                                                                      // 1424
-            }                                                                                                          // 1425
-        }                                                                                                              // 1426
-        return res;                                                                                                    // 1427
-    }                                                                                                                  // 1428
-                                                                                                                       // 1429
-    // TODO: Use [].sort instead?                                                                                      // 1430
-    function min () {                                                                                                  // 1431
-        var args = [].slice.call(arguments, 0);                                                                        // 1432
-                                                                                                                       // 1433
-        return pickBy('isBefore', args);                                                                               // 1434
-    }                                                                                                                  // 1435
-                                                                                                                       // 1436
-    function max () {                                                                                                  // 1437
-        var args = [].slice.call(arguments, 0);                                                                        // 1438
-                                                                                                                       // 1439
-        return pickBy('isAfter', args);                                                                                // 1440
-    }                                                                                                                  // 1441
-                                                                                                                       // 1442
-    function Duration (duration) {                                                                                     // 1443
-        var normalizedInput = normalizeObjectUnits(duration),                                                          // 1444
-            years = normalizedInput.year || 0,                                                                         // 1445
-            quarters = normalizedInput.quarter || 0,                                                                   // 1446
-            months = normalizedInput.month || 0,                                                                       // 1447
-            weeks = normalizedInput.week || 0,                                                                         // 1448
-            days = normalizedInput.day || 0,                                                                           // 1449
-            hours = normalizedInput.hour || 0,                                                                         // 1450
-            minutes = normalizedInput.minute || 0,                                                                     // 1451
-            seconds = normalizedInput.second || 0,                                                                     // 1452
-            milliseconds = normalizedInput.millisecond || 0;                                                           // 1453
-                                                                                                                       // 1454
-        // representation for dateAddRemove                                                                            // 1455
-        this._milliseconds = +milliseconds +                                                                           // 1456
-            seconds * 1e3 + // 1000                                                                                    // 1457
-            minutes * 6e4 + // 1000 * 60                                                                               // 1458
-            hours * 36e5; // 1000 * 60 * 60                                                                            // 1459
-        // Because of dateAddRemove treats 24 hours as different from a                                                // 1460
-        // day when working around DST, we need to store them separately                                               // 1461
-        this._days = +days +                                                                                           // 1462
-            weeks * 7;                                                                                                 // 1463
-        // It is impossible translate months into days without knowing                                                 // 1464
-        // which months you are are talking about, so we have to store                                                 // 1465
-        // it separately.                                                                                              // 1466
-        this._months = +months +                                                                                       // 1467
-            quarters * 3 +                                                                                             // 1468
-            years * 12;                                                                                                // 1469
-                                                                                                                       // 1470
-        this._data = {};                                                                                               // 1471
-                                                                                                                       // 1472
-        this._locale = locale_locales__getLocale();                                                                    // 1473
-                                                                                                                       // 1474
-        this._bubble();                                                                                                // 1475
-    }                                                                                                                  // 1476
-                                                                                                                       // 1477
-    function isDuration (obj) {                                                                                        // 1478
-        return obj instanceof Duration;                                                                                // 1479
-    }                                                                                                                  // 1480
-                                                                                                                       // 1481
-    function offset (token, separator) {                                                                               // 1482
-        addFormatToken(token, 0, 0, function () {                                                                      // 1483
-            var offset = this.utcOffset();                                                                             // 1484
-            var sign = '+';                                                                                            // 1485
-            if (offset < 0) {                                                                                          // 1486
-                offset = -offset;                                                                                      // 1487
-                sign = '-';                                                                                            // 1488
-            }                                                                                                          // 1489
-            return sign + zeroFill(~~(offset / 60), 2) + separator + zeroFill(~~(offset) % 60, 2);                     // 1490
-        });                                                                                                            // 1491
-    }                                                                                                                  // 1492
-                                                                                                                       // 1493
-    offset('Z', ':');                                                                                                  // 1494
-    offset('ZZ', '');                                                                                                  // 1495
-                                                                                                                       // 1496
-    // PARSING                                                                                                         // 1497
-                                                                                                                       // 1498
-    addRegexToken('Z',  matchOffset);                                                                                  // 1499
-    addRegexToken('ZZ', matchOffset);                                                                                  // 1500
-    addParseToken(['Z', 'ZZ'], function (input, array, config) {                                                       // 1501
-        config._useUTC = true;                                                                                         // 1502
-        config._tzm = offsetFromString(input);                                                                         // 1503
-    });                                                                                                                // 1504
-                                                                                                                       // 1505
-    // HELPERS                                                                                                         // 1506
-                                                                                                                       // 1507
-    // timezone chunker                                                                                                // 1508
-    // '+10:00' > ['10',  '00']                                                                                        // 1509
-    // '-1530'  > ['-15', '30']                                                                                        // 1510
-    var chunkOffset = /([\+\-]|\d\d)/gi;                                                                               // 1511
-                                                                                                                       // 1512
-    function offsetFromString(string) {                                                                                // 1513
-        var matches = ((string || '').match(matchOffset) || []);                                                       // 1514
-        var chunk   = matches[matches.length - 1] || [];                                                               // 1515
-        var parts   = (chunk + '').match(chunkOffset) || ['-', 0, 0];                                                  // 1516
-        var minutes = +(parts[1] * 60) + toInt(parts[2]);                                                              // 1517
-                                                                                                                       // 1518
-        return parts[0] === '+' ? minutes : -minutes;                                                                  // 1519
-    }                                                                                                                  // 1520
-                                                                                                                       // 1521
-    // Return a moment from input, that is local/utc/zone equivalent to model.                                         // 1522
-    function cloneWithOffset(input, model) {                                                                           // 1523
-        var res, diff;                                                                                                 // 1524
-        if (model._isUTC) {                                                                                            // 1525
-            res = model.clone();                                                                                       // 1526
-            diff = (isMoment(input) || isDate(input) ? +input : +local__createLocal(input)) - (+res);                  // 1527
-            // Use low-level api, because this fn is low-level api.                                                    // 1528
-            res._d.setTime(+res._d + diff);                                                                            // 1529
-            utils_hooks__hooks.updateOffset(res, false);                                                               // 1530
-            return res;                                                                                                // 1531
-        } else {                                                                                                       // 1532
-            return local__createLocal(input).local();                                                                  // 1533
-        }                                                                                                              // 1534
-    }                                                                                                                  // 1535
-                                                                                                                       // 1536
-    function getDateOffset (m) {                                                                                       // 1537
-        // On Firefox.24 Date#getTimezoneOffset returns a floating point.                                              // 1538
-        // https://github.com/moment/moment/pull/1871                                                                  // 1539
-        return -Math.round(m._d.getTimezoneOffset() / 15) * 15;                                                        // 1540
-    }                                                                                                                  // 1541
-                                                                                                                       // 1542
-    // HOOKS                                                                                                           // 1543
-                                                                                                                       // 1544
-    // This function will be called whenever a moment is mutated.                                                      // 1545
-    // It is intended to keep the offset in sync with the timezone.                                                    // 1546
-    utils_hooks__hooks.updateOffset = function () {};                                                                  // 1547
-                                                                                                                       // 1548
-    // MOMENTS                                                                                                         // 1549
-                                                                                                                       // 1550
-    // keepLocalTime = true means only change the timezone, without                                                    // 1551
-    // affecting the local hour. So 5:31:26 +0300 --[utcOffset(2, true)]-->                                            // 1552
-    // 5:31:26 +0200 It is possible that 5:31:26 doesn't exist with offset                                             // 1553
-    // +0200, so we adjust the time as needed, to be valid.                                                            // 1554
-    //                                                                                                                 // 1555
-    // Keeping the time actually adds/subtracts (one hour)                                                             // 1556
-    // from the actual represented time. That is why we call updateOffset                                              // 1557
-    // a second time. In case it wants us to change the offset again                                                   // 1558
-    // _changeInProgress == true case, then we have to adjust, because                                                 // 1559
-    // there is no such time in the given timezone.                                                                    // 1560
-    function getSetOffset (input, keepLocalTime) {                                                                     // 1561
-        var offset = this._offset || 0,                                                                                // 1562
-            localAdjust;                                                                                               // 1563
-        if (input != null) {                                                                                           // 1564
-            if (typeof input === 'string') {                                                                           // 1565
-                input = offsetFromString(input);                                                                       // 1566
-            }                                                                                                          // 1567
-            if (Math.abs(input) < 16) {                                                                                // 1568
-                input = input * 60;                                                                                    // 1569
-            }                                                                                                          // 1570
-            if (!this._isUTC && keepLocalTime) {                                                                       // 1571
-                localAdjust = getDateOffset(this);                                                                     // 1572
-            }                                                                                                          // 1573
-            this._offset = input;                                                                                      // 1574
-            this._isUTC = true;                                                                                        // 1575
-            if (localAdjust != null) {                                                                                 // 1576
-                this.add(localAdjust, 'm');                                                                            // 1577
-            }                                                                                                          // 1578
-            if (offset !== input) {                                                                                    // 1579
-                if (!keepLocalTime || this._changeInProgress) {                                                        // 1580
-                    add_subtract__addSubtract(this, create__createDuration(input - offset, 'm'), 1, false);            // 1581
-                } else if (!this._changeInProgress) {                                                                  // 1582
-                    this._changeInProgress = true;                                                                     // 1583
-                    utils_hooks__hooks.updateOffset(this, true);                                                       // 1584
-                    this._changeInProgress = null;                                                                     // 1585
-                }                                                                                                      // 1586
-            }                                                                                                          // 1587
-            return this;                                                                                               // 1588
-        } else {                                                                                                       // 1589
-            return this._isUTC ? offset : getDateOffset(this);                                                         // 1590
-        }                                                                                                              // 1591
-    }                                                                                                                  // 1592
-                                                                                                                       // 1593
-    function getSetZone (input, keepLocalTime) {                                                                       // 1594
-        if (input != null) {                                                                                           // 1595
-            if (typeof input !== 'string') {                                                                           // 1596
-                input = -input;                                                                                        // 1597
-            }                                                                                                          // 1598
-                                                                                                                       // 1599
-            this.utcOffset(input, keepLocalTime);                                                                      // 1600
-                                                                                                                       // 1601
-            return this;                                                                                               // 1602
-        } else {                                                                                                       // 1603
-            return -this.utcOffset();                                                                                  // 1604
-        }                                                                                                              // 1605
-    }                                                                                                                  // 1606
-                                                                                                                       // 1607
-    function setOffsetToUTC (keepLocalTime) {                                                                          // 1608
-        return this.utcOffset(0, keepLocalTime);                                                                       // 1609
-    }                                                                                                                  // 1610
-                                                                                                                       // 1611
-    function setOffsetToLocal (keepLocalTime) {                                                                        // 1612
-        if (this._isUTC) {                                                                                             // 1613
-            this.utcOffset(0, keepLocalTime);                                                                          // 1614
-            this._isUTC = false;                                                                                       // 1615
-                                                                                                                       // 1616
-            if (keepLocalTime) {                                                                                       // 1617
-                this.subtract(getDateOffset(this), 'm');                                                               // 1618
-            }                                                                                                          // 1619
-        }                                                                                                              // 1620
-        return this;                                                                                                   // 1621
-    }                                                                                                                  // 1622
-                                                                                                                       // 1623
-    function setOffsetToParsedOffset () {                                                                              // 1624
-        if (this._tzm) {                                                                                               // 1625
-            this.utcOffset(this._tzm);                                                                                 // 1626
-        } else if (typeof this._i === 'string') {                                                                      // 1627
-            this.utcOffset(offsetFromString(this._i));                                                                 // 1628
-        }                                                                                                              // 1629
-        return this;                                                                                                   // 1630
-    }                                                                                                                  // 1631
-                                                                                                                       // 1632
-    function hasAlignedHourOffset (input) {                                                                            // 1633
-        input = input ? local__createLocal(input).utcOffset() : 0;                                                     // 1634
-                                                                                                                       // 1635
-        return (this.utcOffset() - input) % 60 === 0;                                                                  // 1636
-    }                                                                                                                  // 1637
-                                                                                                                       // 1638
-    function isDaylightSavingTime () {                                                                                 // 1639
-        return (                                                                                                       // 1640
-            this.utcOffset() > this.clone().month(0).utcOffset() ||                                                    // 1641
-            this.utcOffset() > this.clone().month(5).utcOffset()                                                       // 1642
-        );                                                                                                             // 1643
-    }                                                                                                                  // 1644
-                                                                                                                       // 1645
-    function isDaylightSavingTimeShifted () {                                                                          // 1646
-        if (typeof this._isDSTShifted !== 'undefined') {                                                               // 1647
-            return this._isDSTShifted;                                                                                 // 1648
-        }                                                                                                              // 1649
-                                                                                                                       // 1650
-        var c = {};                                                                                                    // 1651
-                                                                                                                       // 1652
-        copyConfig(c, this);                                                                                           // 1653
-        c = prepareConfig(c);                                                                                          // 1654
-                                                                                                                       // 1655
-        if (c._a) {                                                                                                    // 1656
-            var other = c._isUTC ? create_utc__createUTC(c._a) : local__createLocal(c._a);                             // 1657
-            this._isDSTShifted = this.isValid() &&                                                                     // 1658
-                compareArrays(c._a, other.toArray()) > 0;                                                              // 1659
-        } else {                                                                                                       // 1660
-            this._isDSTShifted = false;                                                                                // 1661
-        }                                                                                                              // 1662
-                                                                                                                       // 1663
-        return this._isDSTShifted;                                                                                     // 1664
-    }                                                                                                                  // 1665
-                                                                                                                       // 1666
-    function isLocal () {                                                                                              // 1667
-        return !this._isUTC;                                                                                           // 1668
-    }                                                                                                                  // 1669
-                                                                                                                       // 1670
-    function isUtcOffset () {                                                                                          // 1671
-        return this._isUTC;                                                                                            // 1672
-    }                                                                                                                  // 1673
-                                                                                                                       // 1674
-    function isUtc () {                                                                                                // 1675
-        return this._isUTC && this._offset === 0;                                                                      // 1676
-    }                                                                                                                  // 1677
-                                                                                                                       // 1678
-    var aspNetRegex = /(\-)?(?:(\d*)\.)?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?)?/;                                          // 1679
-                                                                                                                       // 1680
-    // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html                       // 1681
-    // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere                                       // 1682
-    var create__isoRegex = /^(-)?P(?:(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?|([0-9,.]*)W)$/;
-                                                                                                                       // 1684
-    function create__createDuration (input, key) {                                                                     // 1685
-        var duration = input,                                                                                          // 1686
-            // matching against regexp is expensive, do it on demand                                                   // 1687
-            match = null,                                                                                              // 1688
-            sign,                                                                                                      // 1689
-            ret,                                                                                                       // 1690
-            diffRes;                                                                                                   // 1691
-                                                                                                                       // 1692
-        if (isDuration(input)) {                                                                                       // 1693
-            duration = {                                                                                               // 1694
-                ms : input._milliseconds,                                                                              // 1695
-                d  : input._days,                                                                                      // 1696
-                M  : input._months                                                                                     // 1697
-            };                                                                                                         // 1698
-        } else if (typeof input === 'number') {                                                                        // 1699
-            duration = {};                                                                                             // 1700
-            if (key) {                                                                                                 // 1701
-                duration[key] = input;                                                                                 // 1702
-            } else {                                                                                                   // 1703
-                duration.milliseconds = input;                                                                         // 1704
-            }                                                                                                          // 1705
-        } else if (!!(match = aspNetRegex.exec(input))) {                                                              // 1706
-            sign = (match[1] === '-') ? -1 : 1;                                                                        // 1707
-            duration = {                                                                                               // 1708
-                y  : 0,                                                                                                // 1709
-                d  : toInt(match[DATE])        * sign,                                                                 // 1710
-                h  : toInt(match[HOUR])        * sign,                                                                 // 1711
-                m  : toInt(match[MINUTE])      * sign,                                                                 // 1712
-                s  : toInt(match[SECOND])      * sign,                                                                 // 1713
-                ms : toInt(match[MILLISECOND]) * sign                                                                  // 1714
-            };                                                                                                         // 1715
-        } else if (!!(match = create__isoRegex.exec(input))) {                                                         // 1716
-            sign = (match[1] === '-') ? -1 : 1;                                                                        // 1717
-            duration = {                                                                                               // 1718
-                y : parseIso(match[2], sign),                                                                          // 1719
-                M : parseIso(match[3], sign),                                                                          // 1720
-                d : parseIso(match[4], sign),                                                                          // 1721
-                h : parseIso(match[5], sign),                                                                          // 1722
-                m : parseIso(match[6], sign),                                                                          // 1723
-                s : parseIso(match[7], sign),                                                                          // 1724
-                w : parseIso(match[8], sign)                                                                           // 1725
-            };                                                                                                         // 1726
-        } else if (duration == null) {// checks for null or undefined                                                  // 1727
-            duration = {};                                                                                             // 1728
-        } else if (typeof duration === 'object' && ('from' in duration || 'to' in duration)) {                         // 1729
-            diffRes = momentsDifference(local__createLocal(duration.from), local__createLocal(duration.to));           // 1730
-                                                                                                                       // 1731
-            duration = {};                                                                                             // 1732
-            duration.ms = diffRes.milliseconds;                                                                        // 1733
-            duration.M = diffRes.months;                                                                               // 1734
-        }                                                                                                              // 1735
-                                                                                                                       // 1736
-        ret = new Duration(duration);                                                                                  // 1737
-                                                                                                                       // 1738
-        if (isDuration(input) && hasOwnProp(input, '_locale')) {                                                       // 1739
-            ret._locale = input._locale;                                                                               // 1740
-        }                                                                                                              // 1741
-                                                                                                                       // 1742
-        return ret;                                                                                                    // 1743
-    }                                                                                                                  // 1744
-                                                                                                                       // 1745
-    create__createDuration.fn = Duration.prototype;                                                                    // 1746
-                                                                                                                       // 1747
-    function parseIso (inp, sign) {                                                                                    // 1748
-        // We'd normally use ~~inp for this, but unfortunately it also                                                 // 1749
-        // converts floats to ints.                                                                                    // 1750
-        // inp may be undefined, so careful calling replace on it.                                                     // 1751
-        var res = inp && parseFloat(inp.replace(',', '.'));                                                            // 1752
-        // apply sign while we're at it                                                                                // 1753
-        return (isNaN(res) ? 0 : res) * sign;                                                                          // 1754
-    }                                                                                                                  // 1755
-                                                                                                                       // 1756
-    function positiveMomentsDifference(base, other) {                                                                  // 1757
-        var res = {milliseconds: 0, months: 0};                                                                        // 1758
-                                                                                                                       // 1759
-        res.months = other.month() - base.month() +                                                                    // 1760
-            (other.year() - base.year()) * 12;                                                                         // 1761
-        if (base.clone().add(res.months, 'M').isAfter(other)) {                                                        // 1762
-            --res.months;                                                                                              // 1763
-        }                                                                                                              // 1764
-                                                                                                                       // 1765
-        res.milliseconds = +other - +(base.clone().add(res.months, 'M'));                                              // 1766
-                                                                                                                       // 1767
-        return res;                                                                                                    // 1768
-    }                                                                                                                  // 1769
-                                                                                                                       // 1770
-    function momentsDifference(base, other) {                                                                          // 1771
-        var res;                                                                                                       // 1772
-        other = cloneWithOffset(other, base);                                                                          // 1773
-        if (base.isBefore(other)) {                                                                                    // 1774
-            res = positiveMomentsDifference(base, other);                                                              // 1775
-        } else {                                                                                                       // 1776
-            res = positiveMomentsDifference(other, base);                                                              // 1777
-            res.milliseconds = -res.milliseconds;                                                                      // 1778
-            res.months = -res.months;                                                                                  // 1779
-        }                                                                                                              // 1780
-                                                                                                                       // 1781
-        return res;                                                                                                    // 1782
-    }                                                                                                                  // 1783
-                                                                                                                       // 1784
-    function createAdder(direction, name) {                                                                            // 1785
-        return function (val, period) {                                                                                // 1786
-            var dur, tmp;                                                                                              // 1787
-            //invert the arguments, but complain about it                                                              // 1788
-            if (period !== null && !isNaN(+period)) {                                                                  // 1789
-                deprecateSimple(name, 'moment().' + name  + '(period, number) is deprecated. Please use moment().' + name + '(number, period).');
-                tmp = val; val = period; period = tmp;                                                                 // 1791
-            }                                                                                                          // 1792
-                                                                                                                       // 1793
-            val = typeof val === 'string' ? +val : val;                                                                // 1794
-            dur = create__createDuration(val, period);                                                                 // 1795
-            add_subtract__addSubtract(this, dur, direction);                                                           // 1796
-            return this;                                                                                               // 1797
-        };                                                                                                             // 1798
-    }                                                                                                                  // 1799
-                                                                                                                       // 1800
-    function add_subtract__addSubtract (mom, duration, isAdding, updateOffset) {                                       // 1801
-        var milliseconds = duration._milliseconds,                                                                     // 1802
-            days = duration._days,                                                                                     // 1803
-            months = duration._months;                                                                                 // 1804
-        updateOffset = updateOffset == null ? true : updateOffset;                                                     // 1805
-                                                                                                                       // 1806
-        if (milliseconds) {                                                                                            // 1807
-            mom._d.setTime(+mom._d + milliseconds * isAdding);                                                         // 1808
-        }                                                                                                              // 1809
-        if (days) {                                                                                                    // 1810
-            get_set__set(mom, 'Date', get_set__get(mom, 'Date') + days * isAdding);                                    // 1811
-        }                                                                                                              // 1812
-        if (months) {                                                                                                  // 1813
-            setMonth(mom, get_set__get(mom, 'Month') + months * isAdding);                                             // 1814
-        }                                                                                                              // 1815
-        if (updateOffset) {                                                                                            // 1816
-            utils_hooks__hooks.updateOffset(mom, days || months);                                                      // 1817
-        }                                                                                                              // 1818
-    }                                                                                                                  // 1819
-                                                                                                                       // 1820
-    var add_subtract__add      = createAdder(1, 'add');                                                                // 1821
-    var add_subtract__subtract = createAdder(-1, 'subtract');                                                          // 1822
-                                                                                                                       // 1823
-    function moment_calendar__calendar (time, formats) {                                                               // 1824
-        // We want to compare the start of today, vs this.                                                             // 1825
-        // Getting start-of-today depends on whether we're local/utc/offset or not.                                    // 1826
-        var now = time || local__createLocal(),                                                                        // 1827
-            sod = cloneWithOffset(now, this).startOf('day'),                                                           // 1828
-            diff = this.diff(sod, 'days', true),                                                                       // 1829
-            format = diff < -6 ? 'sameElse' :                                                                          // 1830
-                diff < -1 ? 'lastWeek' :                                                                               // 1831
-                diff < 0 ? 'lastDay' :                                                                                 // 1832
-                diff < 1 ? 'sameDay' :                                                                                 // 1833
-                diff < 2 ? 'nextDay' :                                                                                 // 1834
-                diff < 7 ? 'nextWeek' : 'sameElse';                                                                    // 1835
-        return this.format(formats && formats[format] || this.localeData().calendar(format, this, local__createLocal(now)));
-    }                                                                                                                  // 1837
-                                                                                                                       // 1838
-    function clone () {                                                                                                // 1839
-        return new Moment(this);                                                                                       // 1840
-    }                                                                                                                  // 1841
-                                                                                                                       // 1842
-    function isAfter (input, units) {                                                                                  // 1843
-        var inputMs;                                                                                                   // 1844
-        units = normalizeUnits(typeof units !== 'undefined' ? units : 'millisecond');                                  // 1845
-        if (units === 'millisecond') {                                                                                 // 1846
-            input = isMoment(input) ? input : local__createLocal(input);                                               // 1847
-            return +this > +input;                                                                                     // 1848
-        } else {                                                                                                       // 1849
-            inputMs = isMoment(input) ? +input : +local__createLocal(input);                                           // 1850
-            return inputMs < +this.clone().startOf(units);                                                             // 1851
-        }                                                                                                              // 1852
-    }                                                                                                                  // 1853
-                                                                                                                       // 1854
-    function isBefore (input, units) {                                                                                 // 1855
-        var inputMs;                                                                                                   // 1856
-        units = normalizeUnits(typeof units !== 'undefined' ? units : 'millisecond');                                  // 1857
-        if (units === 'millisecond') {                                                                                 // 1858
-            input = isMoment(input) ? input : local__createLocal(input);                                               // 1859
-            return +this < +input;                                                                                     // 1860
-        } else {                                                                                                       // 1861
-            inputMs = isMoment(input) ? +input : +local__createLocal(input);                                           // 1862
-            return +this.clone().endOf(units) < inputMs;                                                               // 1863
-        }                                                                                                              // 1864
-    }                                                                                                                  // 1865
-                                                                                                                       // 1866
-    function isBetween (from, to, units) {                                                                             // 1867
-        return this.isAfter(from, units) && this.isBefore(to, units);                                                  // 1868
-    }                                                                                                                  // 1869
-                                                                                                                       // 1870
-    function isSame (input, units) {                                                                                   // 1871
-        var inputMs;                                                                                                   // 1872
-        units = normalizeUnits(units || 'millisecond');                                                                // 1873
-        if (units === 'millisecond') {                                                                                 // 1874
-            input = isMoment(input) ? input : local__createLocal(input);                                               // 1875
-            return +this === +input;                                                                                   // 1876
-        } else {                                                                                                       // 1877
-            inputMs = +local__createLocal(input);                                                                      // 1878
-            return +(this.clone().startOf(units)) <= inputMs && inputMs <= +(this.clone().endOf(units));               // 1879
-        }                                                                                                              // 1880
-    }                                                                                                                  // 1881
-                                                                                                                       // 1882
-    function diff (input, units, asFloat) {                                                                            // 1883
-        var that = cloneWithOffset(input, this),                                                                       // 1884
-            zoneDelta = (that.utcOffset() - this.utcOffset()) * 6e4,                                                   // 1885
-            delta, output;                                                                                             // 1886
-                                                                                                                       // 1887
-        units = normalizeUnits(units);                                                                                 // 1888
-                                                                                                                       // 1889
-        if (units === 'year' || units === 'month' || units === 'quarter') {                                            // 1890
-            output = monthDiff(this, that);                                                                            // 1891
-            if (units === 'quarter') {                                                                                 // 1892
-                output = output / 3;                                                                                   // 1893
-            } else if (units === 'year') {                                                                             // 1894
-                output = output / 12;                                                                                  // 1895
-            }                                                                                                          // 1896
-        } else {                                                                                                       // 1897
-            delta = this - that;                                                                                       // 1898
-            output = units === 'second' ? delta / 1e3 : // 1000                                                        // 1899
-                units === 'minute' ? delta / 6e4 : // 1000 * 60                                                        // 1900
-                units === 'hour' ? delta / 36e5 : // 1000 * 60 * 60                                                    // 1901
-                units === 'day' ? (delta - zoneDelta) / 864e5 : // 1000 * 60 * 60 * 24, negate dst                     // 1902
-                units === 'week' ? (delta - zoneDelta) / 6048e5 : // 1000 * 60 * 60 * 24 * 7, negate dst               // 1903
-                delta;                                                                                                 // 1904
-        }                                                                                                              // 1905
-        return asFloat ? output : absFloor(output);                                                                    // 1906
-    }                                                                                                                  // 1907
-                                                                                                                       // 1908
-    function monthDiff (a, b) {                                                                                        // 1909
-        // difference in months                                                                                        // 1910
-        var wholeMonthDiff = ((b.year() - a.year()) * 12) + (b.month() - a.month()),                                   // 1911
-            // b is in (anchor - 1 month, anchor + 1 month)                                                            // 1912
-            anchor = a.clone().add(wholeMonthDiff, 'months'),                                                          // 1913
-            anchor2, adjust;                                                                                           // 1914
-                                                                                                                       // 1915
-        if (b - anchor < 0) {                                                                                          // 1916
-            anchor2 = a.clone().add(wholeMonthDiff - 1, 'months');                                                     // 1917
-            // linear across the month                                                                                 // 1918
-            adjust = (b - anchor) / (anchor - anchor2);                                                                // 1919
-        } else {                                                                                                       // 1920
-            anchor2 = a.clone().add(wholeMonthDiff + 1, 'months');                                                     // 1921
-            // linear across the month                                                                                 // 1922
-            adjust = (b - anchor) / (anchor2 - anchor);                                                                // 1923
-        }                                                                                                              // 1924
-                                                                                                                       // 1925
-        return -(wholeMonthDiff + adjust);                                                                             // 1926
-    }                                                                                                                  // 1927
-                                                                                                                       // 1928
-    utils_hooks__hooks.defaultFormat = 'YYYY-MM-DDTHH:mm:ssZ';                                                         // 1929
-                                                                                                                       // 1930
-    function toString () {                                                                                             // 1931
-        return this.clone().locale('en').format('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ');                                   // 1932
-    }                                                                                                                  // 1933
-                                                                                                                       // 1934
-    function moment_format__toISOString () {                                                                           // 1935
-        var m = this.clone().utc();                                                                                    // 1936
-        if (0 < m.year() && m.year() <= 9999) {                                                                        // 1937
-            if ('function' === typeof Date.prototype.toISOString) {                                                    // 1938
-                // native implementation is ~50x faster, use it when we can                                            // 1939
-                return this.toDate().toISOString();                                                                    // 1940
-            } else {                                                                                                   // 1941
-                return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');                                                // 1942
-            }                                                                                                          // 1943
-        } else {                                                                                                       // 1944
-            return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]');                                                  // 1945
-        }                                                                                                              // 1946
-    }                                                                                                                  // 1947
-                                                                                                                       // 1948
-    function format (inputString) {                                                                                    // 1949
-        var output = formatMoment(this, inputString || utils_hooks__hooks.defaultFormat);                              // 1950
-        return this.localeData().postformat(output);                                                                   // 1951
-    }                                                                                                                  // 1952
-                                                                                                                       // 1953
-    function from (time, withoutSuffix) {                                                                              // 1954
-        if (!this.isValid()) {                                                                                         // 1955
-            return this.localeData().invalidDate();                                                                    // 1956
-        }                                                                                                              // 1957
-        return create__createDuration({to: this, from: time}).locale(this.locale()).humanize(!withoutSuffix);          // 1958
-    }                                                                                                                  // 1959
-                                                                                                                       // 1960
-    function fromNow (withoutSuffix) {                                                                                 // 1961
-        return this.from(local__createLocal(), withoutSuffix);                                                         // 1962
-    }                                                                                                                  // 1963
-                                                                                                                       // 1964
-    function to (time, withoutSuffix) {                                                                                // 1965
-        if (!this.isValid()) {                                                                                         // 1966
-            return this.localeData().invalidDate();                                                                    // 1967
-        }                                                                                                              // 1968
-        return create__createDuration({from: this, to: time}).locale(this.locale()).humanize(!withoutSuffix);          // 1969
-    }                                                                                                                  // 1970
-                                                                                                                       // 1971
-    function toNow (withoutSuffix) {                                                                                   // 1972
-        return this.to(local__createLocal(), withoutSuffix);                                                           // 1973
-    }                                                                                                                  // 1974
-                                                                                                                       // 1975
-    function locale (key) {                                                                                            // 1976
-        var newLocaleData;                                                                                             // 1977
-                                                                                                                       // 1978
-        if (key === undefined) {                                                                                       // 1979
-            return this._locale._abbr;                                                                                 // 1980
-        } else {                                                                                                       // 1981
-            newLocaleData = locale_locales__getLocale(key);                                                            // 1982
-            if (newLocaleData != null) {                                                                               // 1983
-                this._locale = newLocaleData;                                                                          // 1984
-            }                                                                                                          // 1985
-            return this;                                                                                               // 1986
-        }                                                                                                              // 1987
-    }                                                                                                                  // 1988
-                                                                                                                       // 1989
-    var lang = deprecate(                                                                                              // 1990
-        'moment().lang() is deprecated. Instead, use moment().localeData() to get the language configuration. Use moment().locale() to change languages.',
-        function (key) {                                                                                               // 1992
-            if (key === undefined) {                                                                                   // 1993
-                return this.localeData();                                                                              // 1994
-            } else {                                                                                                   // 1995
-                return this.locale(key);                                                                               // 1996
-            }                                                                                                          // 1997
-        }                                                                                                              // 1998
-    );                                                                                                                 // 1999
-                                                                                                                       // 2000
-    function localeData () {                                                                                           // 2001
-        return this._locale;                                                                                           // 2002
-    }                                                                                                                  // 2003
-                                                                                                                       // 2004
-    function startOf (units) {                                                                                         // 2005
-        units = normalizeUnits(units);                                                                                 // 2006
-        // the following switch intentionally omits break keywords                                                     // 2007
-        // to utilize falling through the cases.                                                                       // 2008
-        switch (units) {                                                                                               // 2009
-        case 'year':                                                                                                   // 2010
-            this.month(0);                                                                                             // 2011
-            /* falls through */                                                                                        // 2012
-        case 'quarter':                                                                                                // 2013
-        case 'month':                                                                                                  // 2014
-            this.date(1);                                                                                              // 2015
-            /* falls through */                                                                                        // 2016
-        case 'week':                                                                                                   // 2017
-        case 'isoWeek':                                                                                                // 2018
-        case 'day':                                                                                                    // 2019
-            this.hours(0);                                                                                             // 2020
-            /* falls through */                                                                                        // 2021
-        case 'hour':                                                                                                   // 2022
-            this.minutes(0);                                                                                           // 2023
-            /* falls through */                                                                                        // 2024
-        case 'minute':                                                                                                 // 2025
-            this.seconds(0);                                                                                           // 2026
-            /* falls through */                                                                                        // 2027
-        case 'second':                                                                                                 // 2028
-            this.milliseconds(0);                                                                                      // 2029
-        }                                                                                                              // 2030
-                                                                                                                       // 2031
-        // weeks are a special case                                                                                    // 2032
-        if (units === 'week') {                                                                                        // 2033
-            this.weekday(0);                                                                                           // 2034
-        }                                                                                                              // 2035
-        if (units === 'isoWeek') {                                                                                     // 2036
-            this.isoWeekday(1);                                                                                        // 2037
-        }                                                                                                              // 2038
-                                                                                                                       // 2039
-        // quarters are also special                                                                                   // 2040
-        if (units === 'quarter') {                                                                                     // 2041
-            this.month(Math.floor(this.month() / 3) * 3);                                                              // 2042
-        }                                                                                                              // 2043
-                                                                                                                       // 2044
-        return this;                                                                                                   // 2045
-    }                                                                                                                  // 2046
-                                                                                                                       // 2047
-    function endOf (units) {                                                                                           // 2048
-        units = normalizeUnits(units);                                                                                 // 2049
-        if (units === undefined || units === 'millisecond') {                                                          // 2050
-            return this;                                                                                               // 2051
-        }                                                                                                              // 2052
-        return this.startOf(units).add(1, (units === 'isoWeek' ? 'week' : units)).subtract(1, 'ms');                   // 2053
-    }                                                                                                                  // 2054
-                                                                                                                       // 2055
-    function to_type__valueOf () {                                                                                     // 2056
-        return +this._d - ((this._offset || 0) * 60000);                                                               // 2057
-    }                                                                                                                  // 2058
-                                                                                                                       // 2059
-    function unix () {                                                                                                 // 2060
-        return Math.floor(+this / 1000);                                                                               // 2061
-    }                                                                                                                  // 2062
-                                                                                                                       // 2063
-    function toDate () {                                                                                               // 2064
-        return this._offset ? new Date(+this) : this._d;                                                               // 2065
-    }                                                                                                                  // 2066
-                                                                                                                       // 2067
-    function toArray () {                                                                                              // 2068
-        var m = this;                                                                                                  // 2069
-        return [m.year(), m.month(), m.date(), m.hour(), m.minute(), m.second(), m.millisecond()];                     // 2070
-    }                                                                                                                  // 2071
-                                                                                                                       // 2072
-    function toObject () {                                                                                             // 2073
-        var m = this;                                                                                                  // 2074
-        return {                                                                                                       // 2075
-            years: m.year(),                                                                                           // 2076
-            months: m.month(),                                                                                         // 2077
-            date: m.date(),                                                                                            // 2078
-            hours: m.hours(),                                                                                          // 2079
-            minutes: m.minutes(),                                                                                      // 2080
-            seconds: m.seconds(),                                                                                      // 2081
-            milliseconds: m.milliseconds()                                                                             // 2082
-        };                                                                                                             // 2083
-    }                                                                                                                  // 2084
-                                                                                                                       // 2085
-    function moment_valid__isValid () {                                                                                // 2086
-        return valid__isValid(this);                                                                                   // 2087
-    }                                                                                                                  // 2088
-                                                                                                                       // 2089
-    function parsingFlags () {                                                                                         // 2090
-        return extend({}, getParsingFlags(this));                                                                      // 2091
-    }                                                                                                                  // 2092
-                                                                                                                       // 2093
-    function invalidAt () {                                                                                            // 2094
-        return getParsingFlags(this).overflow;                                                                         // 2095
-    }                                                                                                                  // 2096
-                                                                                                                       // 2097
-    addFormatToken(0, ['gg', 2], 0, function () {                                                                      // 2098
-        return this.weekYear() % 100;                                                                                  // 2099
-    });                                                                                                                // 2100
-                                                                                                                       // 2101
-    addFormatToken(0, ['GG', 2], 0, function () {                                                                      // 2102
-        return this.isoWeekYear() % 100;                                                                               // 2103
-    });                                                                                                                // 2104
-                                                                                                                       // 2105
-    function addWeekYearFormatToken (token, getter) {                                                                  // 2106
-        addFormatToken(0, [token, token.length], 0, getter);                                                           // 2107
-    }                                                                                                                  // 2108
-                                                                                                                       // 2109
-    addWeekYearFormatToken('gggg',     'weekYear');                                                                    // 2110
-    addWeekYearFormatToken('ggggg',    'weekYear');                                                                    // 2111
-    addWeekYearFormatToken('GGGG',  'isoWeekYear');                                                                    // 2112
-    addWeekYearFormatToken('GGGGG', 'isoWeekYear');                                                                    // 2113
-                                                                                                                       // 2114
-    // ALIASES                                                                                                         // 2115
-                                                                                                                       // 2116
-    addUnitAlias('weekYear', 'gg');                                                                                    // 2117
-    addUnitAlias('isoWeekYear', 'GG');                                                                                 // 2118
-                                                                                                                       // 2119
-    // PARSING                                                                                                         // 2120
-                                                                                                                       // 2121
-    addRegexToken('G',      matchSigned);                                                                              // 2122
-    addRegexToken('g',      matchSigned);                                                                              // 2123
-    addRegexToken('GG',     match1to2, match2);                                                                        // 2124
-    addRegexToken('gg',     match1to2, match2);                                                                        // 2125
-    addRegexToken('GGGG',   match1to4, match4);                                                                        // 2126
-    addRegexToken('gggg',   match1to4, match4);                                                                        // 2127
-    addRegexToken('GGGGG',  match1to6, match6);                                                                        // 2128
-    addRegexToken('ggggg',  match1to6, match6);                                                                        // 2129
-                                                                                                                       // 2130
-    addWeekParseToken(['gggg', 'ggggg', 'GGGG', 'GGGGG'], function (input, week, config, token) {                      // 2131
-        week[token.substr(0, 2)] = toInt(input);                                                                       // 2132
-    });                                                                                                                // 2133
-                                                                                                                       // 2134
-    addWeekParseToken(['gg', 'GG'], function (input, week, config, token) {                                            // 2135
-        week[token] = utils_hooks__hooks.parseTwoDigitYear(input);                                                     // 2136
-    });                                                                                                                // 2137
-                                                                                                                       // 2138
-    // HELPERS                                                                                                         // 2139
-                                                                                                                       // 2140
-    function weeksInYear(year, dow, doy) {                                                                             // 2141
-        return weekOfYear(local__createLocal([year, 11, 31 + dow - doy]), dow, doy).week;                              // 2142
-    }                                                                                                                  // 2143
-                                                                                                                       // 2144
-    // MOMENTS                                                                                                         // 2145
-                                                                                                                       // 2146
-    function getSetWeekYear (input) {                                                                                  // 2147
-        var year = weekOfYear(this, this.localeData()._week.dow, this.localeData()._week.doy).year;                    // 2148
-        return input == null ? year : this.add((input - year), 'y');                                                   // 2149
-    }                                                                                                                  // 2150
-                                                                                                                       // 2151
-    function getSetISOWeekYear (input) {                                                                               // 2152
-        var year = weekOfYear(this, 1, 4).year;                                                                        // 2153
-        return input == null ? year : this.add((input - year), 'y');                                                   // 2154
-    }                                                                                                                  // 2155
-                                                                                                                       // 2156
-    function getISOWeeksInYear () {                                                                                    // 2157
-        return weeksInYear(this.year(), 1, 4);                                                                         // 2158
-    }                                                                                                                  // 2159
-                                                                                                                       // 2160
-    function getWeeksInYear () {                                                                                       // 2161
-        var weekInfo = this.localeData()._week;                                                                        // 2162
-        return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);                                                   // 2163
-    }                                                                                                                  // 2164
-                                                                                                                       // 2165
-    addFormatToken('Q', 0, 0, 'quarter');                                                                              // 2166
-                                                                                                                       // 2167
-    // ALIASES                                                                                                         // 2168
-                                                                                                                       // 2169
-    addUnitAlias('quarter', 'Q');                                                                                      // 2170
-                                                                                                                       // 2171
-    // PARSING                                                                                                         // 2172
-                                                                                                                       // 2173
-    addRegexToken('Q', match1);                                                                                        // 2174
-    addParseToken('Q', function (input, array) {                                                                       // 2175
-        array[MONTH] = (toInt(input) - 1) * 3;                                                                         // 2176
-    });                                                                                                                // 2177
-                                                                                                                       // 2178
-    // MOMENTS                                                                                                         // 2179
-                                                                                                                       // 2180
-    function getSetQuarter (input) {                                                                                   // 2181
-        return input == null ? Math.ceil((this.month() + 1) / 3) : this.month((input - 1) * 3 + this.month() % 3);     // 2182
-    }                                                                                                                  // 2183
-                                                                                                                       // 2184
-    addFormatToken('D', ['DD', 2], 'Do', 'date');                                                                      // 2185
-                                                                                                                       // 2186
-    // ALIASES                                                                                                         // 2187
-                                                                                                                       // 2188
-    addUnitAlias('date', 'D');                                                                                         // 2189
-                                                                                                                       // 2190
-    // PARSING                                                                                                         // 2191
-                                                                                                                       // 2192
-    addRegexToken('D',  match1to2);                                                                                    // 2193
-    addRegexToken('DD', match1to2, match2);                                                                            // 2194
-    addRegexToken('Do', function (isStrict, locale) {                                                                  // 2195
-        return isStrict ? locale._ordinalParse : locale._ordinalParseLenient;                                          // 2196
-    });                                                                                                                // 2197
-                                                                                                                       // 2198
-    addParseToken(['D', 'DD'], DATE);                                                                                  // 2199
-    addParseToken('Do', function (input, array) {                                                                      // 2200
-        array[DATE] = toInt(input.match(match1to2)[0], 10);                                                            // 2201
-    });                                                                                                                // 2202
-                                                                                                                       // 2203
-    // MOMENTS                                                                                                         // 2204
-                                                                                                                       // 2205
-    var getSetDayOfMonth = makeGetSet('Date', true);                                                                   // 2206
-                                                                                                                       // 2207
-    addFormatToken('d', 0, 'do', 'day');                                                                               // 2208
-                                                                                                                       // 2209
-    addFormatToken('dd', 0, 0, function (format) {                                                                     // 2210
-        return this.localeData().weekdaysMin(this, format);                                                            // 2211
-    });                                                                                                                // 2212
-                                                                                                                       // 2213
-    addFormatToken('ddd', 0, 0, function (format) {                                                                    // 2214
-        return this.localeData().weekdaysShort(this, format);                                                          // 2215
-    });                                                                                                                // 2216
-                                                                                                                       // 2217
-    addFormatToken('dddd', 0, 0, function (format) {                                                                   // 2218
-        return this.localeData().weekdays(this, format);                                                               // 2219
-    });                                                                                                                // 2220
-                                                                                                                       // 2221
-    addFormatToken('e', 0, 0, 'weekday');                                                                              // 2222
-    addFormatToken('E', 0, 0, 'isoWeekday');                                                                           // 2223
-                                                                                                                       // 2224
-    // ALIASES                                                                                                         // 2225
-                                                                                                                       // 2226
-    addUnitAlias('day', 'd');                                                                                          // 2227
-    addUnitAlias('weekday', 'e');                                                                                      // 2228
-    addUnitAlias('isoWeekday', 'E');                                                                                   // 2229
-                                                                                                                       // 2230
-    // PARSING                                                                                                         // 2231
-                                                                                                                       // 2232
-    addRegexToken('d',    match1to2);                                                                                  // 2233
-    addRegexToken('e',    match1to2);                                                                                  // 2234
-    addRegexToken('E',    match1to2);                                                                                  // 2235
-    addRegexToken('dd',   matchWord);                                                                                  // 2236
-    addRegexToken('ddd',  matchWord);                                                                                  // 2237
-    addRegexToken('dddd', matchWord);                                                                                  // 2238
-                                                                                                                       // 2239
-    addWeekParseToken(['dd', 'ddd', 'dddd'], function (input, week, config) {                                          // 2240
-        var weekday = config._locale.weekdaysParse(input);                                                             // 2241
-        // if we didn't get a weekday name, mark the date as invalid                                                   // 2242
-        if (weekday != null) {                                                                                         // 2243
-            week.d = weekday;                                                                                          // 2244
-        } else {                                                                                                       // 2245
-            getParsingFlags(config).invalidWeekday = input;                                                            // 2246
-        }                                                                                                              // 2247
-    });                                                                                                                // 2248
-                                                                                                                       // 2249
-    addWeekParseToken(['d', 'e', 'E'], function (input, week, config, token) {                                         // 2250
-        week[token] = toInt(input);                                                                                    // 2251
-    });                                                                                                                // 2252
-                                                                                                                       // 2253
-    // HELPERS                                                                                                         // 2254
-                                                                                                                       // 2255
-    function parseWeekday(input, locale) {                                                                             // 2256
-        if (typeof input !== 'string') {                                                                               // 2257
-            return input;                                                                                              // 2258
-        }                                                                                                              // 2259
-                                                                                                                       // 2260
-        if (!isNaN(input)) {                                                                                           // 2261
-            return parseInt(input, 10);                                                                                // 2262
-        }                                                                                                              // 2263
-                                                                                                                       // 2264
-        input = locale.weekdaysParse(input);                                                                           // 2265
-        if (typeof input === 'number') {                                                                               // 2266
-            return input;                                                                                              // 2267
-        }                                                                                                              // 2268
-                                                                                                                       // 2269
-        return null;                                                                                                   // 2270
-    }                                                                                                                  // 2271
-                                                                                                                       // 2272
-    // LOCALES                                                                                                         // 2273
-                                                                                                                       // 2274
-    var defaultLocaleWeekdays = 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_');                 // 2275
-    function localeWeekdays (m) {                                                                                      // 2276
-        return this._weekdays[m.day()];                                                                                // 2277
-    }                                                                                                                  // 2278
-                                                                                                                       // 2279
-    var defaultLocaleWeekdaysShort = 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_');                                         // 2280
-    function localeWeekdaysShort (m) {                                                                                 // 2281
-        return this._weekdaysShort[m.day()];                                                                           // 2282
-    }                                                                                                                  // 2283
-                                                                                                                       // 2284
-    var defaultLocaleWeekdaysMin = 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_');                                                  // 2285
-    function localeWeekdaysMin (m) {                                                                                   // 2286
-        return this._weekdaysMin[m.day()];                                                                             // 2287
-    }                                                                                                                  // 2288
-                                                                                                                       // 2289
-    function localeWeekdaysParse (weekdayName) {                                                                       // 2290
-        var i, mom, regex;                                                                                             // 2291
-                                                                                                                       // 2292
-        this._weekdaysParse = this._weekdaysParse || [];                                                               // 2293
-                                                                                                                       // 2294
-        for (i = 0; i < 7; i++) {                                                                                      // 2295
-            // make the regex if we don't have it already                                                              // 2296
-            if (!this._weekdaysParse[i]) {                                                                             // 2297
-                mom = local__createLocal([2000, 1]).day(i);                                                            // 2298
-                regex = '^' + this.weekdays(mom, '') + '|^' + this.weekdaysShort(mom, '') + '|^' + this.weekdaysMin(mom, '');
-                this._weekdaysParse[i] = new RegExp(regex.replace('.', ''), 'i');                                      // 2300
-            }                                                                                                          // 2301
-            // test the regex                                                                                          // 2302
-            if (this._weekdaysParse[i].test(weekdayName)) {                                                            // 2303
-                return i;                                                                                              // 2304
-            }                                                                                                          // 2305
-        }                                                                                                              // 2306
-    }                                                                                                                  // 2307
-                                                                                                                       // 2308
-    // MOMENTS                                                                                                         // 2309
-                                                                                                                       // 2310
-    function getSetDayOfWeek (input) {                                                                                 // 2311
-        var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();                                                // 2312
-        if (input != null) {                                                                                           // 2313
-            input = parseWeekday(input, this.localeData());                                                            // 2314
-            return this.add(input - day, 'd');                                                                         // 2315
-        } else {                                                                                                       // 2316
-            return day;                                                                                                // 2317
-        }                                                                                                              // 2318
-    }                                                                                                                  // 2319
-                                                                                                                       // 2320
-    function getSetLocaleDayOfWeek (input) {                                                                           // 2321
-        var weekday = (this.day() + 7 - this.localeData()._week.dow) % 7;                                              // 2322
-        return input == null ? weekday : this.add(input - weekday, 'd');                                               // 2323
-    }                                                                                                                  // 2324
-                                                                                                                       // 2325
-    function getSetISODayOfWeek (input) {                                                                              // 2326
-        // behaves the same as moment#day except                                                                       // 2327
-        // as a getter, returns 7 instead of 0 (1-7 range instead of 0-6)                                              // 2328
-        // as a setter, sunday should belong to the previous week.                                                     // 2329
-        return input == null ? this.day() || 7 : this.day(this.day() % 7 ? input : input - 7);                         // 2330
-    }                                                                                                                  // 2331
-                                                                                                                       // 2332
-    addFormatToken('H', ['HH', 2], 0, 'hour');                                                                         // 2333
-    addFormatToken('h', ['hh', 2], 0, function () {                                                                    // 2334
-        return this.hours() % 12 || 12;                                                                                // 2335
-    });                                                                                                                // 2336
-                                                                                                                       // 2337
-    function meridiem (token, lowercase) {                                                                             // 2338
-        addFormatToken(token, 0, 0, function () {                                                                      // 2339
-            return this.localeData().meridiem(this.hours(), this.minutes(), lowercase);                                // 2340
-        });                                                                                                            // 2341
-    }                                                                                                                  // 2342
-                                                                                                                       // 2343
-    meridiem('a', true);                                                                                               // 2344
-    meridiem('A', false);                                                                                              // 2345
-                                                                                                                       // 2346
-    // ALIASES                                                                                                         // 2347
-                                                                                                                       // 2348
-    addUnitAlias('hour', 'h');                                                                                         // 2349
-                                                                                                                       // 2350
-    // PARSING                                                                                                         // 2351
-                                                                                                                       // 2352
-    function matchMeridiem (isStrict, locale) {                                                                        // 2353
-        return locale._meridiemParse;                                                                                  // 2354
-    }                                                                                                                  // 2355
-                                                                                                                       // 2356
-    addRegexToken('a',  matchMeridiem);                                                                                // 2357
-    addRegexToken('A',  matchMeridiem);                                                                                // 2358
-    addRegexToken('H',  match1to2);                                                                                    // 2359
-    addRegexToken('h',  match1to2);                                                                                    // 2360
-    addRegexToken('HH', match1to2, match2);                                                                            // 2361
-    addRegexToken('hh', match1to2, match2);                                                                            // 2362
-                                                                                                                       // 2363
-    addParseToken(['H', 'HH'], HOUR);                                                                                  // 2364
-    addParseToken(['a', 'A'], function (input, array, config) {                                                        // 2365
-        config._isPm = config._locale.isPM(input);                                                                     // 2366
-        config._meridiem = input;                                                                                      // 2367
-    });                                                                                                                // 2368
-    addParseToken(['h', 'hh'], function (input, array, config) {                                                       // 2369
-        array[HOUR] = toInt(input);                                                                                    // 2370
-        getParsingFlags(config).bigHour = true;                                                                        // 2371
-    });                                                                                                                // 2372
-                                                                                                                       // 2373
-    // LOCALES                                                                                                         // 2374
-                                                                                                                       // 2375
-    function localeIsPM (input) {                                                                                      // 2376
-        // IE8 Quirks Mode & IE7 Standards Mode do not allow accessing strings like arrays                             // 2377
-        // Using charAt should be more compatible.                                                                     // 2378
-        return ((input + '').toLowerCase().charAt(0) === 'p');                                                         // 2379
-    }                                                                                                                  // 2380
-                                                                                                                       // 2381
-    var defaultLocaleMeridiemParse = /[ap]\.?m?\.?/i;                                                                  // 2382
-    function localeMeridiem (hours, minutes, isLower) {                                                                // 2383
-        if (hours > 11) {                                                                                              // 2384
-            return isLower ? 'pm' : 'PM';                                                                              // 2385
-        } else {                                                                                                       // 2386
-            return isLower ? 'am' : 'AM';                                                                              // 2387
-        }                                                                                                              // 2388
-    }                                                                                                                  // 2389
-                                                                                                                       // 2390
-                                                                                                                       // 2391
-    // MOMENTS                                                                                                         // 2392
-                                                                                                                       // 2393
-    // Setting the hour should keep the time, because the user explicitly                                              // 2394
-    // specified which hour he wants. So trying to maintain the same hour (in                                          // 2395
-    // a new timezone) makes sense. Adding/subtracting hours does not follow                                           // 2396
-    // this rule.                                                                                                      // 2397
-    var getSetHour = makeGetSet('Hours', true);                                                                        // 2398
-                                                                                                                       // 2399
-    addFormatToken('m', ['mm', 2], 0, 'minute');                                                                       // 2400
-                                                                                                                       // 2401
-    // ALIASES                                                                                                         // 2402
-                                                                                                                       // 2403
-    addUnitAlias('minute', 'm');                                                                                       // 2404
-                                                                                                                       // 2405
-    // PARSING                                                                                                         // 2406
-                                                                                                                       // 2407
-    addRegexToken('m',  match1to2);                                                                                    // 2408
-    addRegexToken('mm', match1to2, match2);                                                                            // 2409
-    addParseToken(['m', 'mm'], MINUTE);                                                                                // 2410
-                                                                                                                       // 2411
-    // MOMENTS                                                                                                         // 2412
-                                                                                                                       // 2413
-    var getSetMinute = makeGetSet('Minutes', false);                                                                   // 2414
-                                                                                                                       // 2415
-    addFormatToken('s', ['ss', 2], 0, 'second');                                                                       // 2416
-                                                                                                                       // 2417
-    // ALIASES                                                                                                         // 2418
-                                                                                                                       // 2419
-    addUnitAlias('second', 's');                                                                                       // 2420
-                                                                                                                       // 2421
-    // PARSING                                                                                                         // 2422
-                                                                                                                       // 2423
-    addRegexToken('s',  match1to2);                                                                                    // 2424
-    addRegexToken('ss', match1to2, match2);                                                                            // 2425
-    addParseToken(['s', 'ss'], SECOND);                                                                                // 2426
-                                                                                                                       // 2427
-    // MOMENTS                                                                                                         // 2428
-                                                                                                                       // 2429
-    var getSetSecond = makeGetSet('Seconds', false);                                                                   // 2430
-                                                                                                                       // 2431
-    addFormatToken('S', 0, 0, function () {                                                                            // 2432
-        return ~~(this.millisecond() / 100);                                                                           // 2433
-    });                                                                                                                // 2434
-                                                                                                                       // 2435
-    addFormatToken(0, ['SS', 2], 0, function () {                                                                      // 2436
-        return ~~(this.millisecond() / 10);                                                                            // 2437
-    });                                                                                                                // 2438
-                                                                                                                       // 2439
-    addFormatToken(0, ['SSS', 3], 0, 'millisecond');                                                                   // 2440
-    addFormatToken(0, ['SSSS', 4], 0, function () {                                                                    // 2441
-        return this.millisecond() * 10;                                                                                // 2442
-    });                                                                                                                // 2443
-    addFormatToken(0, ['SSSSS', 5], 0, function () {                                                                   // 2444
-        return this.millisecond() * 100;                                                                               // 2445
-    });                                                                                                                // 2446
-    addFormatToken(0, ['SSSSSS', 6], 0, function () {                                                                  // 2447
-        return this.millisecond() * 1000;                                                                              // 2448
-    });                                                                                                                // 2449
-    addFormatToken(0, ['SSSSSSS', 7], 0, function () {                                                                 // 2450
-        return this.millisecond() * 10000;                                                                             // 2451
-    });                                                                                                                // 2452
-    addFormatToken(0, ['SSSSSSSS', 8], 0, function () {                                                                // 2453
-        return this.millisecond() * 100000;                                                                            // 2454
-    });                                                                                                                // 2455
-    addFormatToken(0, ['SSSSSSSSS', 9], 0, function () {                                                               // 2456
-        return this.millisecond() * 1000000;                                                                           // 2457
-    });                                                                                                                // 2458
-                                                                                                                       // 2459
-                                                                                                                       // 2460
-    // ALIASES                                                                                                         // 2461
-                                                                                                                       // 2462
-    addUnitAlias('millisecond', 'ms');                                                                                 // 2463
-                                                                                                                       // 2464
-    // PARSING                                                                                                         // 2465
-                                                                                                                       // 2466
-    addRegexToken('S',    match1to3, match1);                                                                          // 2467
-    addRegexToken('SS',   match1to3, match2);                                                                          // 2468
-    addRegexToken('SSS',  match1to3, match3);                                                                          // 2469
-                                                                                                                       // 2470
-    var token;                                                                                                         // 2471
-    for (token = 'SSSS'; token.length <= 9; token += 'S') {                                                            // 2472
-        addRegexToken(token, matchUnsigned);                                                                           // 2473
-    }                                                                                                                  // 2474
-                                                                                                                       // 2475
-    function parseMs(input, array) {                                                                                   // 2476
-        array[MILLISECOND] = toInt(('0.' + input) * 1000);                                                             // 2477
-    }                                                                                                                  // 2478
-                                                                                                                       // 2479
-    for (token = 'S'; token.length <= 9; token += 'S') {                                                               // 2480
-        addParseToken(token, parseMs);                                                                                 // 2481
-    }                                                                                                                  // 2482
-    // MOMENTS                                                                                                         // 2483
-                                                                                                                       // 2484
-    var getSetMillisecond = makeGetSet('Milliseconds', false);                                                         // 2485
-                                                                                                                       // 2486
-    addFormatToken('z',  0, 0, 'zoneAbbr');                                                                            // 2487
-    addFormatToken('zz', 0, 0, 'zoneName');                                                                            // 2488
-                                                                                                                       // 2489
-    // MOMENTS                                                                                                         // 2490
-                                                                                                                       // 2491
-    function getZoneAbbr () {                                                                                          // 2492
-        return this._isUTC ? 'UTC' : '';                                                                               // 2493
-    }                                                                                                                  // 2494
-                                                                                                                       // 2495
-    function getZoneName () {                                                                                          // 2496
-        return this._isUTC ? 'Coordinated Universal Time' : '';                                                        // 2497
-    }                                                                                                                  // 2498
-                                                                                                                       // 2499
-    var momentPrototype__proto = Moment.prototype;                                                                     // 2500
-                                                                                                                       // 2501
-    momentPrototype__proto.add          = add_subtract__add;                                                           // 2502
-    momentPrototype__proto.calendar     = moment_calendar__calendar;                                                   // 2503
-    momentPrototype__proto.clone        = clone;                                                                       // 2504
-    momentPrototype__proto.diff         = diff;                                                                        // 2505
-    momentPrototype__proto.endOf        = endOf;                                                                       // 2506
-    momentPrototype__proto.format       = format;                                                                      // 2507
-    momentPrototype__proto.from         = from;                                                                        // 2508
-    momentPrototype__proto.fromNow      = fromNow;                                                                     // 2509
-    momentPrototype__proto.to           = to;                                                                          // 2510
-    momentPrototype__proto.toNow        = toNow;                                                                       // 2511
-    momentPrototype__proto.get          = getSet;                                                                      // 2512
-    momentPrototype__proto.invalidAt    = invalidAt;                                                                   // 2513
-    momentPrototype__proto.isAfter      = isAfter;                                                                     // 2514
-    momentPrototype__proto.isBefore     = isBefore;                                                                    // 2515
-    momentPrototype__proto.isBetween    = isBetween;                                                                   // 2516
-    momentPrototype__proto.isSame       = isSame;                                                                      // 2517
-    momentPrototype__proto.isValid      = moment_valid__isValid;                                                       // 2518
-    momentPrototype__proto.lang         = lang;                                                                        // 2519
-    momentPrototype__proto.locale       = locale;                                                                      // 2520
-    momentPrototype__proto.localeData   = localeData;                                                                  // 2521
-    momentPrototype__proto.max          = prototypeMax;                                                                // 2522
-    momentPrototype__proto.min          = prototypeMin;                                                                // 2523
-    momentPrototype__proto.parsingFlags = parsingFlags;                                                                // 2524
-    momentPrototype__proto.set          = getSet;                                                                      // 2525
-    momentPrototype__proto.startOf      = startOf;                                                                     // 2526
-    momentPrototype__proto.subtract     = add_subtract__subtract;                                                      // 2527
-    momentPrototype__proto.toArray      = toArray;                                                                     // 2528
-    momentPrototype__proto.toObject     = toObject;                                                                    // 2529
-    momentPrototype__proto.toDate       = toDate;                                                                      // 2530
-    momentPrototype__proto.toISOString  = moment_format__toISOString;                                                  // 2531
-    momentPrototype__proto.toJSON       = moment_format__toISOString;                                                  // 2532
-    momentPrototype__proto.toString     = toString;                                                                    // 2533
-    momentPrototype__proto.unix         = unix;                                                                        // 2534
-    momentPrototype__proto.valueOf      = to_type__valueOf;                                                            // 2535
-                                                                                                                       // 2536
-    // Year                                                                                                            // 2537
-    momentPrototype__proto.year       = getSetYear;                                                                    // 2538
-    momentPrototype__proto.isLeapYear = getIsLeapYear;                                                                 // 2539
-                                                                                                                       // 2540
-    // Week Year                                                                                                       // 2541
-    momentPrototype__proto.weekYear    = getSetWeekYear;                                                               // 2542
-    momentPrototype__proto.isoWeekYear = getSetISOWeekYear;                                                            // 2543
-                                                                                                                       // 2544
-    // Quarter                                                                                                         // 2545
-    momentPrototype__proto.quarter = momentPrototype__proto.quarters = getSetQuarter;                                  // 2546
-                                                                                                                       // 2547
-    // Month                                                                                                           // 2548
-    momentPrototype__proto.month       = getSetMonth;                                                                  // 2549
-    momentPrototype__proto.daysInMonth = getDaysInMonth;                                                               // 2550
-                                                                                                                       // 2551
-    // Week                                                                                                            // 2552
-    momentPrototype__proto.week           = momentPrototype__proto.weeks        = getSetWeek;                          // 2553
-    momentPrototype__proto.isoWeek        = momentPrototype__proto.isoWeeks     = getSetISOWeek;                       // 2554
-    momentPrototype__proto.weeksInYear    = getWeeksInYear;                                                            // 2555
-    momentPrototype__proto.isoWeeksInYear = getISOWeeksInYear;                                                         // 2556
-                                                                                                                       // 2557
-    // Day                                                                                                             // 2558
-    momentPrototype__proto.date       = getSetDayOfMonth;                                                              // 2559
-    momentPrototype__proto.day        = momentPrototype__proto.days             = getSetDayOfWeek;                     // 2560
-    momentPrototype__proto.weekday    = getSetLocaleDayOfWeek;                                                         // 2561
-    momentPrototype__proto.isoWeekday = getSetISODayOfWeek;                                                            // 2562
-    momentPrototype__proto.dayOfYear  = getSetDayOfYear;                                                               // 2563
-                                                                                                                       // 2564
-    // Hour                                                                                                            // 2565
-    momentPrototype__proto.hour = momentPrototype__proto.hours = getSetHour;                                           // 2566
-                                                                                                                       // 2567
-    // Minute                                                                                                          // 2568
-    momentPrototype__proto.minute = momentPrototype__proto.minutes = getSetMinute;                                     // 2569
-                                                                                                                       // 2570
-    // Second                                                                                                          // 2571
-    momentPrototype__proto.second = momentPrototype__proto.seconds = getSetSecond;                                     // 2572
-                                                                                                                       // 2573
-    // Millisecond                                                                                                     // 2574
-    momentPrototype__proto.millisecond = momentPrototype__proto.milliseconds = getSetMillisecond;                      // 2575
-                                                                                                                       // 2576
-    // Offset                                                                                                          // 2577
-    momentPrototype__proto.utcOffset            = getSetOffset;                                                        // 2578
-    momentPrototype__proto.utc                  = setOffsetToUTC;                                                      // 2579
-    momentPrototype__proto.local                = setOffsetToLocal;                                                    // 2580
-    momentPrototype__proto.parseZone            = setOffsetToParsedOffset;                                             // 2581
-    momentPrototype__proto.hasAlignedHourOffset = hasAlignedHourOffset;                                                // 2582
-    momentPrototype__proto.isDST                = isDaylightSavingTime;                                                // 2583
-    momentPrototype__proto.isDSTShifted         = isDaylightSavingTimeShifted;                                         // 2584
-    momentPrototype__proto.isLocal              = isLocal;                                                             // 2585
-    momentPrototype__proto.isUtcOffset          = isUtcOffset;                                                         // 2586
-    momentPrototype__proto.isUtc                = isUtc;                                                               // 2587
-    momentPrototype__proto.isUTC                = isUtc;                                                               // 2588
-                                                                                                                       // 2589
-    // Timezone                                                                                                        // 2590
-    momentPrototype__proto.zoneAbbr = getZoneAbbr;                                                                     // 2591
-    momentPrototype__proto.zoneName = getZoneName;                                                                     // 2592
-                                                                                                                       // 2593
-    // Deprecations                                                                                                    // 2594
-    momentPrototype__proto.dates  = deprecate('dates accessor is deprecated. Use date instead.', getSetDayOfMonth);    // 2595
-    momentPrototype__proto.months = deprecate('months accessor is deprecated. Use month instead', getSetMonth);        // 2596
-    momentPrototype__proto.years  = deprecate('years accessor is deprecated. Use year instead', getSetYear);           // 2597
-    momentPrototype__proto.zone   = deprecate('moment().zone is deprecated, use moment().utcOffset instead. https://github.com/moment/moment/issues/1779', getSetZone);
-                                                                                                                       // 2599
-    var momentPrototype = momentPrototype__proto;                                                                      // 2600
-                                                                                                                       // 2601
-    function moment__createUnix (input) {                                                                              // 2602
-        return local__createLocal(input * 1000);                                                                       // 2603
-    }                                                                                                                  // 2604
-                                                                                                                       // 2605
-    function moment__createInZone () {                                                                                 // 2606
-        return local__createLocal.apply(null, arguments).parseZone();                                                  // 2607
-    }                                                                                                                  // 2608
-                                                                                                                       // 2609
-    var defaultCalendar = {                                                                                            // 2610
-        sameDay : '[Today at] LT',                                                                                     // 2611
-        nextDay : '[Tomorrow at] LT',                                                                                  // 2612
-        nextWeek : 'dddd [at] LT',                                                                                     // 2613
-        lastDay : '[Yesterday at] LT',                                                                                 // 2614
-        lastWeek : '[Last] dddd [at] LT',                                                                              // 2615
-        sameElse : 'L'                                                                                                 // 2616
-    };                                                                                                                 // 2617
-                                                                                                                       // 2618
-    function locale_calendar__calendar (key, mom, now) {                                                               // 2619
-        var output = this._calendar[key];                                                                              // 2620
-        return typeof output === 'function' ? output.call(mom, now) : output;                                          // 2621
-    }                                                                                                                  // 2622
-                                                                                                                       // 2623
-    var defaultLongDateFormat = {                                                                                      // 2624
-        LTS  : 'h:mm:ss A',                                                                                            // 2625
-        LT   : 'h:mm A',                                                                                               // 2626
-        L    : 'MM/DD/YYYY',                                                                                           // 2627
-        LL   : 'MMMM D, YYYY',                                                                                         // 2628
-        LLL  : 'MMMM D, YYYY h:mm A',                                                                                  // 2629
-        LLLL : 'dddd, MMMM D, YYYY h:mm A'                                                                             // 2630
-    };                                                                                                                 // 2631
-                                                                                                                       // 2632
-    function longDateFormat (key) {                                                                                    // 2633
-        var format = this._longDateFormat[key],                                                                        // 2634
-            formatUpper = this._longDateFormat[key.toUpperCase()];                                                     // 2635
-                                                                                                                       // 2636
-        if (format || !formatUpper) {                                                                                  // 2637
-            return format;                                                                                             // 2638
-        }                                                                                                              // 2639
-                                                                                                                       // 2640
-        this._longDateFormat[key] = formatUpper.replace(/MMMM|MM|DD|dddd/g, function (val) {                           // 2641
-            return val.slice(1);                                                                                       // 2642
-        });                                                                                                            // 2643
-                                                                                                                       // 2644
-        return this._longDateFormat[key];                                                                              // 2645
-    }                                                                                                                  // 2646
-                                                                                                                       // 2647
-    var defaultInvalidDate = 'Invalid date';                                                                           // 2648
-                                                                                                                       // 2649
-    function invalidDate () {                                                                                          // 2650
-        return this._invalidDate;                                                                                      // 2651
-    }                                                                                                                  // 2652
-                                                                                                                       // 2653
-    var defaultOrdinal = '%d';                                                                                         // 2654
-    var defaultOrdinalParse = /\d{1,2}/;                                                                               // 2655
-                                                                                                                       // 2656
-    function ordinal (number) {                                                                                        // 2657
-        return this._ordinal.replace('%d', number);                                                                    // 2658
-    }                                                                                                                  // 2659
-                                                                                                                       // 2660
-    function preParsePostFormat (string) {                                                                             // 2661
-        return string;                                                                                                 // 2662
-    }                                                                                                                  // 2663
-                                                                                                                       // 2664
-    var defaultRelativeTime = {                                                                                        // 2665
-        future : 'in %s',                                                                                              // 2666
-        past   : '%s ago',                                                                                             // 2667
-        s  : 'a few seconds',                                                                                          // 2668
-        m  : 'a minute',                                                                                               // 2669
-        mm : '%d minutes',                                                                                             // 2670
-        h  : 'an hour',                                                                                                // 2671
-        hh : '%d hours',                                                                                               // 2672
-        d  : 'a day',                                                                                                  // 2673
-        dd : '%d days',                                                                                                // 2674
-        M  : 'a month',                                                                                                // 2675
-        MM : '%d months',                                                                                              // 2676
-        y  : 'a year',                                                                                                 // 2677
-        yy : '%d years'                                                                                                // 2678
-    };                                                                                                                 // 2679
-                                                                                                                       // 2680
-    function relative__relativeTime (number, withoutSuffix, string, isFuture) {                                        // 2681
-        var output = this._relativeTime[string];                                                                       // 2682
-        return (typeof output === 'function') ?                                                                        // 2683
-            output(number, withoutSuffix, string, isFuture) :                                                          // 2684
-            output.replace(/%d/i, number);                                                                             // 2685
-    }                                                                                                                  // 2686
-                                                                                                                       // 2687
-    function pastFuture (diff, output) {                                                                               // 2688
-        var format = this._relativeTime[diff > 0 ? 'future' : 'past'];                                                 // 2689
-        return typeof format === 'function' ? format(output) : format.replace(/%s/i, output);                          // 2690
-    }                                                                                                                  // 2691
-                                                                                                                       // 2692
-    function locale_set__set (config) {                                                                                // 2693
-        var prop, i;                                                                                                   // 2694
-        for (i in config) {                                                                                            // 2695
-            prop = config[i];                                                                                          // 2696
-            if (typeof prop === 'function') {                                                                          // 2697
-                this[i] = prop;                                                                                        // 2698
-            } else {                                                                                                   // 2699
-                this['_' + i] = prop;                                                                                  // 2700
-            }                                                                                                          // 2701
-        }                                                                                                              // 2702
-        // Lenient ordinal parsing accepts just a number in addition to                                                // 2703
-        // number + (possibly) stuff coming from _ordinalParseLenient.                                                 // 2704
-        this._ordinalParseLenient = new RegExp(this._ordinalParse.source + '|' + (/\d{1,2}/).source);                  // 2705
-    }                                                                                                                  // 2706
-                                                                                                                       // 2707
-    var prototype__proto = Locale.prototype;                                                                           // 2708
-                                                                                                                       // 2709
-    prototype__proto._calendar       = defaultCalendar;                                                                // 2710
-    prototype__proto.calendar        = locale_calendar__calendar;                                                      // 2711
-    prototype__proto._longDateFormat = defaultLongDateFormat;                                                          // 2712
-    prototype__proto.longDateFormat  = longDateFormat;                                                                 // 2713
-    prototype__proto._invalidDate    = defaultInvalidDate;                                                             // 2714
-    prototype__proto.invalidDate     = invalidDate;                                                                    // 2715
-    prototype__proto._ordinal        = defaultOrdinal;                                                                 // 2716
-    prototype__proto.ordinal         = ordinal;                                                                        // 2717
-    prototype__proto._ordinalParse   = defaultOrdinalParse;                                                            // 2718
-    prototype__proto.preparse        = preParsePostFormat;                                                             // 2719
-    prototype__proto.postformat      = preParsePostFormat;                                                             // 2720
-    prototype__proto._relativeTime   = defaultRelativeTime;                                                            // 2721
-    prototype__proto.relativeTime    = relative__relativeTime;                                                         // 2722
-    prototype__proto.pastFuture      = pastFuture;                                                                     // 2723
-    prototype__proto.set             = locale_set__set;                                                                // 2724
-                                                                                                                       // 2725
-    // Month                                                                                                           // 2726
-    prototype__proto.months       =        localeMonths;                                                               // 2727
-    prototype__proto._months      = defaultLocaleMonths;                                                               // 2728
-    prototype__proto.monthsShort  =        localeMonthsShort;                                                          // 2729
-    prototype__proto._monthsShort = defaultLocaleMonthsShort;                                                          // 2730
-    prototype__proto.monthsParse  =        localeMonthsParse;                                                          // 2731
-                                                                                                                       // 2732
-    // Week                                                                                                            // 2733
-    prototype__proto.week = localeWeek;                                                                                // 2734
-    prototype__proto._week = defaultLocaleWeek;                                                                        // 2735
-    prototype__proto.firstDayOfYear = localeFirstDayOfYear;                                                            // 2736
-    prototype__proto.firstDayOfWeek = localeFirstDayOfWeek;                                                            // 2737
-                                                                                                                       // 2738
-    // Day of Week                                                                                                     // 2739
-    prototype__proto.weekdays       =        localeWeekdays;                                                           // 2740
-    prototype__proto._weekdays      = defaultLocaleWeekdays;                                                           // 2741
-    prototype__proto.weekdaysMin    =        localeWeekdaysMin;                                                        // 2742
-    prototype__proto._weekdaysMin   = defaultLocaleWeekdaysMin;                                                        // 2743
-    prototype__proto.weekdaysShort  =        localeWeekdaysShort;                                                      // 2744
-    prototype__proto._weekdaysShort = defaultLocaleWeekdaysShort;                                                      // 2745
-    prototype__proto.weekdaysParse  =        localeWeekdaysParse;                                                      // 2746
-                                                                                                                       // 2747
-    // Hours                                                                                                           // 2748
-    prototype__proto.isPM = localeIsPM;                                                                                // 2749
-    prototype__proto._meridiemParse = defaultLocaleMeridiemParse;                                                      // 2750
-    prototype__proto.meridiem = localeMeridiem;                                                                        // 2751
-                                                                                                                       // 2752
-    function lists__get (format, index, field, setter) {                                                               // 2753
-        var locale = locale_locales__getLocale();                                                                      // 2754
-        var utc = create_utc__createUTC().set(setter, index);                                                          // 2755
-        return locale[field](utc, format);                                                                             // 2756
-    }                                                                                                                  // 2757
-                                                                                                                       // 2758
-    function list (format, index, field, count, setter) {                                                              // 2759
-        if (typeof format === 'number') {                                                                              // 2760
-            index = format;                                                                                            // 2761
-            format = undefined;                                                                                        // 2762
-        }                                                                                                              // 2763
-                                                                                                                       // 2764
-        format = format || '';                                                                                         // 2765
-                                                                                                                       // 2766
-        if (index != null) {                                                                                           // 2767
-            return lists__get(format, index, field, setter);                                                           // 2768
-        }                                                                                                              // 2769
-                                                                                                                       // 2770
-        var i;                                                                                                         // 2771
-        var out = [];                                                                                                  // 2772
-        for (i = 0; i < count; i++) {                                                                                  // 2773
-            out[i] = lists__get(format, i, field, setter);                                                             // 2774
-        }                                                                                                              // 2775
-        return out;                                                                                                    // 2776
-    }                                                                                                                  // 2777
-                                                                                                                       // 2778
-    function lists__listMonths (format, index) {                                                                       // 2779
-        return list(format, index, 'months', 12, 'month');                                                             // 2780
-    }                                                                                                                  // 2781
-                                                                                                                       // 2782
-    function lists__listMonthsShort (format, index) {                                                                  // 2783
-        return list(format, index, 'monthsShort', 12, 'month');                                                        // 2784
-    }                                                                                                                  // 2785
-                                                                                                                       // 2786
-    function lists__listWeekdays (format, index) {                                                                     // 2787
-        return list(format, index, 'weekdays', 7, 'day');                                                              // 2788
-    }                                                                                                                  // 2789
-                                                                                                                       // 2790
-    function lists__listWeekdaysShort (format, index) {                                                                // 2791
-        return list(format, index, 'weekdaysShort', 7, 'day');                                                         // 2792
-    }                                                                                                                  // 2793
-                                                                                                                       // 2794
-    function lists__listWeekdaysMin (format, index) {                                                                  // 2795
-        return list(format, index, 'weekdaysMin', 7, 'day');                                                           // 2796
-    }                                                                                                                  // 2797
-                                                                                                                       // 2798
-    locale_locales__getSetGlobalLocale('en', {                                                                         // 2799
-        ordinalParse: /\d{1,2}(th|st|nd|rd)/,                                                                          // 2800
-        ordinal : function (number) {                                                                                  // 2801
-            var b = number % 10,                                                                                       // 2802
-                output = (toInt(number % 100 / 10) === 1) ? 'th' :                                                     // 2803
-                (b === 1) ? 'st' :                                                                                     // 2804
-                (b === 2) ? 'nd' :                                                                                     // 2805
-                (b === 3) ? 'rd' : 'th';                                                                               // 2806
-            return number + output;                                                                                    // 2807
-        }                                                                                                              // 2808
-    });                                                                                                                // 2809
-                                                                                                                       // 2810
-    // Side effect imports                                                                                             // 2811
-    utils_hooks__hooks.lang = deprecate('moment.lang is deprecated. Use moment.locale instead.', locale_locales__getSetGlobalLocale);
-    utils_hooks__hooks.langData = deprecate('moment.langData is deprecated. Use moment.localeData instead.', locale_locales__getLocale);
-                                                                                                                       // 2814
-    var mathAbs = Math.abs;                                                                                            // 2815
-                                                                                                                       // 2816
-    function duration_abs__abs () {                                                                                    // 2817
-        var data           = this._data;                                                                               // 2818
-                                                                                                                       // 2819
-        this._milliseconds = mathAbs(this._milliseconds);                                                              // 2820
-        this._days         = mathAbs(this._days);                                                                      // 2821
-        this._months       = mathAbs(this._months);                                                                    // 2822
-                                                                                                                       // 2823
-        data.milliseconds  = mathAbs(data.milliseconds);                                                               // 2824
-        data.seconds       = mathAbs(data.seconds);                                                                    // 2825
-        data.minutes       = mathAbs(data.minutes);                                                                    // 2826
-        data.hours         = mathAbs(data.hours);                                                                      // 2827
-        data.months        = mathAbs(data.months);                                                                     // 2828
-        data.years         = mathAbs(data.years);                                                                      // 2829
-                                                                                                                       // 2830
-        return this;                                                                                                   // 2831
-    }                                                                                                                  // 2832
-                                                                                                                       // 2833
-    function duration_add_subtract__addSubtract (duration, input, value, direction) {                                  // 2834
-        var other = create__createDuration(input, value);                                                              // 2835
-                                                                                                                       // 2836
-        duration._milliseconds += direction * other._milliseconds;                                                     // 2837
-        duration._days         += direction * other._days;                                                             // 2838
-        duration._months       += direction * other._months;                                                           // 2839
-                                                                                                                       // 2840
-        return duration._bubble();                                                                                     // 2841
-    }                                                                                                                  // 2842
-                                                                                                                       // 2843
-    // supports only 2.0-style add(1, 's') or add(duration)                                                            // 2844
-    function duration_add_subtract__add (input, value) {                                                               // 2845
-        return duration_add_subtract__addSubtract(this, input, value, 1);                                              // 2846
-    }                                                                                                                  // 2847
-                                                                                                                       // 2848
-    // supports only 2.0-style subtract(1, 's') or subtract(duration)                                                  // 2849
-    function duration_add_subtract__subtract (input, value) {                                                          // 2850
-        return duration_add_subtract__addSubtract(this, input, value, -1);                                             // 2851
-    }                                                                                                                  // 2852
-                                                                                                                       // 2853
-    function absCeil (number) {                                                                                        // 2854
-        if (number < 0) {                                                                                              // 2855
-            return Math.floor(number);                                                                                 // 2856
-        } else {                                                                                                       // 2857
-            return Math.ceil(number);                                                                                  // 2858
-        }                                                                                                              // 2859
-    }                                                                                                                  // 2860
-                                                                                                                       // 2861
-    function bubble () {                                                                                               // 2862
-        var milliseconds = this._milliseconds;                                                                         // 2863
-        var days         = this._days;                                                                                 // 2864
-        var months       = this._months;                                                                               // 2865
-        var data         = this._data;                                                                                 // 2866
-        var seconds, minutes, hours, years, monthsFromDays;                                                            // 2867
-                                                                                                                       // 2868
-        // if we have a mix of positive and negative values, bubble down first                                         // 2869
-        // check: https://github.com/moment/moment/issues/2166                                                         // 2870
-        if (!((milliseconds >= 0 && days >= 0 && months >= 0) ||                                                       // 2871
-                (milliseconds <= 0 && days <= 0 && months <= 0))) {                                                    // 2872
-            milliseconds += absCeil(monthsToDays(months) + days) * 864e5;                                              // 2873
-            days = 0;                                                                                                  // 2874
-            months = 0;                                                                                                // 2875
-        }                                                                                                              // 2876
-                                                                                                                       // 2877
-        // The following code bubbles up values, see the tests for                                                     // 2878
-        // examples of what that means.                                                                                // 2879
-        data.milliseconds = milliseconds % 1000;                                                                       // 2880
-                                                                                                                       // 2881
-        seconds           = absFloor(milliseconds / 1000);                                                             // 2882
-        data.seconds      = seconds % 60;                                                                              // 2883
-                                                                                                                       // 2884
-        minutes           = absFloor(seconds / 60);                                                                    // 2885
-        data.minutes      = minutes % 60;                                                                              // 2886
-                                                                                                                       // 2887
-        hours             = absFloor(minutes / 60);                                                                    // 2888
-        data.hours        = hours % 24;                                                                                // 2889
-                                                                                                                       // 2890
-        days += absFloor(hours / 24);                                                                                  // 2891
-                                                                                                                       // 2892
-        // convert days to months                                                                                      // 2893
-        monthsFromDays = absFloor(daysToMonths(days));                                                                 // 2894
-        months += monthsFromDays;                                                                                      // 2895
-        days -= absCeil(monthsToDays(monthsFromDays));                                                                 // 2896
-                                                                                                                       // 2897
-        // 12 months -> 1 year                                                                                         // 2898
-        years = absFloor(months / 12);                                                                                 // 2899
-        months %= 12;                                                                                                  // 2900
-                                                                                                                       // 2901
-        data.days   = days;                                                                                            // 2902
-        data.months = months;                                                                                          // 2903
-        data.years  = years;                                                                                           // 2904
-                                                                                                                       // 2905
-        return this;                                                                                                   // 2906
-    }                                                                                                                  // 2907
-                                                                                                                       // 2908
-    function daysToMonths (days) {                                                                                     // 2909
-        // 400 years have 146097 days (taking into account leap year rules)                                            // 2910
-        // 400 years have 12 months === 4800                                                                           // 2911
-        return days * 4800 / 146097;                                                                                   // 2912
-    }                                                                                                                  // 2913
-                                                                                                                       // 2914
-    function monthsToDays (months) {                                                                                   // 2915
-        // the reverse of daysToMonths                                                                                 // 2916
-        return months * 146097 / 4800;                                                                                 // 2917
-    }                                                                                                                  // 2918
-                                                                                                                       // 2919
-    function as (units) {                                                                                              // 2920
-        var days;                                                                                                      // 2921
-        var months;                                                                                                    // 2922
-        var milliseconds = this._milliseconds;                                                                         // 2923
-                                                                                                                       // 2924
-        units = normalizeUnits(units);                                                                                 // 2925
-                                                                                                                       // 2926
-        if (units === 'month' || units === 'year') {                                                                   // 2927
-            days   = this._days   + milliseconds / 864e5;                                                              // 2928
-            months = this._months + daysToMonths(days);                                                                // 2929
-            return units === 'month' ? months : months / 12;                                                           // 2930
-        } else {                                                                                                       // 2931
-            // handle milliseconds separately because of floating point math errors (issue #1867)                      // 2932
-            days = this._days + Math.round(monthsToDays(this._months));                                                // 2933
-            switch (units) {                                                                                           // 2934
-                case 'week'   : return days / 7     + milliseconds / 6048e5;                                           // 2935
-                case 'day'    : return days         + milliseconds / 864e5;                                            // 2936
-                case 'hour'   : return days * 24    + milliseconds / 36e5;                                             // 2937
-                case 'minute' : return days * 1440  + milliseconds / 6e4;                                              // 2938
-                case 'second' : return days * 86400 + milliseconds / 1000;                                             // 2939
-                // Math.floor prevents floating point math errors here                                                 // 2940
-                case 'millisecond': return Math.floor(days * 864e5) + milliseconds;                                    // 2941
-                default: throw new Error('Unknown unit ' + units);                                                     // 2942
-            }                                                                                                          // 2943
-        }                                                                                                              // 2944
-    }                                                                                                                  // 2945
-                                                                                                                       // 2946
-    // TODO: Use this.as('ms')?                                                                                        // 2947
-    function duration_as__valueOf () {                                                                                 // 2948
-        return (                                                                                                       // 2949
-            this._milliseconds +                                                                                       // 2950
-            this._days * 864e5 +                                                                                       // 2951
-            (this._months % 12) * 2592e6 +                                                                             // 2952
-            toInt(this._months / 12) * 31536e6                                                                         // 2953
-        );                                                                                                             // 2954
-    }                                                                                                                  // 2955
-                                                                                                                       // 2956
-    function makeAs (alias) {                                                                                          // 2957
-        return function () {                                                                                           // 2958
-            return this.as(alias);                                                                                     // 2959
-        };                                                                                                             // 2960
-    }                                                                                                                  // 2961
-                                                                                                                       // 2962
-    var asMilliseconds = makeAs('ms');                                                                                 // 2963
-    var asSeconds      = makeAs('s');                                                                                  // 2964
-    var asMinutes      = makeAs('m');                                                                                  // 2965
-    var asHours        = makeAs('h');                                                                                  // 2966
-    var asDays         = makeAs('d');                                                                                  // 2967
-    var asWeeks        = makeAs('w');                                                                                  // 2968
-    var asMonths       = makeAs('M');                                                                                  // 2969
-    var asYears        = makeAs('y');                                                                                  // 2970
-                                                                                                                       // 2971
-    function duration_get__get (units) {                                                                               // 2972
-        units = normalizeUnits(units);                                                                                 // 2973
-        return this[units + 's']();                                                                                    // 2974
-    }                                                                                                                  // 2975
-                                                                                                                       // 2976
-    function makeGetter(name) {                                                                                        // 2977
-        return function () {                                                                                           // 2978
-            return this._data[name];                                                                                   // 2979
-        };                                                                                                             // 2980
-    }                                                                                                                  // 2981
-                                                                                                                       // 2982
-    var milliseconds = makeGetter('milliseconds');                                                                     // 2983
-    var seconds      = makeGetter('seconds');                                                                          // 2984
-    var minutes      = makeGetter('minutes');                                                                          // 2985
-    var hours        = makeGetter('hours');                                                                            // 2986
-    var days         = makeGetter('days');                                                                             // 2987
-    var months       = makeGetter('months');                                                                           // 2988
-    var years        = makeGetter('years');                                                                            // 2989
-                                                                                                                       // 2990
-    function weeks () {                                                                                                // 2991
-        return absFloor(this.days() / 7);                                                                              // 2992
-    }                                                                                                                  // 2993
-                                                                                                                       // 2994
-    var round = Math.round;                                                                                            // 2995
-    var thresholds = {                                                                                                 // 2996
-        s: 45,  // seconds to minute                                                                                   // 2997
-        m: 45,  // minutes to hour                                                                                     // 2998
-        h: 22,  // hours to day                                                                                        // 2999
-        d: 26,  // days to month                                                                                       // 3000
-        M: 11   // months to year                                                                                      // 3001
-    };                                                                                                                 // 3002
-                                                                                                                       // 3003
-    // helper function for moment.fn.from, moment.fn.fromNow, and moment.duration.fn.humanize                          // 3004
-    function substituteTimeAgo(string, number, withoutSuffix, isFuture, locale) {                                      // 3005
-        return locale.relativeTime(number || 1, !!withoutSuffix, string, isFuture);                                    // 3006
-    }                                                                                                                  // 3007
-                                                                                                                       // 3008
-    function duration_humanize__relativeTime (posNegDuration, withoutSuffix, locale) {                                 // 3009
-        var duration = create__createDuration(posNegDuration).abs();                                                   // 3010
-        var seconds  = round(duration.as('s'));                                                                        // 3011
-        var minutes  = round(duration.as('m'));                                                                        // 3012
-        var hours    = round(duration.as('h'));                                                                        // 3013
-        var days     = round(duration.as('d'));                                                                        // 3014
-        var months   = round(duration.as('M'));                                                                        // 3015
-        var years    = round(duration.as('y'));                                                                        // 3016
-                                                                                                                       // 3017
-        var a = seconds < thresholds.s && ['s', seconds]  ||                                                           // 3018
-                minutes === 1          && ['m']           ||                                                           // 3019
-                minutes < thresholds.m && ['mm', minutes] ||                                                           // 3020
-                hours   === 1          && ['h']           ||                                                           // 3021
-                hours   < thresholds.h && ['hh', hours]   ||                                                           // 3022
-                days    === 1          && ['d']           ||                                                           // 3023
-                days    < thresholds.d && ['dd', days]    ||                                                           // 3024
-                months  === 1          && ['M']           ||                                                           // 3025
-                months  < thresholds.M && ['MM', months]  ||                                                           // 3026
-                years   === 1          && ['y']           || ['yy', years];                                            // 3027
-                                                                                                                       // 3028
-        a[2] = withoutSuffix;                                                                                          // 3029
-        a[3] = +posNegDuration > 0;                                                                                    // 3030
-        a[4] = locale;                                                                                                 // 3031
-        return substituteTimeAgo.apply(null, a);                                                                       // 3032
-    }                                                                                                                  // 3033
-                                                                                                                       // 3034
-    // This function allows you to set a threshold for relative time strings                                           // 3035
-    function duration_humanize__getSetRelativeTimeThreshold (threshold, limit) {                                       // 3036
-        if (thresholds[threshold] === undefined) {                                                                     // 3037
-            return false;                                                                                              // 3038
-        }                                                                                                              // 3039
-        if (limit === undefined) {                                                                                     // 3040
-            return thresholds[threshold];                                                                              // 3041
-        }                                                                                                              // 3042
-        thresholds[threshold] = limit;                                                                                 // 3043
-        return true;                                                                                                   // 3044
-    }                                                                                                                  // 3045
-                                                                                                                       // 3046
-    function humanize (withSuffix) {                                                                                   // 3047
-        var locale = this.localeData();                                                                                // 3048
-        var output = duration_humanize__relativeTime(this, !withSuffix, locale);                                       // 3049
-                                                                                                                       // 3050
-        if (withSuffix) {                                                                                              // 3051
-            output = locale.pastFuture(+this, output);                                                                 // 3052
-        }                                                                                                              // 3053
-                                                                                                                       // 3054
-        return locale.postformat(output);                                                                              // 3055
-    }                                                                                                                  // 3056
-                                                                                                                       // 3057
-    var iso_string__abs = Math.abs;                                                                                    // 3058
-                                                                                                                       // 3059
-    function iso_string__toISOString() {                                                                               // 3060
-        // for ISO strings we do not use the normal bubbling rules:                                                    // 3061
-        //  * milliseconds bubble up until they become hours                                                           // 3062
-        //  * days do not bubble at all                                                                                // 3063
-        //  * months bubble up until they become years                                                                 // 3064
-        // This is because there is no context-free conversion between hours and days                                  // 3065
-        // (think of clock changes)                                                                                    // 3066
-        // and also not between days and months (28-31 days per month)                                                 // 3067
-        var seconds = iso_string__abs(this._milliseconds) / 1000;                                                      // 3068
-        var days         = iso_string__abs(this._days);                                                                // 3069
-        var months       = iso_string__abs(this._months);                                                              // 3070
-        var minutes, hours, years;                                                                                     // 3071
-                                                                                                                       // 3072
-        // 3600 seconds -> 60 minutes -> 1 hour                                                                        // 3073
-        minutes           = absFloor(seconds / 60);                                                                    // 3074
-        hours             = absFloor(minutes / 60);                                                                    // 3075
-        seconds %= 60;                                                                                                 // 3076
-        minutes %= 60;                                                                                                 // 3077
-                                                                                                                       // 3078
-        // 12 months -> 1 year                                                                                         // 3079
-        years  = absFloor(months / 12);                                                                                // 3080
-        months %= 12;                                                                                                  // 3081
-                                                                                                                       // 3082
-                                                                                                                       // 3083
-        // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js                // 3084
-        var Y = years;                                                                                                 // 3085
-        var M = months;                                                                                                // 3086
-        var D = days;                                                                                                  // 3087
-        var h = hours;                                                                                                 // 3088
-        var m = minutes;                                                                                               // 3089
-        var s = seconds;                                                                                               // 3090
-        var total = this.asSeconds();                                                                                  // 3091
-                                                                                                                       // 3092
-        if (!total) {                                                                                                  // 3093
-            // this is the same as C#'s (Noda) and python (isodate)...                                                 // 3094
-            // but not other JS (goog.date)                                                                            // 3095
-            return 'P0D';                                                                                              // 3096
-        }                                                                                                              // 3097
-                                                                                                                       // 3098
-        return (total < 0 ? '-' : '') +                                                                                // 3099
-            'P' +                                                                                                      // 3100
-            (Y ? Y + 'Y' : '') +                                                                                       // 3101
-            (M ? M + 'M' : '') +                                                                                       // 3102
-            (D ? D + 'D' : '') +                                                                                       // 3103
-            ((h || m || s) ? 'T' : '') +                                                                               // 3104
-            (h ? h + 'H' : '') +                                                                                       // 3105
-            (m ? m + 'M' : '') +                                                                                       // 3106
-            (s ? s + 'S' : '');                                                                                        // 3107
-    }                                                                                                                  // 3108
-                                                                                                                       // 3109
-    var duration_prototype__proto = Duration.prototype;                                                                // 3110
-                                                                                                                       // 3111
-    duration_prototype__proto.abs            = duration_abs__abs;                                                      // 3112
-    duration_prototype__proto.add            = duration_add_subtract__add;                                             // 3113
-    duration_prototype__proto.subtract       = duration_add_subtract__subtract;                                        // 3114
-    duration_prototype__proto.as             = as;                                                                     // 3115
-    duration_prototype__proto.asMilliseconds = asMilliseconds;                                                         // 3116
-    duration_prototype__proto.asSeconds      = asSeconds;                                                              // 3117
-    duration_prototype__proto.asMinutes      = asMinutes;                                                              // 3118
-    duration_prototype__proto.asHours        = asHours;                                                                // 3119
-    duration_prototype__proto.asDays         = asDays;                                                                 // 3120
-    duration_prototype__proto.asWeeks        = asWeeks;                                                                // 3121
-    duration_prototype__proto.asMonths       = asMonths;                                                               // 3122
-    duration_prototype__proto.asYears        = asYears;                                                                // 3123
-    duration_prototype__proto.valueOf        = duration_as__valueOf;                                                   // 3124
-    duration_prototype__proto._bubble        = bubble;                                                                 // 3125
-    duration_prototype__proto.get            = duration_get__get;                                                      // 3126
-    duration_prototype__proto.milliseconds   = milliseconds;                                                           // 3127
-    duration_prototype__proto.seconds        = seconds;                                                                // 3128
-    duration_prototype__proto.minutes        = minutes;                                                                // 3129
-    duration_prototype__proto.hours          = hours;                                                                  // 3130
-    duration_prototype__proto.days           = days;                                                                   // 3131
-    duration_prototype__proto.weeks          = weeks;                                                                  // 3132
-    duration_prototype__proto.months         = months;                                                                 // 3133
-    duration_prototype__proto.years          = years;                                                                  // 3134
-    duration_prototype__proto.humanize       = humanize;                                                               // 3135
-    duration_prototype__proto.toISOString    = iso_string__toISOString;                                                // 3136
-    duration_prototype__proto.toString       = iso_string__toISOString;                                                // 3137
-    duration_prototype__proto.toJSON         = iso_string__toISOString;                                                // 3138
-    duration_prototype__proto.locale         = locale;                                                                 // 3139
-    duration_prototype__proto.localeData     = localeData;                                                             // 3140
-                                                                                                                       // 3141
-    // Deprecations                                                                                                    // 3142
-    duration_prototype__proto.toIsoString = deprecate('toIsoString() is deprecated. Please use toISOString() instead (notice the capitals)', iso_string__toISOString);
-    duration_prototype__proto.lang = lang;                                                                             // 3144
-                                                                                                                       // 3145
-    // Side effect imports                                                                                             // 3146
-                                                                                                                       // 3147
-    addFormatToken('X', 0, 0, 'unix');                                                                                 // 3148
-    addFormatToken('x', 0, 0, 'valueOf');                                                                              // 3149
-                                                                                                                       // 3150
-    // PARSING                                                                                                         // 3151
-                                                                                                                       // 3152
-    addRegexToken('x', matchSigned);                                                                                   // 3153
-    addRegexToken('X', matchTimestamp);                                                                                // 3154
-    addParseToken('X', function (input, array, config) {                                                               // 3155
-        config._d = new Date(parseFloat(input, 10) * 1000);                                                            // 3156
-    });                                                                                                                // 3157
-    addParseToken('x', function (input, array, config) {                                                               // 3158
-        config._d = new Date(toInt(input));                                                                            // 3159
-    });                                                                                                                // 3160
-                                                                                                                       // 3161
-    // Side effect imports                                                                                             // 3162
-                                                                                                                       // 3163
-                                                                                                                       // 3164
-    utils_hooks__hooks.version = '2.10.6';                                                                             // 3165
-                                                                                                                       // 3166
-    setHookCallback(local__createLocal);                                                                               // 3167
-                                                                                                                       // 3168
-    utils_hooks__hooks.fn                    = momentPrototype;                                                        // 3169
-    utils_hooks__hooks.min                   = min;                                                                    // 3170
-    utils_hooks__hooks.max                   = max;                                                                    // 3171
-    utils_hooks__hooks.utc                   = create_utc__createUTC;                                                  // 3172
-    utils_hooks__hooks.unix                  = moment__createUnix;                                                     // 3173
-    utils_hooks__hooks.months                = lists__listMonths;                                                      // 3174
-    utils_hooks__hooks.isDate                = isDate;                                                                 // 3175
-    utils_hooks__hooks.locale                = locale_locales__getSetGlobalLocale;                                     // 3176
-    utils_hooks__hooks.invalid               = valid__createInvalid;                                                   // 3177
-    utils_hooks__hooks.duration              = create__createDuration;                                                 // 3178
-    utils_hooks__hooks.isMoment              = isMoment;                                                               // 3179
-    utils_hooks__hooks.weekdays              = lists__listWeekdays;                                                    // 3180
-    utils_hooks__hooks.parseZone             = moment__createInZone;                                                   // 3181
-    utils_hooks__hooks.localeData            = locale_locales__getLocale;                                              // 3182
-    utils_hooks__hooks.isDuration            = isDuration;                                                             // 3183
-    utils_hooks__hooks.monthsShort           = lists__listMonthsShort;                                                 // 3184
-    utils_hooks__hooks.weekdaysMin           = lists__listWeekdaysMin;                                                 // 3185
-    utils_hooks__hooks.defineLocale          = defineLocale;                                                           // 3186
-    utils_hooks__hooks.weekdaysShort         = lists__listWeekdaysShort;                                               // 3187
-    utils_hooks__hooks.normalizeUnits        = normalizeUnits;                                                         // 3188
-    utils_hooks__hooks.relativeTimeThreshold = duration_humanize__getSetRelativeTimeThreshold;                         // 3189
-                                                                                                                       // 3190
-    var _moment = utils_hooks__hooks;                                                                                  // 3191
-                                                                                                                       // 3192
-    return _moment;                                                                                                    // 3193
-                                                                                                                       // 3194
-}));                                                                                                                   // 3195
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                                                                     // 3205
-}).call(this);                                                       // 3206
-                                                                     // 3207
-                                                                     // 3208
-                                                                     // 3209
-                                                                     // 3210
-                                                                     // 3211
-                                                                     // 3212
-(function () {                                                       // 3213
-                                                                     // 3214
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                                                     //
-// packages/momentjs:moment/meteor/export.js                                                                           //
-//                                                                                                                     //
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                                                                                                                       //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                   //
+// packages/momentjs_moment/moment.js                                                                                //
+//                                                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                                                                                     //
+//! moment.js                                                                                                        // 1
+//! version : 2.18.1                                                                                                 // 2
+//! authors : Tim Wood, Iskren Chernev, Moment.js contributors                                                       // 3
+//! license : MIT                                                                                                    // 4
+//! momentjs.com                                                                                                     // 5
+                                                                                                                     // 6
+;(function (global, factory) {                                                                                       // 7
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :                      // 8
+    typeof define === 'function' && define.amd ? define(factory) :                                                   // 9
+    global.moment = factory()                                                                                        // 10
+}(this, (function () { 'use strict';                                                                                 // 11
+                                                                                                                     // 12
+var hookCallback;                                                                                                    // 13
+                                                                                                                     // 14
+function hooks () {                                                                                                  // 15
+    return hookCallback.apply(null, arguments);                                                                      // 16
+}                                                                                                                    // 17
+                                                                                                                     // 18
+// This is done to register the method called with moment()                                                          // 19
+// without creating circular dependencies.                                                                           // 20
+function setHookCallback (callback) {                                                                                // 21
+    hookCallback = callback;                                                                                         // 22
+}                                                                                                                    // 23
+                                                                                                                     // 24
+function isArray(input) {                                                                                            // 25
+    return input instanceof Array || Object.prototype.toString.call(input) === '[object Array]';                     // 26
+}                                                                                                                    // 27
+                                                                                                                     // 28
+function isObject(input) {                                                                                           // 29
+    // IE8 will treat undefined and null as object if it wasn't for                                                  // 30
+    // input != null                                                                                                 // 31
+    return input != null && Object.prototype.toString.call(input) === '[object Object]';                             // 32
+}                                                                                                                    // 33
+                                                                                                                     // 34
+function isObjectEmpty(obj) {                                                                                        // 35
+    var k;                                                                                                           // 36
+    for (k in obj) {                                                                                                 // 37
+        // even if its not own property I'd still call it non-empty                                                  // 38
+        return false;                                                                                                // 39
+    }                                                                                                                // 40
+    return true;                                                                                                     // 41
+}                                                                                                                    // 42
+                                                                                                                     // 43
+function isUndefined(input) {                                                                                        // 44
+    return input === void 0;                                                                                         // 45
+}                                                                                                                    // 46
+                                                                                                                     // 47
+function isNumber(input) {                                                                                           // 48
+    return typeof input === 'number' || Object.prototype.toString.call(input) === '[object Number]';                 // 49
+}                                                                                                                    // 50
+                                                                                                                     // 51
+function isDate(input) {                                                                                             // 52
+    return input instanceof Date || Object.prototype.toString.call(input) === '[object Date]';                       // 53
+}                                                                                                                    // 54
+                                                                                                                     // 55
+function map(arr, fn) {                                                                                              // 56
+    var res = [], i;                                                                                                 // 57
+    for (i = 0; i < arr.length; ++i) {                                                                               // 58
+        res.push(fn(arr[i], i));                                                                                     // 59
+    }                                                                                                                // 60
+    return res;                                                                                                      // 61
+}                                                                                                                    // 62
+                                                                                                                     // 63
+function hasOwnProp(a, b) {                                                                                          // 64
+    return Object.prototype.hasOwnProperty.call(a, b);                                                               // 65
+}                                                                                                                    // 66
+                                                                                                                     // 67
+function extend(a, b) {                                                                                              // 68
+    for (var i in b) {                                                                                               // 69
+        if (hasOwnProp(b, i)) {                                                                                      // 70
+            a[i] = b[i];                                                                                             // 71
+        }                                                                                                            // 72
+    }                                                                                                                // 73
+                                                                                                                     // 74
+    if (hasOwnProp(b, 'toString')) {                                                                                 // 75
+        a.toString = b.toString;                                                                                     // 76
+    }                                                                                                                // 77
+                                                                                                                     // 78
+    if (hasOwnProp(b, 'valueOf')) {                                                                                  // 79
+        a.valueOf = b.valueOf;                                                                                       // 80
+    }                                                                                                                // 81
+                                                                                                                     // 82
+    return a;                                                                                                        // 83
+}                                                                                                                    // 84
+                                                                                                                     // 85
+function createUTC (input, format, locale, strict) {                                                                 // 86
+    return createLocalOrUTC(input, format, locale, strict, true).utc();                                              // 87
+}                                                                                                                    // 88
+                                                                                                                     // 89
+function defaultParsingFlags() {                                                                                     // 90
+    // We need to deep clone this object.                                                                            // 91
+    return {                                                                                                         // 92
+        empty           : false,                                                                                     // 93
+        unusedTokens    : [],                                                                                        // 94
+        unusedInput     : [],                                                                                        // 95
+        overflow        : -2,                                                                                        // 96
+        charsLeftOver   : 0,                                                                                         // 97
+        nullInput       : false,                                                                                     // 98
+        invalidMonth    : null,                                                                                      // 99
+        invalidFormat   : false,                                                                                     // 100
+        userInvalidated : false,                                                                                     // 101
+        iso             : false,                                                                                     // 102
+        parsedDateParts : [],                                                                                        // 103
+        meridiem        : null,                                                                                      // 104
+        rfc2822         : false,                                                                                     // 105
+        weekdayMismatch : false                                                                                      // 106
+    };                                                                                                               // 107
+}                                                                                                                    // 108
+                                                                                                                     // 109
+function getParsingFlags(m) {                                                                                        // 110
+    if (m._pf == null) {                                                                                             // 111
+        m._pf = defaultParsingFlags();                                                                               // 112
+    }                                                                                                                // 113
+    return m._pf;                                                                                                    // 114
+}                                                                                                                    // 115
+                                                                                                                     // 116
+var some;                                                                                                            // 117
+if (Array.prototype.some) {                                                                                          // 118
+    some = Array.prototype.some;                                                                                     // 119
+} else {                                                                                                             // 120
+    some = function (fun) {                                                                                          // 121
+        var t = Object(this);                                                                                        // 122
+        var len = t.length >>> 0;                                                                                    // 123
+                                                                                                                     // 124
+        for (var i = 0; i < len; i++) {                                                                              // 125
+            if (i in t && fun.call(this, t[i], i, t)) {                                                              // 126
+                return true;                                                                                         // 127
+            }                                                                                                        // 128
+        }                                                                                                            // 129
+                                                                                                                     // 130
+        return false;                                                                                                // 131
+    };                                                                                                               // 132
+}                                                                                                                    // 133
+                                                                                                                     // 134
+var some$1 = some;                                                                                                   // 135
+                                                                                                                     // 136
+function isValid(m) {                                                                                                // 137
+    if (m._isValid == null) {                                                                                        // 138
+        var flags = getParsingFlags(m);                                                                              // 139
+        var parsedParts = some$1.call(flags.parsedDateParts, function (i) {                                          // 140
+            return i != null;                                                                                        // 141
+        });                                                                                                          // 142
+        var isNowValid = !isNaN(m._d.getTime()) &&                                                                   // 143
+            flags.overflow < 0 &&                                                                                    // 144
+            !flags.empty &&                                                                                          // 145
+            !flags.invalidMonth &&                                                                                   // 146
+            !flags.invalidWeekday &&                                                                                 // 147
+            !flags.nullInput &&                                                                                      // 148
+            !flags.invalidFormat &&                                                                                  // 149
+            !flags.userInvalidated &&                                                                                // 150
+            (!flags.meridiem || (flags.meridiem && parsedParts));                                                    // 151
+                                                                                                                     // 152
+        if (m._strict) {                                                                                             // 153
+            isNowValid = isNowValid &&                                                                               // 154
+                flags.charsLeftOver === 0 &&                                                                         // 155
+                flags.unusedTokens.length === 0 &&                                                                   // 156
+                flags.bigHour === undefined;                                                                         // 157
+        }                                                                                                            // 158
+                                                                                                                     // 159
+        if (Object.isFrozen == null || !Object.isFrozen(m)) {                                                        // 160
+            m._isValid = isNowValid;                                                                                 // 161
+        }                                                                                                            // 162
+        else {                                                                                                       // 163
+            return isNowValid;                                                                                       // 164
+        }                                                                                                            // 165
+    }                                                                                                                // 166
+    return m._isValid;                                                                                               // 167
+}                                                                                                                    // 168
+                                                                                                                     // 169
+function createInvalid (flags) {                                                                                     // 170
+    var m = createUTC(NaN);                                                                                          // 171
+    if (flags != null) {                                                                                             // 172
+        extend(getParsingFlags(m), flags);                                                                           // 173
+    }                                                                                                                // 174
+    else {                                                                                                           // 175
+        getParsingFlags(m).userInvalidated = true;                                                                   // 176
+    }                                                                                                                // 177
+                                                                                                                     // 178
+    return m;                                                                                                        // 179
+}                                                                                                                    // 180
+                                                                                                                     // 181
+// Plugins that add properties should also add the key here (null value),                                            // 182
+// so we can properly clone ourselves.                                                                               // 183
+var momentProperties = hooks.momentProperties = [];                                                                  // 184
+                                                                                                                     // 185
+function copyConfig(to, from) {                                                                                      // 186
+    var i, prop, val;                                                                                                // 187
+                                                                                                                     // 188
+    if (!isUndefined(from._isAMomentObject)) {                                                                       // 189
+        to._isAMomentObject = from._isAMomentObject;                                                                 // 190
+    }                                                                                                                // 191
+    if (!isUndefined(from._i)) {                                                                                     // 192
+        to._i = from._i;                                                                                             // 193
+    }                                                                                                                // 194
+    if (!isUndefined(from._f)) {                                                                                     // 195
+        to._f = from._f;                                                                                             // 196
+    }                                                                                                                // 197
+    if (!isUndefined(from._l)) {                                                                                     // 198
+        to._l = from._l;                                                                                             // 199
+    }                                                                                                                // 200
+    if (!isUndefined(from._strict)) {                                                                                // 201
+        to._strict = from._strict;                                                                                   // 202
+    }                                                                                                                // 203
+    if (!isUndefined(from._tzm)) {                                                                                   // 204
+        to._tzm = from._tzm;                                                                                         // 205
+    }                                                                                                                // 206
+    if (!isUndefined(from._isUTC)) {                                                                                 // 207
+        to._isUTC = from._isUTC;                                                                                     // 208
+    }                                                                                                                // 209
+    if (!isUndefined(from._offset)) {                                                                                // 210
+        to._offset = from._offset;                                                                                   // 211
+    }                                                                                                                // 212
+    if (!isUndefined(from._pf)) {                                                                                    // 213
+        to._pf = getParsingFlags(from);                                                                              // 214
+    }                                                                                                                // 215
+    if (!isUndefined(from._locale)) {                                                                                // 216
+        to._locale = from._locale;                                                                                   // 217
+    }                                                                                                                // 218
+                                                                                                                     // 219
+    if (momentProperties.length > 0) {                                                                               // 220
+        for (i = 0; i < momentProperties.length; i++) {                                                              // 221
+            prop = momentProperties[i];                                                                              // 222
+            val = from[prop];                                                                                        // 223
+            if (!isUndefined(val)) {                                                                                 // 224
+                to[prop] = val;                                                                                      // 225
+            }                                                                                                        // 226
+        }                                                                                                            // 227
+    }                                                                                                                // 228
+                                                                                                                     // 229
+    return to;                                                                                                       // 230
+}                                                                                                                    // 231
+                                                                                                                     // 232
+var updateInProgress = false;                                                                                        // 233
+                                                                                                                     // 234
+// Moment prototype object                                                                                           // 235
+function Moment(config) {                                                                                            // 236
+    copyConfig(this, config);                                                                                        // 237
+    this._d = new Date(config._d != null ? config._d.getTime() : NaN);                                               // 238
+    if (!this.isValid()) {                                                                                           // 239
+        this._d = new Date(NaN);                                                                                     // 240
+    }                                                                                                                // 241
+    // Prevent infinite loop in case updateOffset creates new moment                                                 // 242
+    // objects.                                                                                                      // 243
+    if (updateInProgress === false) {                                                                                // 244
+        updateInProgress = true;                                                                                     // 245
+        hooks.updateOffset(this);                                                                                    // 246
+        updateInProgress = false;                                                                                    // 247
+    }                                                                                                                // 248
+}                                                                                                                    // 249
+                                                                                                                     // 250
+function isMoment (obj) {                                                                                            // 251
+    return obj instanceof Moment || (obj != null && obj._isAMomentObject != null);                                   // 252
+}                                                                                                                    // 253
+                                                                                                                     // 254
+function absFloor (number) {                                                                                         // 255
+    if (number < 0) {                                                                                                // 256
+        // -0 -> 0                                                                                                   // 257
+        return Math.ceil(number) || 0;                                                                               // 258
+    } else {                                                                                                         // 259
+        return Math.floor(number);                                                                                   // 260
+    }                                                                                                                // 261
+}                                                                                                                    // 262
+                                                                                                                     // 263
+function toInt(argumentForCoercion) {                                                                                // 264
+    var coercedNumber = +argumentForCoercion,                                                                        // 265
+        value = 0;                                                                                                   // 266
+                                                                                                                     // 267
+    if (coercedNumber !== 0 && isFinite(coercedNumber)) {                                                            // 268
+        value = absFloor(coercedNumber);                                                                             // 269
+    }                                                                                                                // 270
+                                                                                                                     // 271
+    return value;                                                                                                    // 272
+}                                                                                                                    // 273
+                                                                                                                     // 274
+// compare two arrays, return the number of differences                                                              // 275
+function compareArrays(array1, array2, dontConvert) {                                                                // 276
+    var len = Math.min(array1.length, array2.length),                                                                // 277
+        lengthDiff = Math.abs(array1.length - array2.length),                                                        // 278
+        diffs = 0,                                                                                                   // 279
+        i;                                                                                                           // 280
+    for (i = 0; i < len; i++) {                                                                                      // 281
+        if ((dontConvert && array1[i] !== array2[i]) ||                                                              // 282
+            (!dontConvert && toInt(array1[i]) !== toInt(array2[i]))) {                                               // 283
+            diffs++;                                                                                                 // 284
+        }                                                                                                            // 285
+    }                                                                                                                // 286
+    return diffs + lengthDiff;                                                                                       // 287
+}                                                                                                                    // 288
+                                                                                                                     // 289
+function warn(msg) {                                                                                                 // 290
+    if (hooks.suppressDeprecationWarnings === false &&                                                               // 291
+            (typeof console !==  'undefined') && console.warn) {                                                     // 292
+        console.warn('Deprecation warning: ' + msg);                                                                 // 293
+    }                                                                                                                // 294
+}                                                                                                                    // 295
+                                                                                                                     // 296
+function deprecate(msg, fn) {                                                                                        // 297
+    var firstTime = true;                                                                                            // 298
+                                                                                                                     // 299
+    return extend(function () {                                                                                      // 300
+        if (hooks.deprecationHandler != null) {                                                                      // 301
+            hooks.deprecationHandler(null, msg);                                                                     // 302
+        }                                                                                                            // 303
+        if (firstTime) {                                                                                             // 304
+            var args = [];                                                                                           // 305
+            var arg;                                                                                                 // 306
+            for (var i = 0; i < arguments.length; i++) {                                                             // 307
+                arg = '';                                                                                            // 308
+                if (typeof arguments[i] === 'object') {                                                              // 309
+                    arg += '\n[' + i + '] ';                                                                         // 310
+                    for (var key in arguments[0]) {                                                                  // 311
+                        arg += key + ': ' + arguments[0][key] + ', ';                                                // 312
+                    }                                                                                                // 313
+                    arg = arg.slice(0, -2); // Remove trailing comma and space                                       // 314
+                } else {                                                                                             // 315
+                    arg = arguments[i];                                                                              // 316
+                }                                                                                                    // 317
+                args.push(arg);                                                                                      // 318
+            }                                                                                                        // 319
+            warn(msg + '\nArguments: ' + Array.prototype.slice.call(args).join('') + '\n' + (new Error()).stack);    // 320
+            firstTime = false;                                                                                       // 321
+        }                                                                                                            // 322
+        return fn.apply(this, arguments);                                                                            // 323
+    }, fn);                                                                                                          // 324
+}                                                                                                                    // 325
+                                                                                                                     // 326
+var deprecations = {};                                                                                               // 327
+                                                                                                                     // 328
+function deprecateSimple(name, msg) {                                                                                // 329
+    if (hooks.deprecationHandler != null) {                                                                          // 330
+        hooks.deprecationHandler(name, msg);                                                                         // 331
+    }                                                                                                                // 332
+    if (!deprecations[name]) {                                                                                       // 333
+        warn(msg);                                                                                                   // 334
+        deprecations[name] = true;                                                                                   // 335
+    }                                                                                                                // 336
+}                                                                                                                    // 337
+                                                                                                                     // 338
+hooks.suppressDeprecationWarnings = false;                                                                           // 339
+hooks.deprecationHandler = null;                                                                                     // 340
+                                                                                                                     // 341
+function isFunction(input) {                                                                                         // 342
+    return input instanceof Function || Object.prototype.toString.call(input) === '[object Function]';               // 343
+}                                                                                                                    // 344
+                                                                                                                     // 345
+function set (config) {                                                                                              // 346
+    var prop, i;                                                                                                     // 347
+    for (i in config) {                                                                                              // 348
+        prop = config[i];                                                                                            // 349
+        if (isFunction(prop)) {                                                                                      // 350
+            this[i] = prop;                                                                                          // 351
+        } else {                                                                                                     // 352
+            this['_' + i] = prop;                                                                                    // 353
+        }                                                                                                            // 354
+    }                                                                                                                // 355
+    this._config = config;                                                                                           // 356
+    // Lenient ordinal parsing accepts just a number in addition to                                                  // 357
+    // number + (possibly) stuff coming from _dayOfMonthOrdinalParse.                                                // 358
+    // TODO: Remove "ordinalParse" fallback in next major release.                                                   // 359
+    this._dayOfMonthOrdinalParseLenient = new RegExp(                                                                // 360
+        (this._dayOfMonthOrdinalParse.source || this._ordinalParse.source) +                                         // 361
+            '|' + (/\d{1,2}/).source);                                                                               // 362
+}                                                                                                                    // 363
+                                                                                                                     // 364
+function mergeConfigs(parentConfig, childConfig) {                                                                   // 365
+    var res = extend({}, parentConfig), prop;                                                                        // 366
+    for (prop in childConfig) {                                                                                      // 367
+        if (hasOwnProp(childConfig, prop)) {                                                                         // 368
+            if (isObject(parentConfig[prop]) && isObject(childConfig[prop])) {                                       // 369
+                res[prop] = {};                                                                                      // 370
+                extend(res[prop], parentConfig[prop]);                                                               // 371
+                extend(res[prop], childConfig[prop]);                                                                // 372
+            } else if (childConfig[prop] != null) {                                                                  // 373
+                res[prop] = childConfig[prop];                                                                       // 374
+            } else {                                                                                                 // 375
+                delete res[prop];                                                                                    // 376
+            }                                                                                                        // 377
+        }                                                                                                            // 378
+    }                                                                                                                // 379
+    for (prop in parentConfig) {                                                                                     // 380
+        if (hasOwnProp(parentConfig, prop) &&                                                                        // 381
+                !hasOwnProp(childConfig, prop) &&                                                                    // 382
+                isObject(parentConfig[prop])) {                                                                      // 383
+            // make sure changes to properties don't modify parent config                                            // 384
+            res[prop] = extend({}, res[prop]);                                                                       // 385
+        }                                                                                                            // 386
+    }                                                                                                                // 387
+    return res;                                                                                                      // 388
+}                                                                                                                    // 389
+                                                                                                                     // 390
+function Locale(config) {                                                                                            // 391
+    if (config != null) {                                                                                            // 392
+        this.set(config);                                                                                            // 393
+    }                                                                                                                // 394
+}                                                                                                                    // 395
+                                                                                                                     // 396
+var keys;                                                                                                            // 397
+                                                                                                                     // 398
+if (Object.keys) {                                                                                                   // 399
+    keys = Object.keys;                                                                                              // 400
+} else {                                                                                                             // 401
+    keys = function (obj) {                                                                                          // 402
+        var i, res = [];                                                                                             // 403
+        for (i in obj) {                                                                                             // 404
+            if (hasOwnProp(obj, i)) {                                                                                // 405
+                res.push(i);                                                                                         // 406
+            }                                                                                                        // 407
+        }                                                                                                            // 408
+        return res;                                                                                                  // 409
+    };                                                                                                               // 410
+}                                                                                                                    // 411
+                                                                                                                     // 412
+var keys$1 = keys;                                                                                                   // 413
+                                                                                                                     // 414
+var defaultCalendar = {                                                                                              // 415
+    sameDay : '[Today at] LT',                                                                                       // 416
+    nextDay : '[Tomorrow at] LT',                                                                                    // 417
+    nextWeek : 'dddd [at] LT',                                                                                       // 418
+    lastDay : '[Yesterday at] LT',                                                                                   // 419
+    lastWeek : '[Last] dddd [at] LT',                                                                                // 420
+    sameElse : 'L'                                                                                                   // 421
+};                                                                                                                   // 422
+                                                                                                                     // 423
+function calendar (key, mom, now) {                                                                                  // 424
+    var output = this._calendar[key] || this._calendar['sameElse'];                                                  // 425
+    return isFunction(output) ? output.call(mom, now) : output;                                                      // 426
+}                                                                                                                    // 427
+                                                                                                                     // 428
+var defaultLongDateFormat = {                                                                                        // 429
+    LTS  : 'h:mm:ss A',                                                                                              // 430
+    LT   : 'h:mm A',                                                                                                 // 431
+    L    : 'MM/DD/YYYY',                                                                                             // 432
+    LL   : 'MMMM D, YYYY',                                                                                           // 433
+    LLL  : 'MMMM D, YYYY h:mm A',                                                                                    // 434
+    LLLL : 'dddd, MMMM D, YYYY h:mm A'                                                                               // 435
+};                                                                                                                   // 436
+                                                                                                                     // 437
+function longDateFormat (key) {                                                                                      // 438
+    var format = this._longDateFormat[key],                                                                          // 439
+        formatUpper = this._longDateFormat[key.toUpperCase()];                                                       // 440
+                                                                                                                     // 441
+    if (format || !formatUpper) {                                                                                    // 442
+        return format;                                                                                               // 443
+    }                                                                                                                // 444
+                                                                                                                     // 445
+    this._longDateFormat[key] = formatUpper.replace(/MMMM|MM|DD|dddd/g, function (val) {                             // 446
+        return val.slice(1);                                                                                         // 447
+    });                                                                                                              // 448
+                                                                                                                     // 449
+    return this._longDateFormat[key];                                                                                // 450
+}                                                                                                                    // 451
+                                                                                                                     // 452
+var defaultInvalidDate = 'Invalid date';                                                                             // 453
+                                                                                                                     // 454
+function invalidDate () {                                                                                            // 455
+    return this._invalidDate;                                                                                        // 456
+}                                                                                                                    // 457
+                                                                                                                     // 458
+var defaultOrdinal = '%d';                                                                                           // 459
+var defaultDayOfMonthOrdinalParse = /\d{1,2}/;                                                                       // 460
+                                                                                                                     // 461
+function ordinal (number) {                                                                                          // 462
+    return this._ordinal.replace('%d', number);                                                                      // 463
+}                                                                                                                    // 464
+                                                                                                                     // 465
+var defaultRelativeTime = {                                                                                          // 466
+    future : 'in %s',                                                                                                // 467
+    past   : '%s ago',                                                                                               // 468
+    s  : 'a few seconds',                                                                                            // 469
+    ss : '%d seconds',                                                                                               // 470
+    m  : 'a minute',                                                                                                 // 471
+    mm : '%d minutes',                                                                                               // 472
+    h  : 'an hour',                                                                                                  // 473
+    hh : '%d hours',                                                                                                 // 474
+    d  : 'a day',                                                                                                    // 475
+    dd : '%d days',                                                                                                  // 476
+    M  : 'a month',                                                                                                  // 477
+    MM : '%d months',                                                                                                // 478
+    y  : 'a year',                                                                                                   // 479
+    yy : '%d years'                                                                                                  // 480
+};                                                                                                                   // 481
+                                                                                                                     // 482
+function relativeTime (number, withoutSuffix, string, isFuture) {                                                    // 483
+    var output = this._relativeTime[string];                                                                         // 484
+    return (isFunction(output)) ?                                                                                    // 485
+        output(number, withoutSuffix, string, isFuture) :                                                            // 486
+        output.replace(/%d/i, number);                                                                               // 487
+}                                                                                                                    // 488
+                                                                                                                     // 489
+function pastFuture (diff, output) {                                                                                 // 490
+    var format = this._relativeTime[diff > 0 ? 'future' : 'past'];                                                   // 491
+    return isFunction(format) ? format(output) : format.replace(/%s/i, output);                                      // 492
+}                                                                                                                    // 493
+                                                                                                                     // 494
+var aliases = {};                                                                                                    // 495
+                                                                                                                     // 496
+function addUnitAlias (unit, shorthand) {                                                                            // 497
+    var lowerCase = unit.toLowerCase();                                                                              // 498
+    aliases[lowerCase] = aliases[lowerCase + 's'] = aliases[shorthand] = unit;                                       // 499
+}                                                                                                                    // 500
+                                                                                                                     // 501
+function normalizeUnits(units) {                                                                                     // 502
+    return typeof units === 'string' ? aliases[units] || aliases[units.toLowerCase()] : undefined;                   // 503
+}                                                                                                                    // 504
+                                                                                                                     // 505
+function normalizeObjectUnits(inputObject) {                                                                         // 506
+    var normalizedInput = {},                                                                                        // 507
+        normalizedProp,                                                                                              // 508
+        prop;                                                                                                        // 509
+                                                                                                                     // 510
+    for (prop in inputObject) {                                                                                      // 511
+        if (hasOwnProp(inputObject, prop)) {                                                                         // 512
+            normalizedProp = normalizeUnits(prop);                                                                   // 513
+            if (normalizedProp) {                                                                                    // 514
+                normalizedInput[normalizedProp] = inputObject[prop];                                                 // 515
+            }                                                                                                        // 516
+        }                                                                                                            // 517
+    }                                                                                                                // 518
+                                                                                                                     // 519
+    return normalizedInput;                                                                                          // 520
+}                                                                                                                    // 521
+                                                                                                                     // 522
+var priorities = {};                                                                                                 // 523
+                                                                                                                     // 524
+function addUnitPriority(unit, priority) {                                                                           // 525
+    priorities[unit] = priority;                                                                                     // 526
+}                                                                                                                    // 527
+                                                                                                                     // 528
+function getPrioritizedUnits(unitsObj) {                                                                             // 529
+    var units = [];                                                                                                  // 530
+    for (var u in unitsObj) {                                                                                        // 531
+        units.push({unit: u, priority: priorities[u]});                                                              // 532
+    }                                                                                                                // 533
+    units.sort(function (a, b) {                                                                                     // 534
+        return a.priority - b.priority;                                                                              // 535
+    });                                                                                                              // 536
+    return units;                                                                                                    // 537
+}                                                                                                                    // 538
+                                                                                                                     // 539
+function makeGetSet (unit, keepTime) {                                                                               // 540
+    return function (value) {                                                                                        // 541
+        if (value != null) {                                                                                         // 542
+            set$1(this, unit, value);                                                                                // 543
+            hooks.updateOffset(this, keepTime);                                                                      // 544
+            return this;                                                                                             // 545
+        } else {                                                                                                     // 546
+            return get(this, unit);                                                                                  // 547
+        }                                                                                                            // 548
+    };                                                                                                               // 549
+}                                                                                                                    // 550
+                                                                                                                     // 551
+function get (mom, unit) {                                                                                           // 552
+    return mom.isValid() ?                                                                                           // 553
+        mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]() : NaN;                                                    // 554
+}                                                                                                                    // 555
+                                                                                                                     // 556
+function set$1 (mom, unit, value) {                                                                                  // 557
+    if (mom.isValid()) {                                                                                             // 558
+        mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);                                                     // 559
+    }                                                                                                                // 560
+}                                                                                                                    // 561
+                                                                                                                     // 562
+// MOMENTS                                                                                                           // 563
+                                                                                                                     // 564
+function stringGet (units) {                                                                                         // 565
+    units = normalizeUnits(units);                                                                                   // 566
+    if (isFunction(this[units])) {                                                                                   // 567
+        return this[units]();                                                                                        // 568
+    }                                                                                                                // 569
+    return this;                                                                                                     // 570
+}                                                                                                                    // 571
+                                                                                                                     // 572
+                                                                                                                     // 573
+function stringSet (units, value) {                                                                                  // 574
+    if (typeof units === 'object') {                                                                                 // 575
+        units = normalizeObjectUnits(units);                                                                         // 576
+        var prioritized = getPrioritizedUnits(units);                                                                // 577
+        for (var i = 0; i < prioritized.length; i++) {                                                               // 578
+            this[prioritized[i].unit](units[prioritized[i].unit]);                                                   // 579
+        }                                                                                                            // 580
+    } else {                                                                                                         // 581
+        units = normalizeUnits(units);                                                                               // 582
+        if (isFunction(this[units])) {                                                                               // 583
+            return this[units](value);                                                                               // 584
+        }                                                                                                            // 585
+    }                                                                                                                // 586
+    return this;                                                                                                     // 587
+}                                                                                                                    // 588
+                                                                                                                     // 589
+function zeroFill(number, targetLength, forceSign) {                                                                 // 590
+    var absNumber = '' + Math.abs(number),                                                                           // 591
+        zerosToFill = targetLength - absNumber.length,                                                               // 592
+        sign = number >= 0;                                                                                          // 593
+    return (sign ? (forceSign ? '+' : '') : '-') +                                                                   // 594
+        Math.pow(10, Math.max(0, zerosToFill)).toString().substr(1) + absNumber;                                     // 595
+}                                                                                                                    // 596
+                                                                                                                     // 597
+var formattingTokens = /(\[[^\[]*\])|(\\)?([Hh]mm(ss)?|Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Qo?|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|kk?|mm?|ss?|S{1,9}|x|X|zz?|ZZ?|.)/g;
+                                                                                                                     // 599
+var localFormattingTokens = /(\[[^\[]*\])|(\\)?(LTS|LT|LL?L?L?|l{1,4})/g;                                            // 600
+                                                                                                                     // 601
+var formatFunctions = {};                                                                                            // 602
+                                                                                                                     // 603
+var formatTokenFunctions = {};                                                                                       // 604
+                                                                                                                     // 605
+// token:    'M'                                                                                                     // 606
+// padded:   ['MM', 2]                                                                                               // 607
+// ordinal:  'Mo'                                                                                                    // 608
+// callback: function () { this.month() + 1 }                                                                        // 609
+function addFormatToken (token, padded, ordinal, callback) {                                                         // 610
+    var func = callback;                                                                                             // 611
+    if (typeof callback === 'string') {                                                                              // 612
+        func = function () {                                                                                         // 613
+            return this[callback]();                                                                                 // 614
+        };                                                                                                           // 615
+    }                                                                                                                // 616
+    if (token) {                                                                                                     // 617
+        formatTokenFunctions[token] = func;                                                                          // 618
+    }                                                                                                                // 619
+    if (padded) {                                                                                                    // 620
+        formatTokenFunctions[padded[0]] = function () {                                                              // 621
+            return zeroFill(func.apply(this, arguments), padded[1], padded[2]);                                      // 622
+        };                                                                                                           // 623
+    }                                                                                                                // 624
+    if (ordinal) {                                                                                                   // 625
+        formatTokenFunctions[ordinal] = function () {                                                                // 626
+            return this.localeData().ordinal(func.apply(this, arguments), token);                                    // 627
+        };                                                                                                           // 628
+    }                                                                                                                // 629
+}                                                                                                                    // 630
+                                                                                                                     // 631
+function removeFormattingTokens(input) {                                                                             // 632
+    if (input.match(/\[[\s\S]/)) {                                                                                   // 633
+        return input.replace(/^\[|\]$/g, '');                                                                        // 634
+    }                                                                                                                // 635
+    return input.replace(/\\/g, '');                                                                                 // 636
+}                                                                                                                    // 637
+                                                                                                                     // 638
+function makeFormatFunction(format) {                                                                                // 639
+    var array = format.match(formattingTokens), i, length;                                                           // 640
+                                                                                                                     // 641
+    for (i = 0, length = array.length; i < length; i++) {                                                            // 642
+        if (formatTokenFunctions[array[i]]) {                                                                        // 643
+            array[i] = formatTokenFunctions[array[i]];                                                               // 644
+        } else {                                                                                                     // 645
+            array[i] = removeFormattingTokens(array[i]);                                                             // 646
+        }                                                                                                            // 647
+    }                                                                                                                // 648
+                                                                                                                     // 649
+    return function (mom) {                                                                                          // 650
+        var output = '', i;                                                                                          // 651
+        for (i = 0; i < length; i++) {                                                                               // 652
+            output += isFunction(array[i]) ? array[i].call(mom, format) : array[i];                                  // 653
+        }                                                                                                            // 654
+        return output;                                                                                               // 655
+    };                                                                                                               // 656
+}                                                                                                                    // 657
+                                                                                                                     // 658
+// format date using native date object                                                                              // 659
+function formatMoment(m, format) {                                                                                   // 660
+    if (!m.isValid()) {                                                                                              // 661
+        return m.localeData().invalidDate();                                                                         // 662
+    }                                                                                                                // 663
+                                                                                                                     // 664
+    format = expandFormat(format, m.localeData());                                                                   // 665
+    formatFunctions[format] = formatFunctions[format] || makeFormatFunction(format);                                 // 666
+                                                                                                                     // 667
+    return formatFunctions[format](m);                                                                               // 668
+}                                                                                                                    // 669
+                                                                                                                     // 670
+function expandFormat(format, locale) {                                                                              // 671
+    var i = 5;                                                                                                       // 672
+                                                                                                                     // 673
+    function replaceLongDateFormatTokens(input) {                                                                    // 674
+        return locale.longDateFormat(input) || input;                                                                // 675
+    }                                                                                                                // 676
+                                                                                                                     // 677
+    localFormattingTokens.lastIndex = 0;                                                                             // 678
+    while (i >= 0 && localFormattingTokens.test(format)) {                                                           // 679
+        format = format.replace(localFormattingTokens, replaceLongDateFormatTokens);                                 // 680
+        localFormattingTokens.lastIndex = 0;                                                                         // 681
+        i -= 1;                                                                                                      // 682
+    }                                                                                                                // 683
+                                                                                                                     // 684
+    return format;                                                                                                   // 685
+}                                                                                                                    // 686
+                                                                                                                     // 687
+var match1         = /\d/;            //       0 - 9                                                                 // 688
+var match2         = /\d\d/;          //      00 - 99                                                                // 689
+var match3         = /\d{3}/;         //     000 - 999                                                               // 690
+var match4         = /\d{4}/;         //    0000 - 9999                                                              // 691
+var match6         = /[+-]?\d{6}/;    // -999999 - 999999                                                            // 692
+var match1to2      = /\d\d?/;         //       0 - 99                                                                // 693
+var match3to4      = /\d\d\d\d?/;     //     999 - 9999                                                              // 694
+var match5to6      = /\d\d\d\d\d\d?/; //   99999 - 999999                                                            // 695
+var match1to3      = /\d{1,3}/;       //       0 - 999                                                               // 696
+var match1to4      = /\d{1,4}/;       //       0 - 9999                                                              // 697
+var match1to6      = /[+-]?\d{1,6}/;  // -999999 - 999999                                                            // 698
+                                                                                                                     // 699
+var matchUnsigned  = /\d+/;           //       0 - inf                                                               // 700
+var matchSigned    = /[+-]?\d+/;      //    -inf - inf                                                               // 701
+                                                                                                                     // 702
+var matchOffset    = /Z|[+-]\d\d:?\d\d/gi; // +00:00 -00:00 +0000 -0000 or Z                                         // 703
+var matchShortOffset = /Z|[+-]\d\d(?::?\d\d)?/gi; // +00 -00 +00:00 -00:00 +0000 -0000 or Z                          // 704
+                                                                                                                     // 705
+var matchTimestamp = /[+-]?\d+(\.\d{1,3})?/; // 123456789 123456789.123                                              // 706
+                                                                                                                     // 707
+// any word (or two) characters or numbers including two/three word month in arabic.                                 // 708
+// includes scottish gaelic two word and hyphenated months                                                           // 709
+var matchWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i;
+                                                                                                                     // 711
+                                                                                                                     // 712
+var regexes = {};                                                                                                    // 713
+                                                                                                                     // 714
+function addRegexToken (token, regex, strictRegex) {                                                                 // 715
+    regexes[token] = isFunction(regex) ? regex : function (isStrict, localeData) {                                   // 716
+        return (isStrict && strictRegex) ? strictRegex : regex;                                                      // 717
+    };                                                                                                               // 718
+}                                                                                                                    // 719
+                                                                                                                     // 720
+function getParseRegexForToken (token, config) {                                                                     // 721
+    if (!hasOwnProp(regexes, token)) {                                                                               // 722
+        return new RegExp(unescapeFormat(token));                                                                    // 723
+    }                                                                                                                // 724
+                                                                                                                     // 725
+    return regexes[token](config._strict, config._locale);                                                           // 726
+}                                                                                                                    // 727
+                                                                                                                     // 728
+// Code from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript              // 729
+function unescapeFormat(s) {                                                                                         // 730
+    return regexEscape(s.replace('\\', '').replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
+        return p1 || p2 || p3 || p4;                                                                                 // 732
+    }));                                                                                                             // 733
+}                                                                                                                    // 734
+                                                                                                                     // 735
+function regexEscape(s) {                                                                                            // 736
+    return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');                                                              // 737
+}                                                                                                                    // 738
+                                                                                                                     // 739
+var tokens = {};                                                                                                     // 740
+                                                                                                                     // 741
+function addParseToken (token, callback) {                                                                           // 742
+    var i, func = callback;                                                                                          // 743
+    if (typeof token === 'string') {                                                                                 // 744
+        token = [token];                                                                                             // 745
+    }                                                                                                                // 746
+    if (isNumber(callback)) {                                                                                        // 747
+        func = function (input, array) {                                                                             // 748
+            array[callback] = toInt(input);                                                                          // 749
+        };                                                                                                           // 750
+    }                                                                                                                // 751
+    for (i = 0; i < token.length; i++) {                                                                             // 752
+        tokens[token[i]] = func;                                                                                     // 753
+    }                                                                                                                // 754
+}                                                                                                                    // 755
+                                                                                                                     // 756
+function addWeekParseToken (token, callback) {                                                                       // 757
+    addParseToken(token, function (input, array, config, token) {                                                    // 758
+        config._w = config._w || {};                                                                                 // 759
+        callback(input, config._w, config, token);                                                                   // 760
+    });                                                                                                              // 761
+}                                                                                                                    // 762
+                                                                                                                     // 763
+function addTimeToArrayFromToken(token, input, config) {                                                             // 764
+    if (input != null && hasOwnProp(tokens, token)) {                                                                // 765
+        tokens[token](input, config._a, config, token);                                                              // 766
+    }                                                                                                                // 767
+}                                                                                                                    // 768
+                                                                                                                     // 769
+var YEAR = 0;                                                                                                        // 770
+var MONTH = 1;                                                                                                       // 771
+var DATE = 2;                                                                                                        // 772
+var HOUR = 3;                                                                                                        // 773
+var MINUTE = 4;                                                                                                      // 774
+var SECOND = 5;                                                                                                      // 775
+var MILLISECOND = 6;                                                                                                 // 776
+var WEEK = 7;                                                                                                        // 777
+var WEEKDAY = 8;                                                                                                     // 778
+                                                                                                                     // 779
+var indexOf;                                                                                                         // 780
+                                                                                                                     // 781
+if (Array.prototype.indexOf) {                                                                                       // 782
+    indexOf = Array.prototype.indexOf;                                                                               // 783
+} else {                                                                                                             // 784
+    indexOf = function (o) {                                                                                         // 785
+        // I know                                                                                                    // 786
+        var i;                                                                                                       // 787
+        for (i = 0; i < this.length; ++i) {                                                                          // 788
+            if (this[i] === o) {                                                                                     // 789
+                return i;                                                                                            // 790
+            }                                                                                                        // 791
+        }                                                                                                            // 792
+        return -1;                                                                                                   // 793
+    };                                                                                                               // 794
+}                                                                                                                    // 795
+                                                                                                                     // 796
+var indexOf$1 = indexOf;                                                                                             // 797
+                                                                                                                     // 798
+function daysInMonth(year, month) {                                                                                  // 799
+    return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();                                                      // 800
+}                                                                                                                    // 801
+                                                                                                                     // 802
+// FORMATTING                                                                                                        // 803
+                                                                                                                     // 804
+addFormatToken('M', ['MM', 2], 'Mo', function () {                                                                   // 805
+    return this.month() + 1;                                                                                         // 806
+});                                                                                                                  // 807
+                                                                                                                     // 808
+addFormatToken('MMM', 0, 0, function (format) {                                                                      // 809
+    return this.localeData().monthsShort(this, format);                                                              // 810
+});                                                                                                                  // 811
+                                                                                                                     // 812
+addFormatToken('MMMM', 0, 0, function (format) {                                                                     // 813
+    return this.localeData().months(this, format);                                                                   // 814
+});                                                                                                                  // 815
+                                                                                                                     // 816
+// ALIASES                                                                                                           // 817
+                                                                                                                     // 818
+addUnitAlias('month', 'M');                                                                                          // 819
+                                                                                                                     // 820
+// PRIORITY                                                                                                          // 821
+                                                                                                                     // 822
+addUnitPriority('month', 8);                                                                                         // 823
+                                                                                                                     // 824
+// PARSING                                                                                                           // 825
+                                                                                                                     // 826
+addRegexToken('M',    match1to2);                                                                                    // 827
+addRegexToken('MM',   match1to2, match2);                                                                            // 828
+addRegexToken('MMM',  function (isStrict, locale) {                                                                  // 829
+    return locale.monthsShortRegex(isStrict);                                                                        // 830
+});                                                                                                                  // 831
+addRegexToken('MMMM', function (isStrict, locale) {                                                                  // 832
+    return locale.monthsRegex(isStrict);                                                                             // 833
+});                                                                                                                  // 834
+                                                                                                                     // 835
+addParseToken(['M', 'MM'], function (input, array) {                                                                 // 836
+    array[MONTH] = toInt(input) - 1;                                                                                 // 837
+});                                                                                                                  // 838
+                                                                                                                     // 839
+addParseToken(['MMM', 'MMMM'], function (input, array, config, token) {                                              // 840
+    var month = config._locale.monthsParse(input, token, config._strict);                                            // 841
+    // if we didn't find a month name, mark the date as invalid.                                                     // 842
+    if (month != null) {                                                                                             // 843
+        array[MONTH] = month;                                                                                        // 844
+    } else {                                                                                                         // 845
+        getParsingFlags(config).invalidMonth = input;                                                                // 846
+    }                                                                                                                // 847
+});                                                                                                                  // 848
+                                                                                                                     // 849
+// LOCALES                                                                                                           // 850
+                                                                                                                     // 851
+var MONTHS_IN_FORMAT = /D[oD]?(\[[^\[\]]*\]|\s)+MMMM?/;                                                              // 852
+var defaultLocaleMonths = 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_');
+function localeMonths (m, format) {                                                                                  // 854
+    if (!m) {                                                                                                        // 855
+        return isArray(this._months) ? this._months :                                                                // 856
+            this._months['standalone'];                                                                              // 857
+    }                                                                                                                // 858
+    return isArray(this._months) ? this._months[m.month()] :                                                         // 859
+        this._months[(this._months.isFormat || MONTHS_IN_FORMAT).test(format) ? 'format' : 'standalone'][m.month()];
+}                                                                                                                    // 861
+                                                                                                                     // 862
+var defaultLocaleMonthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_');                         // 863
+function localeMonthsShort (m, format) {                                                                             // 864
+    if (!m) {                                                                                                        // 865
+        return isArray(this._monthsShort) ? this._monthsShort :                                                      // 866
+            this._monthsShort['standalone'];                                                                         // 867
+    }                                                                                                                // 868
+    return isArray(this._monthsShort) ? this._monthsShort[m.month()] :                                               // 869
+        this._monthsShort[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];                       // 870
+}                                                                                                                    // 871
+                                                                                                                     // 872
+function handleStrictParse(monthName, format, strict) {                                                              // 873
+    var i, ii, mom, llc = monthName.toLocaleLowerCase();                                                             // 874
+    if (!this._monthsParse) {                                                                                        // 875
+        // this is not used                                                                                          // 876
+        this._monthsParse = [];                                                                                      // 877
+        this._longMonthsParse = [];                                                                                  // 878
+        this._shortMonthsParse = [];                                                                                 // 879
+        for (i = 0; i < 12; ++i) {                                                                                   // 880
+            mom = createUTC([2000, i]);                                                                              // 881
+            this._shortMonthsParse[i] = this.monthsShort(mom, '').toLocaleLowerCase();                               // 882
+            this._longMonthsParse[i] = this.months(mom, '').toLocaleLowerCase();                                     // 883
+        }                                                                                                            // 884
+    }                                                                                                                // 885
+                                                                                                                     // 886
+    if (strict) {                                                                                                    // 887
+        if (format === 'MMM') {                                                                                      // 888
+            ii = indexOf$1.call(this._shortMonthsParse, llc);                                                        // 889
+            return ii !== -1 ? ii : null;                                                                            // 890
+        } else {                                                                                                     // 891
+            ii = indexOf$1.call(this._longMonthsParse, llc);                                                         // 892
+            return ii !== -1 ? ii : null;                                                                            // 893
+        }                                                                                                            // 894
+    } else {                                                                                                         // 895
+        if (format === 'MMM') {                                                                                      // 896
+            ii = indexOf$1.call(this._shortMonthsParse, llc);                                                        // 897
+            if (ii !== -1) {                                                                                         // 898
+                return ii;                                                                                           // 899
+            }                                                                                                        // 900
+            ii = indexOf$1.call(this._longMonthsParse, llc);                                                         // 901
+            return ii !== -1 ? ii : null;                                                                            // 902
+        } else {                                                                                                     // 903
+            ii = indexOf$1.call(this._longMonthsParse, llc);                                                         // 904
+            if (ii !== -1) {                                                                                         // 905
+                return ii;                                                                                           // 906
+            }                                                                                                        // 907
+            ii = indexOf$1.call(this._shortMonthsParse, llc);                                                        // 908
+            return ii !== -1 ? ii : null;                                                                            // 909
+        }                                                                                                            // 910
+    }                                                                                                                // 911
+}                                                                                                                    // 912
+                                                                                                                     // 913
+function localeMonthsParse (monthName, format, strict) {                                                             // 914
+    var i, mom, regex;                                                                                               // 915
+                                                                                                                     // 916
+    if (this._monthsParseExact) {                                                                                    // 917
+        return handleStrictParse.call(this, monthName, format, strict);                                              // 918
+    }                                                                                                                // 919
+                                                                                                                     // 920
+    if (!this._monthsParse) {                                                                                        // 921
+        this._monthsParse = [];                                                                                      // 922
+        this._longMonthsParse = [];                                                                                  // 923
+        this._shortMonthsParse = [];                                                                                 // 924
+    }                                                                                                                // 925
+                                                                                                                     // 926
+    // TODO: add sorting                                                                                             // 927
+    // Sorting makes sure if one month (or abbr) is a prefix of another                                              // 928
+    // see sorting in computeMonthsParse                                                                             // 929
+    for (i = 0; i < 12; i++) {                                                                                       // 930
+        // make the regex if we don't have it already                                                                // 931
+        mom = createUTC([2000, i]);                                                                                  // 932
+        if (strict && !this._longMonthsParse[i]) {                                                                   // 933
+            this._longMonthsParse[i] = new RegExp('^' + this.months(mom, '').replace('.', '') + '$', 'i');           // 934
+            this._shortMonthsParse[i] = new RegExp('^' + this.monthsShort(mom, '').replace('.', '') + '$', 'i');     // 935
+        }                                                                                                            // 936
+        if (!strict && !this._monthsParse[i]) {                                                                      // 937
+            regex = '^' + this.months(mom, '') + '|^' + this.monthsShort(mom, '');                                   // 938
+            this._monthsParse[i] = new RegExp(regex.replace('.', ''), 'i');                                          // 939
+        }                                                                                                            // 940
+        // test the regex                                                                                            // 941
+        if (strict && format === 'MMMM' && this._longMonthsParse[i].test(monthName)) {                               // 942
+            return i;                                                                                                // 943
+        } else if (strict && format === 'MMM' && this._shortMonthsParse[i].test(monthName)) {                        // 944
+            return i;                                                                                                // 945
+        } else if (!strict && this._monthsParse[i].test(monthName)) {                                                // 946
+            return i;                                                                                                // 947
+        }                                                                                                            // 948
+    }                                                                                                                // 949
+}                                                                                                                    // 950
+                                                                                                                     // 951
+// MOMENTS                                                                                                           // 952
+                                                                                                                     // 953
+function setMonth (mom, value) {                                                                                     // 954
+    var dayOfMonth;                                                                                                  // 955
+                                                                                                                     // 956
+    if (!mom.isValid()) {                                                                                            // 957
+        // No op                                                                                                     // 958
+        return mom;                                                                                                  // 959
+    }                                                                                                                // 960
+                                                                                                                     // 961
+    if (typeof value === 'string') {                                                                                 // 962
+        if (/^\d+$/.test(value)) {                                                                                   // 963
+            value = toInt(value);                                                                                    // 964
+        } else {                                                                                                     // 965
+            value = mom.localeData().monthsParse(value);                                                             // 966
+            // TODO: Another silent failure?                                                                         // 967
+            if (!isNumber(value)) {                                                                                  // 968
+                return mom;                                                                                          // 969
+            }                                                                                                        // 970
+        }                                                                                                            // 971
+    }                                                                                                                // 972
+                                                                                                                     // 973
+    dayOfMonth = Math.min(mom.date(), daysInMonth(mom.year(), value));                                               // 974
+    mom._d['set' + (mom._isUTC ? 'UTC' : '') + 'Month'](value, dayOfMonth);                                          // 975
+    return mom;                                                                                                      // 976
+}                                                                                                                    // 977
+                                                                                                                     // 978
+function getSetMonth (value) {                                                                                       // 979
+    if (value != null) {                                                                                             // 980
+        setMonth(this, value);                                                                                       // 981
+        hooks.updateOffset(this, true);                                                                              // 982
+        return this;                                                                                                 // 983
+    } else {                                                                                                         // 984
+        return get(this, 'Month');                                                                                   // 985
+    }                                                                                                                // 986
+}                                                                                                                    // 987
+                                                                                                                     // 988
+function getDaysInMonth () {                                                                                         // 989
+    return daysInMonth(this.year(), this.month());                                                                   // 990
+}                                                                                                                    // 991
+                                                                                                                     // 992
+var defaultMonthsShortRegex = matchWord;                                                                             // 993
+function monthsShortRegex (isStrict) {                                                                               // 994
+    if (this._monthsParseExact) {                                                                                    // 995
+        if (!hasOwnProp(this, '_monthsRegex')) {                                                                     // 996
+            computeMonthsParse.call(this);                                                                           // 997
+        }                                                                                                            // 998
+        if (isStrict) {                                                                                              // 999
+            return this._monthsShortStrictRegex;                                                                     // 1000
+        } else {                                                                                                     // 1001
+            return this._monthsShortRegex;                                                                           // 1002
+        }                                                                                                            // 1003
+    } else {                                                                                                         // 1004
+        if (!hasOwnProp(this, '_monthsShortRegex')) {                                                                // 1005
+            this._monthsShortRegex = defaultMonthsShortRegex;                                                        // 1006
+        }                                                                                                            // 1007
+        return this._monthsShortStrictRegex && isStrict ?                                                            // 1008
+            this._monthsShortStrictRegex : this._monthsShortRegex;                                                   // 1009
+    }                                                                                                                // 1010
+}                                                                                                                    // 1011
+                                                                                                                     // 1012
+var defaultMonthsRegex = matchWord;                                                                                  // 1013
+function monthsRegex (isStrict) {                                                                                    // 1014
+    if (this._monthsParseExact) {                                                                                    // 1015
+        if (!hasOwnProp(this, '_monthsRegex')) {                                                                     // 1016
+            computeMonthsParse.call(this);                                                                           // 1017
+        }                                                                                                            // 1018
+        if (isStrict) {                                                                                              // 1019
+            return this._monthsStrictRegex;                                                                          // 1020
+        } else {                                                                                                     // 1021
+            return this._monthsRegex;                                                                                // 1022
+        }                                                                                                            // 1023
+    } else {                                                                                                         // 1024
+        if (!hasOwnProp(this, '_monthsRegex')) {                                                                     // 1025
+            this._monthsRegex = defaultMonthsRegex;                                                                  // 1026
+        }                                                                                                            // 1027
+        return this._monthsStrictRegex && isStrict ?                                                                 // 1028
+            this._monthsStrictRegex : this._monthsRegex;                                                             // 1029
+    }                                                                                                                // 1030
+}                                                                                                                    // 1031
+                                                                                                                     // 1032
+function computeMonthsParse () {                                                                                     // 1033
+    function cmpLenRev(a, b) {                                                                                       // 1034
+        return b.length - a.length;                                                                                  // 1035
+    }                                                                                                                // 1036
+                                                                                                                     // 1037
+    var shortPieces = [], longPieces = [], mixedPieces = [],                                                         // 1038
+        i, mom;                                                                                                      // 1039
+    for (i = 0; i < 12; i++) {                                                                                       // 1040
+        // make the regex if we don't have it already                                                                // 1041
+        mom = createUTC([2000, i]);                                                                                  // 1042
+        shortPieces.push(this.monthsShort(mom, ''));                                                                 // 1043
+        longPieces.push(this.months(mom, ''));                                                                       // 1044
+        mixedPieces.push(this.months(mom, ''));                                                                      // 1045
+        mixedPieces.push(this.monthsShort(mom, ''));                                                                 // 1046
+    }                                                                                                                // 1047
+    // Sorting makes sure if one month (or abbr) is a prefix of another it                                           // 1048
+    // will match the longer piece.                                                                                  // 1049
+    shortPieces.sort(cmpLenRev);                                                                                     // 1050
+    longPieces.sort(cmpLenRev);                                                                                      // 1051
+    mixedPieces.sort(cmpLenRev);                                                                                     // 1052
+    for (i = 0; i < 12; i++) {                                                                                       // 1053
+        shortPieces[i] = regexEscape(shortPieces[i]);                                                                // 1054
+        longPieces[i] = regexEscape(longPieces[i]);                                                                  // 1055
+    }                                                                                                                // 1056
+    for (i = 0; i < 24; i++) {                                                                                       // 1057
+        mixedPieces[i] = regexEscape(mixedPieces[i]);                                                                // 1058
+    }                                                                                                                // 1059
+                                                                                                                     // 1060
+    this._monthsRegex = new RegExp('^(' + mixedPieces.join('|') + ')', 'i');                                         // 1061
+    this._monthsShortRegex = this._monthsRegex;                                                                      // 1062
+    this._monthsStrictRegex = new RegExp('^(' + longPieces.join('|') + ')', 'i');                                    // 1063
+    this._monthsShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')', 'i');                              // 1064
+}                                                                                                                    // 1065
+                                                                                                                     // 1066
+// FORMATTING                                                                                                        // 1067
+                                                                                                                     // 1068
+addFormatToken('Y', 0, 0, function () {                                                                              // 1069
+    var y = this.year();                                                                                             // 1070
+    return y <= 9999 ? '' + y : '+' + y;                                                                             // 1071
+});                                                                                                                  // 1072
+                                                                                                                     // 1073
+addFormatToken(0, ['YY', 2], 0, function () {                                                                        // 1074
+    return this.year() % 100;                                                                                        // 1075
+});                                                                                                                  // 1076
+                                                                                                                     // 1077
+addFormatToken(0, ['YYYY',   4],       0, 'year');                                                                   // 1078
+addFormatToken(0, ['YYYYY',  5],       0, 'year');                                                                   // 1079
+addFormatToken(0, ['YYYYYY', 6, true], 0, 'year');                                                                   // 1080
+                                                                                                                     // 1081
+// ALIASES                                                                                                           // 1082
+                                                                                                                     // 1083
+addUnitAlias('year', 'y');                                                                                           // 1084
+                                                                                                                     // 1085
+// PRIORITIES                                                                                                        // 1086
+                                                                                                                     // 1087
+addUnitPriority('year', 1);                                                                                          // 1088
+                                                                                                                     // 1089
+// PARSING                                                                                                           // 1090
+                                                                                                                     // 1091
+addRegexToken('Y',      matchSigned);                                                                                // 1092
+addRegexToken('YY',     match1to2, match2);                                                                          // 1093
+addRegexToken('YYYY',   match1to4, match4);                                                                          // 1094
+addRegexToken('YYYYY',  match1to6, match6);                                                                          // 1095
+addRegexToken('YYYYYY', match1to6, match6);                                                                          // 1096
+                                                                                                                     // 1097
+addParseToken(['YYYYY', 'YYYYYY'], YEAR);                                                                            // 1098
+addParseToken('YYYY', function (input, array) {                                                                      // 1099
+    array[YEAR] = input.length === 2 ? hooks.parseTwoDigitYear(input) : toInt(input);                                // 1100
+});                                                                                                                  // 1101
+addParseToken('YY', function (input, array) {                                                                        // 1102
+    array[YEAR] = hooks.parseTwoDigitYear(input);                                                                    // 1103
+});                                                                                                                  // 1104
+addParseToken('Y', function (input, array) {                                                                         // 1105
+    array[YEAR] = parseInt(input, 10);                                                                               // 1106
+});                                                                                                                  // 1107
+                                                                                                                     // 1108
+// HELPERS                                                                                                           // 1109
+                                                                                                                     // 1110
+function daysInYear(year) {                                                                                          // 1111
+    return isLeapYear(year) ? 366 : 365;                                                                             // 1112
+}                                                                                                                    // 1113
+                                                                                                                     // 1114
+function isLeapYear(year) {                                                                                          // 1115
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;                                                 // 1116
+}                                                                                                                    // 1117
+                                                                                                                     // 1118
+// HOOKS                                                                                                             // 1119
+                                                                                                                     // 1120
+hooks.parseTwoDigitYear = function (input) {                                                                         // 1121
+    return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);                                                         // 1122
+};                                                                                                                   // 1123
+                                                                                                                     // 1124
+// MOMENTS                                                                                                           // 1125
+                                                                                                                     // 1126
+var getSetYear = makeGetSet('FullYear', true);                                                                       // 1127
+                                                                                                                     // 1128
+function getIsLeapYear () {                                                                                          // 1129
+    return isLeapYear(this.year());                                                                                  // 1130
+}                                                                                                                    // 1131
+                                                                                                                     // 1132
+function createDate (y, m, d, h, M, s, ms) {                                                                         // 1133
+    // can't just apply() to create a date:                                                                          // 1134
+    // https://stackoverflow.com/q/181348                                                                            // 1135
+    var date = new Date(y, m, d, h, M, s, ms);                                                                       // 1136
+                                                                                                                     // 1137
+    // the date constructor remaps years 0-99 to 1900-1999                                                           // 1138
+    if (y < 100 && y >= 0 && isFinite(date.getFullYear())) {                                                         // 1139
+        date.setFullYear(y);                                                                                         // 1140
+    }                                                                                                                // 1141
+    return date;                                                                                                     // 1142
+}                                                                                                                    // 1143
+                                                                                                                     // 1144
+function createUTCDate (y) {                                                                                         // 1145
+    var date = new Date(Date.UTC.apply(null, arguments));                                                            // 1146
+                                                                                                                     // 1147
+    // the Date.UTC function remaps years 0-99 to 1900-1999                                                          // 1148
+    if (y < 100 && y >= 0 && isFinite(date.getUTCFullYear())) {                                                      // 1149
+        date.setUTCFullYear(y);                                                                                      // 1150
+    }                                                                                                                // 1151
+    return date;                                                                                                     // 1152
+}                                                                                                                    // 1153
+                                                                                                                     // 1154
+// start-of-first-week - start-of-year                                                                               // 1155
+function firstWeekOffset(year, dow, doy) {                                                                           // 1156
+    var // first-week day -- which january is always in the first week (4 for iso, 1 for other)                      // 1157
+        fwd = 7 + dow - doy,                                                                                         // 1158
+        // first-week day local weekday -- which local weekday is fwd                                                // 1159
+        fwdlw = (7 + createUTCDate(year, 0, fwd).getUTCDay() - dow) % 7;                                             // 1160
+                                                                                                                     // 1161
+    return -fwdlw + fwd - 1;                                                                                         // 1162
+}                                                                                                                    // 1163
+                                                                                                                     // 1164
+// https://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday          // 1165
+function dayOfYearFromWeeks(year, week, weekday, dow, doy) {                                                         // 1166
+    var localWeekday = (7 + weekday - dow) % 7,                                                                      // 1167
+        weekOffset = firstWeekOffset(year, dow, doy),                                                                // 1168
+        dayOfYear = 1 + 7 * (week - 1) + localWeekday + weekOffset,                                                  // 1169
+        resYear, resDayOfYear;                                                                                       // 1170
+                                                                                                                     // 1171
+    if (dayOfYear <= 0) {                                                                                            // 1172
+        resYear = year - 1;                                                                                          // 1173
+        resDayOfYear = daysInYear(resYear) + dayOfYear;                                                              // 1174
+    } else if (dayOfYear > daysInYear(year)) {                                                                       // 1175
+        resYear = year + 1;                                                                                          // 1176
+        resDayOfYear = dayOfYear - daysInYear(year);                                                                 // 1177
+    } else {                                                                                                         // 1178
+        resYear = year;                                                                                              // 1179
+        resDayOfYear = dayOfYear;                                                                                    // 1180
+    }                                                                                                                // 1181
+                                                                                                                     // 1182
+    return {                                                                                                         // 1183
+        year: resYear,                                                                                               // 1184
+        dayOfYear: resDayOfYear                                                                                      // 1185
+    };                                                                                                               // 1186
+}                                                                                                                    // 1187
+                                                                                                                     // 1188
+function weekOfYear(mom, dow, doy) {                                                                                 // 1189
+    var weekOffset = firstWeekOffset(mom.year(), dow, doy),                                                          // 1190
+        week = Math.floor((mom.dayOfYear() - weekOffset - 1) / 7) + 1,                                               // 1191
+        resWeek, resYear;                                                                                            // 1192
+                                                                                                                     // 1193
+    if (week < 1) {                                                                                                  // 1194
+        resYear = mom.year() - 1;                                                                                    // 1195
+        resWeek = week + weeksInYear(resYear, dow, doy);                                                             // 1196
+    } else if (week > weeksInYear(mom.year(), dow, doy)) {                                                           // 1197
+        resWeek = week - weeksInYear(mom.year(), dow, doy);                                                          // 1198
+        resYear = mom.year() + 1;                                                                                    // 1199
+    } else {                                                                                                         // 1200
+        resYear = mom.year();                                                                                        // 1201
+        resWeek = week;                                                                                              // 1202
+    }                                                                                                                // 1203
+                                                                                                                     // 1204
+    return {                                                                                                         // 1205
+        week: resWeek,                                                                                               // 1206
+        year: resYear                                                                                                // 1207
+    };                                                                                                               // 1208
+}                                                                                                                    // 1209
+                                                                                                                     // 1210
+function weeksInYear(year, dow, doy) {                                                                               // 1211
+    var weekOffset = firstWeekOffset(year, dow, doy),                                                                // 1212
+        weekOffsetNext = firstWeekOffset(year + 1, dow, doy);                                                        // 1213
+    return (daysInYear(year) - weekOffset + weekOffsetNext) / 7;                                                     // 1214
+}                                                                                                                    // 1215
+                                                                                                                     // 1216
+// FORMATTING                                                                                                        // 1217
+                                                                                                                     // 1218
+addFormatToken('w', ['ww', 2], 'wo', 'week');                                                                        // 1219
+addFormatToken('W', ['WW', 2], 'Wo', 'isoWeek');                                                                     // 1220
+                                                                                                                     // 1221
+// ALIASES                                                                                                           // 1222
+                                                                                                                     // 1223
+addUnitAlias('week', 'w');                                                                                           // 1224
+addUnitAlias('isoWeek', 'W');                                                                                        // 1225
+                                                                                                                     // 1226
+// PRIORITIES                                                                                                        // 1227
+                                                                                                                     // 1228
+addUnitPriority('week', 5);                                                                                          // 1229
+addUnitPriority('isoWeek', 5);                                                                                       // 1230
+                                                                                                                     // 1231
+// PARSING                                                                                                           // 1232
+                                                                                                                     // 1233
+addRegexToken('w',  match1to2);                                                                                      // 1234
+addRegexToken('ww', match1to2, match2);                                                                              // 1235
+addRegexToken('W',  match1to2);                                                                                      // 1236
+addRegexToken('WW', match1to2, match2);                                                                              // 1237
+                                                                                                                     // 1238
+addWeekParseToken(['w', 'ww', 'W', 'WW'], function (input, week, config, token) {                                    // 1239
+    week[token.substr(0, 1)] = toInt(input);                                                                         // 1240
+});                                                                                                                  // 1241
+                                                                                                                     // 1242
+// HELPERS                                                                                                           // 1243
+                                                                                                                     // 1244
+// LOCALES                                                                                                           // 1245
+                                                                                                                     // 1246
+function localeWeek (mom) {                                                                                          // 1247
+    return weekOfYear(mom, this._week.dow, this._week.doy).week;                                                     // 1248
+}                                                                                                                    // 1249
+                                                                                                                     // 1250
+var defaultLocaleWeek = {                                                                                            // 1251
+    dow : 0, // Sunday is the first day of the week.                                                                 // 1252
+    doy : 6  // The week that contains Jan 1st is the first week of the year.                                        // 1253
+};                                                                                                                   // 1254
+                                                                                                                     // 1255
+function localeFirstDayOfWeek () {                                                                                   // 1256
+    return this._week.dow;                                                                                           // 1257
+}                                                                                                                    // 1258
+                                                                                                                     // 1259
+function localeFirstDayOfYear () {                                                                                   // 1260
+    return this._week.doy;                                                                                           // 1261
+}                                                                                                                    // 1262
+                                                                                                                     // 1263
+// MOMENTS                                                                                                           // 1264
+                                                                                                                     // 1265
+function getSetWeek (input) {                                                                                        // 1266
+    var week = this.localeData().week(this);                                                                         // 1267
+    return input == null ? week : this.add((input - week) * 7, 'd');                                                 // 1268
+}                                                                                                                    // 1269
+                                                                                                                     // 1270
+function getSetISOWeek (input) {                                                                                     // 1271
+    var week = weekOfYear(this, 1, 4).week;                                                                          // 1272
+    return input == null ? week : this.add((input - week) * 7, 'd');                                                 // 1273
+}                                                                                                                    // 1274
+                                                                                                                     // 1275
+// FORMATTING                                                                                                        // 1276
+                                                                                                                     // 1277
+addFormatToken('d', 0, 'do', 'day');                                                                                 // 1278
+                                                                                                                     // 1279
+addFormatToken('dd', 0, 0, function (format) {                                                                       // 1280
+    return this.localeData().weekdaysMin(this, format);                                                              // 1281
+});                                                                                                                  // 1282
+                                                                                                                     // 1283
+addFormatToken('ddd', 0, 0, function (format) {                                                                      // 1284
+    return this.localeData().weekdaysShort(this, format);                                                            // 1285
+});                                                                                                                  // 1286
+                                                                                                                     // 1287
+addFormatToken('dddd', 0, 0, function (format) {                                                                     // 1288
+    return this.localeData().weekdays(this, format);                                                                 // 1289
+});                                                                                                                  // 1290
+                                                                                                                     // 1291
+addFormatToken('e', 0, 0, 'weekday');                                                                                // 1292
+addFormatToken('E', 0, 0, 'isoWeekday');                                                                             // 1293
+                                                                                                                     // 1294
+// ALIASES                                                                                                           // 1295
+                                                                                                                     // 1296
+addUnitAlias('day', 'd');                                                                                            // 1297
+addUnitAlias('weekday', 'e');                                                                                        // 1298
+addUnitAlias('isoWeekday', 'E');                                                                                     // 1299
+                                                                                                                     // 1300
+// PRIORITY                                                                                                          // 1301
+addUnitPriority('day', 11);                                                                                          // 1302
+addUnitPriority('weekday', 11);                                                                                      // 1303
+addUnitPriority('isoWeekday', 11);                                                                                   // 1304
+                                                                                                                     // 1305
+// PARSING                                                                                                           // 1306
+                                                                                                                     // 1307
+addRegexToken('d',    match1to2);                                                                                    // 1308
+addRegexToken('e',    match1to2);                                                                                    // 1309
+addRegexToken('E',    match1to2);                                                                                    // 1310
+addRegexToken('dd',   function (isStrict, locale) {                                                                  // 1311
+    return locale.weekdaysMinRegex(isStrict);                                                                        // 1312
+});                                                                                                                  // 1313
+addRegexToken('ddd',   function (isStrict, locale) {                                                                 // 1314
+    return locale.weekdaysShortRegex(isStrict);                                                                      // 1315
+});                                                                                                                  // 1316
+addRegexToken('dddd',   function (isStrict, locale) {                                                                // 1317
+    return locale.weekdaysRegex(isStrict);                                                                           // 1318
+});                                                                                                                  // 1319
+                                                                                                                     // 1320
+addWeekParseToken(['dd', 'ddd', 'dddd'], function (input, week, config, token) {                                     // 1321
+    var weekday = config._locale.weekdaysParse(input, token, config._strict);                                        // 1322
+    // if we didn't get a weekday name, mark the date as invalid                                                     // 1323
+    if (weekday != null) {                                                                                           // 1324
+        week.d = weekday;                                                                                            // 1325
+    } else {                                                                                                         // 1326
+        getParsingFlags(config).invalidWeekday = input;                                                              // 1327
+    }                                                                                                                // 1328
+});                                                                                                                  // 1329
+                                                                                                                     // 1330
+addWeekParseToken(['d', 'e', 'E'], function (input, week, config, token) {                                           // 1331
+    week[token] = toInt(input);                                                                                      // 1332
+});                                                                                                                  // 1333
+                                                                                                                     // 1334
+// HELPERS                                                                                                           // 1335
+                                                                                                                     // 1336
+function parseWeekday(input, locale) {                                                                               // 1337
+    if (typeof input !== 'string') {                                                                                 // 1338
+        return input;                                                                                                // 1339
+    }                                                                                                                // 1340
+                                                                                                                     // 1341
+    if (!isNaN(input)) {                                                                                             // 1342
+        return parseInt(input, 10);                                                                                  // 1343
+    }                                                                                                                // 1344
+                                                                                                                     // 1345
+    input = locale.weekdaysParse(input);                                                                             // 1346
+    if (typeof input === 'number') {                                                                                 // 1347
+        return input;                                                                                                // 1348
+    }                                                                                                                // 1349
+                                                                                                                     // 1350
+    return null;                                                                                                     // 1351
+}                                                                                                                    // 1352
+                                                                                                                     // 1353
+function parseIsoWeekday(input, locale) {                                                                            // 1354
+    if (typeof input === 'string') {                                                                                 // 1355
+        return locale.weekdaysParse(input) % 7 || 7;                                                                 // 1356
+    }                                                                                                                // 1357
+    return isNaN(input) ? null : input;                                                                              // 1358
+}                                                                                                                    // 1359
+                                                                                                                     // 1360
+// LOCALES                                                                                                           // 1361
+                                                                                                                     // 1362
+var defaultLocaleWeekdays = 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_');                   // 1363
+function localeWeekdays (m, format) {                                                                                // 1364
+    if (!m) {                                                                                                        // 1365
+        return isArray(this._weekdays) ? this._weekdays :                                                            // 1366
+            this._weekdays['standalone'];                                                                            // 1367
+    }                                                                                                                // 1368
+    return isArray(this._weekdays) ? this._weekdays[m.day()] :                                                       // 1369
+        this._weekdays[this._weekdays.isFormat.test(format) ? 'format' : 'standalone'][m.day()];                     // 1370
+}                                                                                                                    // 1371
+                                                                                                                     // 1372
+var defaultLocaleWeekdaysShort = 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_');                                           // 1373
+function localeWeekdaysShort (m) {                                                                                   // 1374
+    return (m) ? this._weekdaysShort[m.day()] : this._weekdaysShort;                                                 // 1375
+}                                                                                                                    // 1376
+                                                                                                                     // 1377
+var defaultLocaleWeekdaysMin = 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_');                                                    // 1378
+function localeWeekdaysMin (m) {                                                                                     // 1379
+    return (m) ? this._weekdaysMin[m.day()] : this._weekdaysMin;                                                     // 1380
+}                                                                                                                    // 1381
+                                                                                                                     // 1382
+function handleStrictParse$1(weekdayName, format, strict) {                                                          // 1383
+    var i, ii, mom, llc = weekdayName.toLocaleLowerCase();                                                           // 1384
+    if (!this._weekdaysParse) {                                                                                      // 1385
+        this._weekdaysParse = [];                                                                                    // 1386
+        this._shortWeekdaysParse = [];                                                                               // 1387
+        this._minWeekdaysParse = [];                                                                                 // 1388
+                                                                                                                     // 1389
+        for (i = 0; i < 7; ++i) {                                                                                    // 1390
+            mom = createUTC([2000, 1]).day(i);                                                                       // 1391
+            this._minWeekdaysParse[i] = this.weekdaysMin(mom, '').toLocaleLowerCase();                               // 1392
+            this._shortWeekdaysParse[i] = this.weekdaysShort(mom, '').toLocaleLowerCase();                           // 1393
+            this._weekdaysParse[i] = this.weekdays(mom, '').toLocaleLowerCase();                                     // 1394
+        }                                                                                                            // 1395
+    }                                                                                                                // 1396
+                                                                                                                     // 1397
+    if (strict) {                                                                                                    // 1398
+        if (format === 'dddd') {                                                                                     // 1399
+            ii = indexOf$1.call(this._weekdaysParse, llc);                                                           // 1400
+            return ii !== -1 ? ii : null;                                                                            // 1401
+        } else if (format === 'ddd') {                                                                               // 1402
+            ii = indexOf$1.call(this._shortWeekdaysParse, llc);                                                      // 1403
+            return ii !== -1 ? ii : null;                                                                            // 1404
+        } else {                                                                                                     // 1405
+            ii = indexOf$1.call(this._minWeekdaysParse, llc);                                                        // 1406
+            return ii !== -1 ? ii : null;                                                                            // 1407
+        }                                                                                                            // 1408
+    } else {                                                                                                         // 1409
+        if (format === 'dddd') {                                                                                     // 1410
+            ii = indexOf$1.call(this._weekdaysParse, llc);                                                           // 1411
+            if (ii !== -1) {                                                                                         // 1412
+                return ii;                                                                                           // 1413
+            }                                                                                                        // 1414
+            ii = indexOf$1.call(this._shortWeekdaysParse, llc);                                                      // 1415
+            if (ii !== -1) {                                                                                         // 1416
+                return ii;                                                                                           // 1417
+            }                                                                                                        // 1418
+            ii = indexOf$1.call(this._minWeekdaysParse, llc);                                                        // 1419
+            return ii !== -1 ? ii : null;                                                                            // 1420
+        } else if (format === 'ddd') {                                                                               // 1421
+            ii = indexOf$1.call(this._shortWeekdaysParse, llc);                                                      // 1422
+            if (ii !== -1) {                                                                                         // 1423
+                return ii;                                                                                           // 1424
+            }                                                                                                        // 1425
+            ii = indexOf$1.call(this._weekdaysParse, llc);                                                           // 1426
+            if (ii !== -1) {                                                                                         // 1427
+                return ii;                                                                                           // 1428
+            }                                                                                                        // 1429
+            ii = indexOf$1.call(this._minWeekdaysParse, llc);                                                        // 1430
+            return ii !== -1 ? ii : null;                                                                            // 1431
+        } else {                                                                                                     // 1432
+            ii = indexOf$1.call(this._minWeekdaysParse, llc);                                                        // 1433
+            if (ii !== -1) {                                                                                         // 1434
+                return ii;                                                                                           // 1435
+            }                                                                                                        // 1436
+            ii = indexOf$1.call(this._weekdaysParse, llc);                                                           // 1437
+            if (ii !== -1) {                                                                                         // 1438
+                return ii;                                                                                           // 1439
+            }                                                                                                        // 1440
+            ii = indexOf$1.call(this._shortWeekdaysParse, llc);                                                      // 1441
+            return ii !== -1 ? ii : null;                                                                            // 1442
+        }                                                                                                            // 1443
+    }                                                                                                                // 1444
+}                                                                                                                    // 1445
+                                                                                                                     // 1446
+function localeWeekdaysParse (weekdayName, format, strict) {                                                         // 1447
+    var i, mom, regex;                                                                                               // 1448
+                                                                                                                     // 1449
+    if (this._weekdaysParseExact) {                                                                                  // 1450
+        return handleStrictParse$1.call(this, weekdayName, format, strict);                                          // 1451
+    }                                                                                                                // 1452
+                                                                                                                     // 1453
+    if (!this._weekdaysParse) {                                                                                      // 1454
+        this._weekdaysParse = [];                                                                                    // 1455
+        this._minWeekdaysParse = [];                                                                                 // 1456
+        this._shortWeekdaysParse = [];                                                                               // 1457
+        this._fullWeekdaysParse = [];                                                                                // 1458
+    }                                                                                                                // 1459
+                                                                                                                     // 1460
+    for (i = 0; i < 7; i++) {                                                                                        // 1461
+        // make the regex if we don't have it already                                                                // 1462
+                                                                                                                     // 1463
+        mom = createUTC([2000, 1]).day(i);                                                                           // 1464
+        if (strict && !this._fullWeekdaysParse[i]) {                                                                 // 1465
+            this._fullWeekdaysParse[i] = new RegExp('^' + this.weekdays(mom, '').replace('.', '\.?') + '$', 'i');    // 1466
+            this._shortWeekdaysParse[i] = new RegExp('^' + this.weekdaysShort(mom, '').replace('.', '\.?') + '$', 'i');
+            this._minWeekdaysParse[i] = new RegExp('^' + this.weekdaysMin(mom, '').replace('.', '\.?') + '$', 'i');  // 1468
+        }                                                                                                            // 1469
+        if (!this._weekdaysParse[i]) {                                                                               // 1470
+            regex = '^' + this.weekdays(mom, '') + '|^' + this.weekdaysShort(mom, '') + '|^' + this.weekdaysMin(mom, '');
+            this._weekdaysParse[i] = new RegExp(regex.replace('.', ''), 'i');                                        // 1472
+        }                                                                                                            // 1473
+        // test the regex                                                                                            // 1474
+        if (strict && format === 'dddd' && this._fullWeekdaysParse[i].test(weekdayName)) {                           // 1475
+            return i;                                                                                                // 1476
+        } else if (strict && format === 'ddd' && this._shortWeekdaysParse[i].test(weekdayName)) {                    // 1477
+            return i;                                                                                                // 1478
+        } else if (strict && format === 'dd' && this._minWeekdaysParse[i].test(weekdayName)) {                       // 1479
+            return i;                                                                                                // 1480
+        } else if (!strict && this._weekdaysParse[i].test(weekdayName)) {                                            // 1481
+            return i;                                                                                                // 1482
+        }                                                                                                            // 1483
+    }                                                                                                                // 1484
+}                                                                                                                    // 1485
+                                                                                                                     // 1486
+// MOMENTS                                                                                                           // 1487
+                                                                                                                     // 1488
+function getSetDayOfWeek (input) {                                                                                   // 1489
+    if (!this.isValid()) {                                                                                           // 1490
+        return input != null ? this : NaN;                                                                           // 1491
+    }                                                                                                                // 1492
+    var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();                                                  // 1493
+    if (input != null) {                                                                                             // 1494
+        input = parseWeekday(input, this.localeData());                                                              // 1495
+        return this.add(input - day, 'd');                                                                           // 1496
+    } else {                                                                                                         // 1497
+        return day;                                                                                                  // 1498
+    }                                                                                                                // 1499
+}                                                                                                                    // 1500
+                                                                                                                     // 1501
+function getSetLocaleDayOfWeek (input) {                                                                             // 1502
+    if (!this.isValid()) {                                                                                           // 1503
+        return input != null ? this : NaN;                                                                           // 1504
+    }                                                                                                                // 1505
+    var weekday = (this.day() + 7 - this.localeData()._week.dow) % 7;                                                // 1506
+    return input == null ? weekday : this.add(input - weekday, 'd');                                                 // 1507
+}                                                                                                                    // 1508
+                                                                                                                     // 1509
+function getSetISODayOfWeek (input) {                                                                                // 1510
+    if (!this.isValid()) {                                                                                           // 1511
+        return input != null ? this : NaN;                                                                           // 1512
+    }                                                                                                                // 1513
+                                                                                                                     // 1514
+    // behaves the same as moment#day except                                                                         // 1515
+    // as a getter, returns 7 instead of 0 (1-7 range instead of 0-6)                                                // 1516
+    // as a setter, sunday should belong to the previous week.                                                       // 1517
+                                                                                                                     // 1518
+    if (input != null) {                                                                                             // 1519
+        var weekday = parseIsoWeekday(input, this.localeData());                                                     // 1520
+        return this.day(this.day() % 7 ? weekday : weekday - 7);                                                     // 1521
+    } else {                                                                                                         // 1522
+        return this.day() || 7;                                                                                      // 1523
+    }                                                                                                                // 1524
+}                                                                                                                    // 1525
+                                                                                                                     // 1526
+var defaultWeekdaysRegex = matchWord;                                                                                // 1527
+function weekdaysRegex (isStrict) {                                                                                  // 1528
+    if (this._weekdaysParseExact) {                                                                                  // 1529
+        if (!hasOwnProp(this, '_weekdaysRegex')) {                                                                   // 1530
+            computeWeekdaysParse.call(this);                                                                         // 1531
+        }                                                                                                            // 1532
+        if (isStrict) {                                                                                              // 1533
+            return this._weekdaysStrictRegex;                                                                        // 1534
+        } else {                                                                                                     // 1535
+            return this._weekdaysRegex;                                                                              // 1536
+        }                                                                                                            // 1537
+    } else {                                                                                                         // 1538
+        if (!hasOwnProp(this, '_weekdaysRegex')) {                                                                   // 1539
+            this._weekdaysRegex = defaultWeekdaysRegex;                                                              // 1540
+        }                                                                                                            // 1541
+        return this._weekdaysStrictRegex && isStrict ?                                                               // 1542
+            this._weekdaysStrictRegex : this._weekdaysRegex;                                                         // 1543
+    }                                                                                                                // 1544
+}                                                                                                                    // 1545
+                                                                                                                     // 1546
+var defaultWeekdaysShortRegex = matchWord;                                                                           // 1547
+function weekdaysShortRegex (isStrict) {                                                                             // 1548
+    if (this._weekdaysParseExact) {                                                                                  // 1549
+        if (!hasOwnProp(this, '_weekdaysRegex')) {                                                                   // 1550
+            computeWeekdaysParse.call(this);                                                                         // 1551
+        }                                                                                                            // 1552
+        if (isStrict) {                                                                                              // 1553
+            return this._weekdaysShortStrictRegex;                                                                   // 1554
+        } else {                                                                                                     // 1555
+            return this._weekdaysShortRegex;                                                                         // 1556
+        }                                                                                                            // 1557
+    } else {                                                                                                         // 1558
+        if (!hasOwnProp(this, '_weekdaysShortRegex')) {                                                              // 1559
+            this._weekdaysShortRegex = defaultWeekdaysShortRegex;                                                    // 1560
+        }                                                                                                            // 1561
+        return this._weekdaysShortStrictRegex && isStrict ?                                                          // 1562
+            this._weekdaysShortStrictRegex : this._weekdaysShortRegex;                                               // 1563
+    }                                                                                                                // 1564
+}                                                                                                                    // 1565
+                                                                                                                     // 1566
+var defaultWeekdaysMinRegex = matchWord;                                                                             // 1567
+function weekdaysMinRegex (isStrict) {                                                                               // 1568
+    if (this._weekdaysParseExact) {                                                                                  // 1569
+        if (!hasOwnProp(this, '_weekdaysRegex')) {                                                                   // 1570
+            computeWeekdaysParse.call(this);                                                                         // 1571
+        }                                                                                                            // 1572
+        if (isStrict) {                                                                                              // 1573
+            return this._weekdaysMinStrictRegex;                                                                     // 1574
+        } else {                                                                                                     // 1575
+            return this._weekdaysMinRegex;                                                                           // 1576
+        }                                                                                                            // 1577
+    } else {                                                                                                         // 1578
+        if (!hasOwnProp(this, '_weekdaysMinRegex')) {                                                                // 1579
+            this._weekdaysMinRegex = defaultWeekdaysMinRegex;                                                        // 1580
+        }                                                                                                            // 1581
+        return this._weekdaysMinStrictRegex && isStrict ?                                                            // 1582
+            this._weekdaysMinStrictRegex : this._weekdaysMinRegex;                                                   // 1583
+    }                                                                                                                // 1584
+}                                                                                                                    // 1585
+                                                                                                                     // 1586
+                                                                                                                     // 1587
+function computeWeekdaysParse () {                                                                                   // 1588
+    function cmpLenRev(a, b) {                                                                                       // 1589
+        return b.length - a.length;                                                                                  // 1590
+    }                                                                                                                // 1591
+                                                                                                                     // 1592
+    var minPieces = [], shortPieces = [], longPieces = [], mixedPieces = [],                                         // 1593
+        i, mom, minp, shortp, longp;                                                                                 // 1594
+    for (i = 0; i < 7; i++) {                                                                                        // 1595
+        // make the regex if we don't have it already                                                                // 1596
+        mom = createUTC([2000, 1]).day(i);                                                                           // 1597
+        minp = this.weekdaysMin(mom, '');                                                                            // 1598
+        shortp = this.weekdaysShort(mom, '');                                                                        // 1599
+        longp = this.weekdays(mom, '');                                                                              // 1600
+        minPieces.push(minp);                                                                                        // 1601
+        shortPieces.push(shortp);                                                                                    // 1602
+        longPieces.push(longp);                                                                                      // 1603
+        mixedPieces.push(minp);                                                                                      // 1604
+        mixedPieces.push(shortp);                                                                                    // 1605
+        mixedPieces.push(longp);                                                                                     // 1606
+    }                                                                                                                // 1607
+    // Sorting makes sure if one weekday (or abbr) is a prefix of another it                                         // 1608
+    // will match the longer piece.                                                                                  // 1609
+    minPieces.sort(cmpLenRev);                                                                                       // 1610
+    shortPieces.sort(cmpLenRev);                                                                                     // 1611
+    longPieces.sort(cmpLenRev);                                                                                      // 1612
+    mixedPieces.sort(cmpLenRev);                                                                                     // 1613
+    for (i = 0; i < 7; i++) {                                                                                        // 1614
+        shortPieces[i] = regexEscape(shortPieces[i]);                                                                // 1615
+        longPieces[i] = regexEscape(longPieces[i]);                                                                  // 1616
+        mixedPieces[i] = regexEscape(mixedPieces[i]);                                                                // 1617
+    }                                                                                                                // 1618
+                                                                                                                     // 1619
+    this._weekdaysRegex = new RegExp('^(' + mixedPieces.join('|') + ')', 'i');                                       // 1620
+    this._weekdaysShortRegex = this._weekdaysRegex;                                                                  // 1621
+    this._weekdaysMinRegex = this._weekdaysRegex;                                                                    // 1622
+                                                                                                                     // 1623
+    this._weekdaysStrictRegex = new RegExp('^(' + longPieces.join('|') + ')', 'i');                                  // 1624
+    this._weekdaysShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')', 'i');                            // 1625
+    this._weekdaysMinStrictRegex = new RegExp('^(' + minPieces.join('|') + ')', 'i');                                // 1626
+}                                                                                                                    // 1627
+                                                                                                                     // 1628
+// FORMATTING                                                                                                        // 1629
+                                                                                                                     // 1630
+function hFormat() {                                                                                                 // 1631
+    return this.hours() % 12 || 12;                                                                                  // 1632
+}                                                                                                                    // 1633
+                                                                                                                     // 1634
+function kFormat() {                                                                                                 // 1635
+    return this.hours() || 24;                                                                                       // 1636
+}                                                                                                                    // 1637
+                                                                                                                     // 1638
+addFormatToken('H', ['HH', 2], 0, 'hour');                                                                           // 1639
+addFormatToken('h', ['hh', 2], 0, hFormat);                                                                          // 1640
+addFormatToken('k', ['kk', 2], 0, kFormat);                                                                          // 1641
+                                                                                                                     // 1642
+addFormatToken('hmm', 0, 0, function () {                                                                            // 1643
+    return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2);                                                   // 1644
+});                                                                                                                  // 1645
+                                                                                                                     // 1646
+addFormatToken('hmmss', 0, 0, function () {                                                                          // 1647
+    return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2) +                                                  // 1648
+        zeroFill(this.seconds(), 2);                                                                                 // 1649
+});                                                                                                                  // 1650
+                                                                                                                     // 1651
+addFormatToken('Hmm', 0, 0, function () {                                                                            // 1652
+    return '' + this.hours() + zeroFill(this.minutes(), 2);                                                          // 1653
+});                                                                                                                  // 1654
+                                                                                                                     // 1655
+addFormatToken('Hmmss', 0, 0, function () {                                                                          // 1656
+    return '' + this.hours() + zeroFill(this.minutes(), 2) +                                                         // 1657
+        zeroFill(this.seconds(), 2);                                                                                 // 1658
+});                                                                                                                  // 1659
+                                                                                                                     // 1660
+function meridiem (token, lowercase) {                                                                               // 1661
+    addFormatToken(token, 0, 0, function () {                                                                        // 1662
+        return this.localeData().meridiem(this.hours(), this.minutes(), lowercase);                                  // 1663
+    });                                                                                                              // 1664
+}                                                                                                                    // 1665
+                                                                                                                     // 1666
+meridiem('a', true);                                                                                                 // 1667
+meridiem('A', false);                                                                                                // 1668
+                                                                                                                     // 1669
+// ALIASES                                                                                                           // 1670
+                                                                                                                     // 1671
+addUnitAlias('hour', 'h');                                                                                           // 1672
+                                                                                                                     // 1673
+// PRIORITY                                                                                                          // 1674
+addUnitPriority('hour', 13);                                                                                         // 1675
+                                                                                                                     // 1676
+// PARSING                                                                                                           // 1677
+                                                                                                                     // 1678
+function matchMeridiem (isStrict, locale) {                                                                          // 1679
+    return locale._meridiemParse;                                                                                    // 1680
+}                                                                                                                    // 1681
+                                                                                                                     // 1682
+addRegexToken('a',  matchMeridiem);                                                                                  // 1683
+addRegexToken('A',  matchMeridiem);                                                                                  // 1684
+addRegexToken('H',  match1to2);                                                                                      // 1685
+addRegexToken('h',  match1to2);                                                                                      // 1686
+addRegexToken('k',  match1to2);                                                                                      // 1687
+addRegexToken('HH', match1to2, match2);                                                                              // 1688
+addRegexToken('hh', match1to2, match2);                                                                              // 1689
+addRegexToken('kk', match1to2, match2);                                                                              // 1690
+                                                                                                                     // 1691
+addRegexToken('hmm', match3to4);                                                                                     // 1692
+addRegexToken('hmmss', match5to6);                                                                                   // 1693
+addRegexToken('Hmm', match3to4);                                                                                     // 1694
+addRegexToken('Hmmss', match5to6);                                                                                   // 1695
+                                                                                                                     // 1696
+addParseToken(['H', 'HH'], HOUR);                                                                                    // 1697
+addParseToken(['k', 'kk'], function (input, array, config) {                                                         // 1698
+    var kInput = toInt(input);                                                                                       // 1699
+    array[HOUR] = kInput === 24 ? 0 : kInput;                                                                        // 1700
+});                                                                                                                  // 1701
+addParseToken(['a', 'A'], function (input, array, config) {                                                          // 1702
+    config._isPm = config._locale.isPM(input);                                                                       // 1703
+    config._meridiem = input;                                                                                        // 1704
+});                                                                                                                  // 1705
+addParseToken(['h', 'hh'], function (input, array, config) {                                                         // 1706
+    array[HOUR] = toInt(input);                                                                                      // 1707
+    getParsingFlags(config).bigHour = true;                                                                          // 1708
+});                                                                                                                  // 1709
+addParseToken('hmm', function (input, array, config) {                                                               // 1710
+    var pos = input.length - 2;                                                                                      // 1711
+    array[HOUR] = toInt(input.substr(0, pos));                                                                       // 1712
+    array[MINUTE] = toInt(input.substr(pos));                                                                        // 1713
+    getParsingFlags(config).bigHour = true;                                                                          // 1714
+});                                                                                                                  // 1715
+addParseToken('hmmss', function (input, array, config) {                                                             // 1716
+    var pos1 = input.length - 4;                                                                                     // 1717
+    var pos2 = input.length - 2;                                                                                     // 1718
+    array[HOUR] = toInt(input.substr(0, pos1));                                                                      // 1719
+    array[MINUTE] = toInt(input.substr(pos1, 2));                                                                    // 1720
+    array[SECOND] = toInt(input.substr(pos2));                                                                       // 1721
+    getParsingFlags(config).bigHour = true;                                                                          // 1722
+});                                                                                                                  // 1723
+addParseToken('Hmm', function (input, array, config) {                                                               // 1724
+    var pos = input.length - 2;                                                                                      // 1725
+    array[HOUR] = toInt(input.substr(0, pos));                                                                       // 1726
+    array[MINUTE] = toInt(input.substr(pos));                                                                        // 1727
+});                                                                                                                  // 1728
+addParseToken('Hmmss', function (input, array, config) {                                                             // 1729
+    var pos1 = input.length - 4;                                                                                     // 1730
+    var pos2 = input.length - 2;                                                                                     // 1731
+    array[HOUR] = toInt(input.substr(0, pos1));                                                                      // 1732
+    array[MINUTE] = toInt(input.substr(pos1, 2));                                                                    // 1733
+    array[SECOND] = toInt(input.substr(pos2));                                                                       // 1734
+});                                                                                                                  // 1735
+                                                                                                                     // 1736
+// LOCALES                                                                                                           // 1737
+                                                                                                                     // 1738
+function localeIsPM (input) {                                                                                        // 1739
+    // IE8 Quirks Mode & IE7 Standards Mode do not allow accessing strings like arrays                               // 1740
+    // Using charAt should be more compatible.                                                                       // 1741
+    return ((input + '').toLowerCase().charAt(0) === 'p');                                                           // 1742
+}                                                                                                                    // 1743
+                                                                                                                     // 1744
+var defaultLocaleMeridiemParse = /[ap]\.?m?\.?/i;                                                                    // 1745
+function localeMeridiem (hours, minutes, isLower) {                                                                  // 1746
+    if (hours > 11) {                                                                                                // 1747
+        return isLower ? 'pm' : 'PM';                                                                                // 1748
+    } else {                                                                                                         // 1749
+        return isLower ? 'am' : 'AM';                                                                                // 1750
+    }                                                                                                                // 1751
+}                                                                                                                    // 1752
+                                                                                                                     // 1753
+                                                                                                                     // 1754
+// MOMENTS                                                                                                           // 1755
+                                                                                                                     // 1756
+// Setting the hour should keep the time, because the user explicitly                                                // 1757
+// specified which hour he wants. So trying to maintain the same hour (in                                            // 1758
+// a new timezone) makes sense. Adding/subtracting hours does not follow                                             // 1759
+// this rule.                                                                                                        // 1760
+var getSetHour = makeGetSet('Hours', true);                                                                          // 1761
+                                                                                                                     // 1762
+// months                                                                                                            // 1763
+// week                                                                                                              // 1764
+// weekdays                                                                                                          // 1765
+// meridiem                                                                                                          // 1766
+var baseConfig = {                                                                                                   // 1767
+    calendar: defaultCalendar,                                                                                       // 1768
+    longDateFormat: defaultLongDateFormat,                                                                           // 1769
+    invalidDate: defaultInvalidDate,                                                                                 // 1770
+    ordinal: defaultOrdinal,                                                                                         // 1771
+    dayOfMonthOrdinalParse: defaultDayOfMonthOrdinalParse,                                                           // 1772
+    relativeTime: defaultRelativeTime,                                                                               // 1773
+                                                                                                                     // 1774
+    months: defaultLocaleMonths,                                                                                     // 1775
+    monthsShort: defaultLocaleMonthsShort,                                                                           // 1776
+                                                                                                                     // 1777
+    week: defaultLocaleWeek,                                                                                         // 1778
+                                                                                                                     // 1779
+    weekdays: defaultLocaleWeekdays,                                                                                 // 1780
+    weekdaysMin: defaultLocaleWeekdaysMin,                                                                           // 1781
+    weekdaysShort: defaultLocaleWeekdaysShort,                                                                       // 1782
+                                                                                                                     // 1783
+    meridiemParse: defaultLocaleMeridiemParse                                                                        // 1784
+};                                                                                                                   // 1785
+                                                                                                                     // 1786
+// internal storage for locale config files                                                                          // 1787
+var locales = {};                                                                                                    // 1788
+var localeFamilies = {};                                                                                             // 1789
+var globalLocale;                                                                                                    // 1790
+                                                                                                                     // 1791
+function normalizeLocale(key) {                                                                                      // 1792
+    return key ? key.toLowerCase().replace('_', '-') : key;                                                          // 1793
+}                                                                                                                    // 1794
+                                                                                                                     // 1795
+// pick the locale from the array                                                                                    // 1796
+// try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each                         // 1797
+// substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
+function chooseLocale(names) {                                                                                       // 1799
+    var i = 0, j, next, locale, split;                                                                               // 1800
+                                                                                                                     // 1801
+    while (i < names.length) {                                                                                       // 1802
+        split = normalizeLocale(names[i]).split('-');                                                                // 1803
+        j = split.length;                                                                                            // 1804
+        next = normalizeLocale(names[i + 1]);                                                                        // 1805
+        next = next ? next.split('-') : null;                                                                        // 1806
+        while (j > 0) {                                                                                              // 1807
+            locale = loadLocale(split.slice(0, j).join('-'));                                                        // 1808
+            if (locale) {                                                                                            // 1809
+                return locale;                                                                                       // 1810
+            }                                                                                                        // 1811
+            if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {                             // 1812
+                //the next array item is better than a shallower substring of this one                               // 1813
+                break;                                                                                               // 1814
+            }                                                                                                        // 1815
+            j--;                                                                                                     // 1816
+        }                                                                                                            // 1817
+        i++;                                                                                                         // 1818
+    }                                                                                                                // 1819
+    return null;                                                                                                     // 1820
+}                                                                                                                    // 1821
+                                                                                                                     // 1822
+function loadLocale(name) {                                                                                          // 1823
+    var oldLocale = null;                                                                                            // 1824
+    // TODO: Find a better way to register and load all the locales in Node                                          // 1825
+    if (!locales[name] && (typeof module !== 'undefined') &&                                                         // 1826
+            module && module.exports) {                                                                              // 1827
+        try {                                                                                                        // 1828
+            oldLocale = globalLocale._abbr;                                                                          // 1829
+            require('./locale/' + name);                                                                             // 1830
+            // because defineLocale currently also sets the global locale, we                                        // 1831
+            // want to undo that for lazy loaded locales                                                             // 1832
+            getSetGlobalLocale(oldLocale);                                                                           // 1833
+        } catch (e) { }                                                                                              // 1834
+    }                                                                                                                // 1835
+    return locales[name];                                                                                            // 1836
+}                                                                                                                    // 1837
+                                                                                                                     // 1838
+// This function will load locale and then set the global locale.  If                                                // 1839
+// no arguments are passed in, it will simply return the current global                                              // 1840
+// locale key.                                                                                                       // 1841
+function getSetGlobalLocale (key, values) {                                                                          // 1842
+    var data;                                                                                                        // 1843
+    if (key) {                                                                                                       // 1844
+        if (isUndefined(values)) {                                                                                   // 1845
+            data = getLocale(key);                                                                                   // 1846
+        }                                                                                                            // 1847
+        else {                                                                                                       // 1848
+            data = defineLocale(key, values);                                                                        // 1849
+        }                                                                                                            // 1850
+                                                                                                                     // 1851
+        if (data) {                                                                                                  // 1852
+            // moment.duration._locale = moment._locale = data;                                                      // 1853
+            globalLocale = data;                                                                                     // 1854
+        }                                                                                                            // 1855
+    }                                                                                                                // 1856
+                                                                                                                     // 1857
+    return globalLocale._abbr;                                                                                       // 1858
+}                                                                                                                    // 1859
+                                                                                                                     // 1860
+function defineLocale (name, config) {                                                                               // 1861
+    if (config !== null) {                                                                                           // 1862
+        var parentConfig = baseConfig;                                                                               // 1863
+        config.abbr = name;                                                                                          // 1864
+        if (locales[name] != null) {                                                                                 // 1865
+            deprecateSimple('defineLocaleOverride',                                                                  // 1866
+                    'use moment.updateLocale(localeName, config) to change ' +                                       // 1867
+                    'an existing locale. moment.defineLocale(localeName, ' +                                         // 1868
+                    'config) should only be used for creating a new locale ' +                                       // 1869
+                    'See http://momentjs.com/guides/#/warnings/define-locale/ for more info.');                      // 1870
+            parentConfig = locales[name]._config;                                                                    // 1871
+        } else if (config.parentLocale != null) {                                                                    // 1872
+            if (locales[config.parentLocale] != null) {                                                              // 1873
+                parentConfig = locales[config.parentLocale]._config;                                                 // 1874
+            } else {                                                                                                 // 1875
+                if (!localeFamilies[config.parentLocale]) {                                                          // 1876
+                    localeFamilies[config.parentLocale] = [];                                                        // 1877
+                }                                                                                                    // 1878
+                localeFamilies[config.parentLocale].push({                                                           // 1879
+                    name: name,                                                                                      // 1880
+                    config: config                                                                                   // 1881
+                });                                                                                                  // 1882
+                return null;                                                                                         // 1883
+            }                                                                                                        // 1884
+        }                                                                                                            // 1885
+        locales[name] = new Locale(mergeConfigs(parentConfig, config));                                              // 1886
+                                                                                                                     // 1887
+        if (localeFamilies[name]) {                                                                                  // 1888
+            localeFamilies[name].forEach(function (x) {                                                              // 1889
+                defineLocale(x.name, x.config);                                                                      // 1890
+            });                                                                                                      // 1891
+        }                                                                                                            // 1892
+                                                                                                                     // 1893
+        // backwards compat for now: also set the locale                                                             // 1894
+        // make sure we set the locale AFTER all child locales have been                                             // 1895
+        // created, so we won't end up with the child locale set.                                                    // 1896
+        getSetGlobalLocale(name);                                                                                    // 1897
+                                                                                                                     // 1898
+                                                                                                                     // 1899
+        return locales[name];                                                                                        // 1900
+    } else {                                                                                                         // 1901
+        // useful for testing                                                                                        // 1902
+        delete locales[name];                                                                                        // 1903
+        return null;                                                                                                 // 1904
+    }                                                                                                                // 1905
+}                                                                                                                    // 1906
+                                                                                                                     // 1907
+function updateLocale(name, config) {                                                                                // 1908
+    if (config != null) {                                                                                            // 1909
+        var locale, parentConfig = baseConfig;                                                                       // 1910
+        // MERGE                                                                                                     // 1911
+        if (locales[name] != null) {                                                                                 // 1912
+            parentConfig = locales[name]._config;                                                                    // 1913
+        }                                                                                                            // 1914
+        config = mergeConfigs(parentConfig, config);                                                                 // 1915
+        locale = new Locale(config);                                                                                 // 1916
+        locale.parentLocale = locales[name];                                                                         // 1917
+        locales[name] = locale;                                                                                      // 1918
+                                                                                                                     // 1919
+        // backwards compat for now: also set the locale                                                             // 1920
+        getSetGlobalLocale(name);                                                                                    // 1921
+    } else {                                                                                                         // 1922
+        // pass null for config to unupdate, useful for tests                                                        // 1923
+        if (locales[name] != null) {                                                                                 // 1924
+            if (locales[name].parentLocale != null) {                                                                // 1925
+                locales[name] = locales[name].parentLocale;                                                          // 1926
+            } else if (locales[name] != null) {                                                                      // 1927
+                delete locales[name];                                                                                // 1928
+            }                                                                                                        // 1929
+        }                                                                                                            // 1930
+    }                                                                                                                // 1931
+    return locales[name];                                                                                            // 1932
+}                                                                                                                    // 1933
+                                                                                                                     // 1934
+// returns locale data                                                                                               // 1935
+function getLocale (key) {                                                                                           // 1936
+    var locale;                                                                                                      // 1937
+                                                                                                                     // 1938
+    if (key && key._locale && key._locale._abbr) {                                                                   // 1939
+        key = key._locale._abbr;                                                                                     // 1940
+    }                                                                                                                // 1941
+                                                                                                                     // 1942
+    if (!key) {                                                                                                      // 1943
+        return globalLocale;                                                                                         // 1944
+    }                                                                                                                // 1945
+                                                                                                                     // 1946
+    if (!isArray(key)) {                                                                                             // 1947
+        //short-circuit everything else                                                                              // 1948
+        locale = loadLocale(key);                                                                                    // 1949
+        if (locale) {                                                                                                // 1950
+            return locale;                                                                                           // 1951
+        }                                                                                                            // 1952
+        key = [key];                                                                                                 // 1953
+    }                                                                                                                // 1954
+                                                                                                                     // 1955
+    return chooseLocale(key);                                                                                        // 1956
+}                                                                                                                    // 1957
+                                                                                                                     // 1958
+function listLocales() {                                                                                             // 1959
+    return keys$1(locales);                                                                                          // 1960
+}                                                                                                                    // 1961
+                                                                                                                     // 1962
+function checkOverflow (m) {                                                                                         // 1963
+    var overflow;                                                                                                    // 1964
+    var a = m._a;                                                                                                    // 1965
+                                                                                                                     // 1966
+    if (a && getParsingFlags(m).overflow === -2) {                                                                   // 1967
+        overflow =                                                                                                   // 1968
+            a[MONTH]       < 0 || a[MONTH]       > 11  ? MONTH :                                                     // 1969
+            a[DATE]        < 1 || a[DATE]        > daysInMonth(a[YEAR], a[MONTH]) ? DATE :                           // 1970
+            a[HOUR]        < 0 || a[HOUR]        > 24 || (a[HOUR] === 24 && (a[MINUTE] !== 0 || a[SECOND] !== 0 || a[MILLISECOND] !== 0)) ? HOUR :
+            a[MINUTE]      < 0 || a[MINUTE]      > 59  ? MINUTE :                                                    // 1972
+            a[SECOND]      < 0 || a[SECOND]      > 59  ? SECOND :                                                    // 1973
+            a[MILLISECOND] < 0 || a[MILLISECOND] > 999 ? MILLISECOND :                                               // 1974
+            -1;                                                                                                      // 1975
+                                                                                                                     // 1976
+        if (getParsingFlags(m)._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {                         // 1977
+            overflow = DATE;                                                                                         // 1978
+        }                                                                                                            // 1979
+        if (getParsingFlags(m)._overflowWeeks && overflow === -1) {                                                  // 1980
+            overflow = WEEK;                                                                                         // 1981
+        }                                                                                                            // 1982
+        if (getParsingFlags(m)._overflowWeekday && overflow === -1) {                                                // 1983
+            overflow = WEEKDAY;                                                                                      // 1984
+        }                                                                                                            // 1985
+                                                                                                                     // 1986
+        getParsingFlags(m).overflow = overflow;                                                                      // 1987
+    }                                                                                                                // 1988
+                                                                                                                     // 1989
+    return m;                                                                                                        // 1990
+}                                                                                                                    // 1991
+                                                                                                                     // 1992
+// iso 8601 regex                                                                                                    // 1993
+// 0000-00-00 0000-W00 or 0000-W00-0 + T + 00 or 00:00 or 00:00:00 or 00:00:00.000 + +00:00 or +0000 or +00)         // 1994
+var extendedIsoRegex = /^\s*((?:[+-]\d{6}|\d{4})-(?:\d\d-\d\d|W\d\d-\d|W\d\d|\d\d\d|\d\d))(?:(T| )(\d\d(?::\d\d(?::\d\d(?:[.,]\d+)?)?)?)([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/;
+var basicIsoRegex = /^\s*((?:[+-]\d{6}|\d{4})(?:\d\d\d\d|W\d\d\d|W\d\d|\d\d\d|\d\d))(?:(T| )(\d\d(?:\d\d(?:\d\d(?:[.,]\d+)?)?)?)([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/;
+                                                                                                                     // 1997
+var tzRegex = /Z|[+-]\d\d(?::?\d\d)?/;                                                                               // 1998
+                                                                                                                     // 1999
+var isoDates = [                                                                                                     // 2000
+    ['YYYYYY-MM-DD', /[+-]\d{6}-\d\d-\d\d/],                                                                         // 2001
+    ['YYYY-MM-DD', /\d{4}-\d\d-\d\d/],                                                                               // 2002
+    ['GGGG-[W]WW-E', /\d{4}-W\d\d-\d/],                                                                              // 2003
+    ['GGGG-[W]WW', /\d{4}-W\d\d/, false],                                                                            // 2004
+    ['YYYY-DDD', /\d{4}-\d{3}/],                                                                                     // 2005
+    ['YYYY-MM', /\d{4}-\d\d/, false],                                                                                // 2006
+    ['YYYYYYMMDD', /[+-]\d{10}/],                                                                                    // 2007
+    ['YYYYMMDD', /\d{8}/],                                                                                           // 2008
+    // YYYYMM is NOT allowed by the standard                                                                         // 2009
+    ['GGGG[W]WWE', /\d{4}W\d{3}/],                                                                                   // 2010
+    ['GGGG[W]WW', /\d{4}W\d{2}/, false],                                                                             // 2011
+    ['YYYYDDD', /\d{7}/]                                                                                             // 2012
+];                                                                                                                   // 2013
+                                                                                                                     // 2014
+// iso time formats and regexes                                                                                      // 2015
+var isoTimes = [                                                                                                     // 2016
+    ['HH:mm:ss.SSSS', /\d\d:\d\d:\d\d\.\d+/],                                                                        // 2017
+    ['HH:mm:ss,SSSS', /\d\d:\d\d:\d\d,\d+/],                                                                         // 2018
+    ['HH:mm:ss', /\d\d:\d\d:\d\d/],                                                                                  // 2019
+    ['HH:mm', /\d\d:\d\d/],                                                                                          // 2020
+    ['HHmmss.SSSS', /\d\d\d\d\d\d\.\d+/],                                                                            // 2021
+    ['HHmmss,SSSS', /\d\d\d\d\d\d,\d+/],                                                                             // 2022
+    ['HHmmss', /\d\d\d\d\d\d/],                                                                                      // 2023
+    ['HHmm', /\d\d\d\d/],                                                                                            // 2024
+    ['HH', /\d\d/]                                                                                                   // 2025
+];                                                                                                                   // 2026
+                                                                                                                     // 2027
+var aspNetJsonRegex = /^\/?Date\((\-?\d+)/i;                                                                         // 2028
+                                                                                                                     // 2029
+// date from iso format                                                                                              // 2030
+function configFromISO(config) {                                                                                     // 2031
+    var i, l,                                                                                                        // 2032
+        string = config._i,                                                                                          // 2033
+        match = extendedIsoRegex.exec(string) || basicIsoRegex.exec(string),                                         // 2034
+        allowTime, dateFormat, timeFormat, tzFormat;                                                                 // 2035
+                                                                                                                     // 2036
+    if (match) {                                                                                                     // 2037
+        getParsingFlags(config).iso = true;                                                                          // 2038
+                                                                                                                     // 2039
+        for (i = 0, l = isoDates.length; i < l; i++) {                                                               // 2040
+            if (isoDates[i][1].exec(match[1])) {                                                                     // 2041
+                dateFormat = isoDates[i][0];                                                                         // 2042
+                allowTime = isoDates[i][2] !== false;                                                                // 2043
+                break;                                                                                               // 2044
+            }                                                                                                        // 2045
+        }                                                                                                            // 2046
+        if (dateFormat == null) {                                                                                    // 2047
+            config._isValid = false;                                                                                 // 2048
+            return;                                                                                                  // 2049
+        }                                                                                                            // 2050
+        if (match[3]) {                                                                                              // 2051
+            for (i = 0, l = isoTimes.length; i < l; i++) {                                                           // 2052
+                if (isoTimes[i][1].exec(match[3])) {                                                                 // 2053
+                    // match[2] should be 'T' or space                                                               // 2054
+                    timeFormat = (match[2] || ' ') + isoTimes[i][0];                                                 // 2055
+                    break;                                                                                           // 2056
+                }                                                                                                    // 2057
+            }                                                                                                        // 2058
+            if (timeFormat == null) {                                                                                // 2059
+                config._isValid = false;                                                                             // 2060
+                return;                                                                                              // 2061
+            }                                                                                                        // 2062
+        }                                                                                                            // 2063
+        if (!allowTime && timeFormat != null) {                                                                      // 2064
+            config._isValid = false;                                                                                 // 2065
+            return;                                                                                                  // 2066
+        }                                                                                                            // 2067
+        if (match[4]) {                                                                                              // 2068
+            if (tzRegex.exec(match[4])) {                                                                            // 2069
+                tzFormat = 'Z';                                                                                      // 2070
+            } else {                                                                                                 // 2071
+                config._isValid = false;                                                                             // 2072
+                return;                                                                                              // 2073
+            }                                                                                                        // 2074
+        }                                                                                                            // 2075
+        config._f = dateFormat + (timeFormat || '') + (tzFormat || '');                                              // 2076
+        configFromStringAndFormat(config);                                                                           // 2077
+    } else {                                                                                                         // 2078
+        config._isValid = false;                                                                                     // 2079
+    }                                                                                                                // 2080
+}                                                                                                                    // 2081
+                                                                                                                     // 2082
+// RFC 2822 regex: For details see https://tools.ietf.org/html/rfc2822#section-3.3                                   // 2083
+var basicRfcRegex = /^((?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),?\s)?(\d?\d\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s(?:\d\d)?\d\d\s)(\d\d:\d\d)(\:\d\d)?(\s(?:UT|GMT|[ECMP][SD]T|[A-IK-Za-ik-z]|[+-]\d{4}))$/;
+                                                                                                                     // 2085
+// date and time from ref 2822 format                                                                                // 2086
+function configFromRFC2822(config) {                                                                                 // 2087
+    var string, match, dayFormat,                                                                                    // 2088
+        dateFormat, timeFormat, tzFormat;                                                                            // 2089
+    var timezones = {                                                                                                // 2090
+        ' GMT': ' +0000',                                                                                            // 2091
+        ' EDT': ' -0400',                                                                                            // 2092
+        ' EST': ' -0500',                                                                                            // 2093
+        ' CDT': ' -0500',                                                                                            // 2094
+        ' CST': ' -0600',                                                                                            // 2095
+        ' MDT': ' -0600',                                                                                            // 2096
+        ' MST': ' -0700',                                                                                            // 2097
+        ' PDT': ' -0700',                                                                                            // 2098
+        ' PST': ' -0800'                                                                                             // 2099
+    };                                                                                                               // 2100
+    var military = 'YXWVUTSRQPONZABCDEFGHIKLM';                                                                      // 2101
+    var timezone, timezoneIndex;                                                                                     // 2102
+                                                                                                                     // 2103
+    string = config._i                                                                                               // 2104
+        .replace(/\([^\)]*\)|[\n\t]/g, ' ') // Remove comments and folding whitespace                                // 2105
+        .replace(/(\s\s+)/g, ' ') // Replace multiple-spaces with a single space                                     // 2106
+        .replace(/^\s|\s$/g, ''); // Remove leading and trailing spaces                                              // 2107
+    match = basicRfcRegex.exec(string);                                                                              // 2108
+                                                                                                                     // 2109
+    if (match) {                                                                                                     // 2110
+        dayFormat = match[1] ? 'ddd' + ((match[1].length === 5) ? ', ' : ' ') : '';                                  // 2111
+        dateFormat = 'D MMM ' + ((match[2].length > 10) ? 'YYYY ' : 'YY ');                                          // 2112
+        timeFormat = 'HH:mm' + (match[4] ? ':ss' : '');                                                              // 2113
+                                                                                                                     // 2114
+        // TODO: Replace the vanilla JS Date object with an indepentent day-of-week check.                           // 2115
+        if (match[1]) { // day of week given                                                                         // 2116
+            var momentDate = new Date(match[2]);                                                                     // 2117
+            var momentDay = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][momentDate.getDay()];                        // 2118
+                                                                                                                     // 2119
+            if (match[1].substr(0,3) !== momentDay) {                                                                // 2120
+                getParsingFlags(config).weekdayMismatch = true;                                                      // 2121
+                config._isValid = false;                                                                             // 2122
+                return;                                                                                              // 2123
+            }                                                                                                        // 2124
+        }                                                                                                            // 2125
+                                                                                                                     // 2126
+        switch (match[5].length) {                                                                                   // 2127
+            case 2: // military                                                                                      // 2128
+                if (timezoneIndex === 0) {                                                                           // 2129
+                    timezone = ' +0000';                                                                             // 2130
+                } else {                                                                                             // 2131
+                    timezoneIndex = military.indexOf(match[5][1].toUpperCase()) - 12;                                // 2132
+                    timezone = ((timezoneIndex < 0) ? ' -' : ' +') +                                                 // 2133
+                        (('' + timezoneIndex).replace(/^-?/, '0')).match(/..$/)[0] + '00';                           // 2134
+                }                                                                                                    // 2135
+                break;                                                                                               // 2136
+            case 4: // Zone                                                                                          // 2137
+                timezone = timezones[match[5]];                                                                      // 2138
+                break;                                                                                               // 2139
+            default: // UT or +/-9999                                                                                // 2140
+                timezone = timezones[' GMT'];                                                                        // 2141
+        }                                                                                                            // 2142
+        match[5] = timezone;                                                                                         // 2143
+        config._i = match.splice(1).join('');                                                                        // 2144
+        tzFormat = ' ZZ';                                                                                            // 2145
+        config._f = dayFormat + dateFormat + timeFormat + tzFormat;                                                  // 2146
+        configFromStringAndFormat(config);                                                                           // 2147
+        getParsingFlags(config).rfc2822 = true;                                                                      // 2148
+    } else {                                                                                                         // 2149
+        config._isValid = false;                                                                                     // 2150
+    }                                                                                                                // 2151
+}                                                                                                                    // 2152
+                                                                                                                     // 2153
+// date from iso format or fallback                                                                                  // 2154
+function configFromString(config) {                                                                                  // 2155
+    var matched = aspNetJsonRegex.exec(config._i);                                                                   // 2156
+                                                                                                                     // 2157
+    if (matched !== null) {                                                                                          // 2158
+        config._d = new Date(+matched[1]);                                                                           // 2159
+        return;                                                                                                      // 2160
+    }                                                                                                                // 2161
+                                                                                                                     // 2162
+    configFromISO(config);                                                                                           // 2163
+    if (config._isValid === false) {                                                                                 // 2164
+        delete config._isValid;                                                                                      // 2165
+    } else {                                                                                                         // 2166
+        return;                                                                                                      // 2167
+    }                                                                                                                // 2168
+                                                                                                                     // 2169
+    configFromRFC2822(config);                                                                                       // 2170
+    if (config._isValid === false) {                                                                                 // 2171
+        delete config._isValid;                                                                                      // 2172
+    } else {                                                                                                         // 2173
+        return;                                                                                                      // 2174
+    }                                                                                                                // 2175
+                                                                                                                     // 2176
+    // Final attempt, use Input Fallback                                                                             // 2177
+    hooks.createFromInputFallback(config);                                                                           // 2178
+}                                                                                                                    // 2179
+                                                                                                                     // 2180
+hooks.createFromInputFallback = deprecate(                                                                           // 2181
+    'value provided is not in a recognized RFC2822 or ISO format. moment construction falls back to js Date(), ' +   // 2182
+    'which is not reliable across all browsers and versions. Non RFC2822/ISO date formats are ' +                    // 2183
+    'discouraged and will be removed in an upcoming major release. Please refer to ' +                               // 2184
+    'http://momentjs.com/guides/#/warnings/js-date/ for more info.',                                                 // 2185
+    function (config) {                                                                                              // 2186
+        config._d = new Date(config._i + (config._useUTC ? ' UTC' : ''));                                            // 2187
+    }                                                                                                                // 2188
+);                                                                                                                   // 2189
+                                                                                                                     // 2190
+// Pick the first defined of two or three arguments.                                                                 // 2191
+function defaults(a, b, c) {                                                                                         // 2192
+    if (a != null) {                                                                                                 // 2193
+        return a;                                                                                                    // 2194
+    }                                                                                                                // 2195
+    if (b != null) {                                                                                                 // 2196
+        return b;                                                                                                    // 2197
+    }                                                                                                                // 2198
+    return c;                                                                                                        // 2199
+}                                                                                                                    // 2200
+                                                                                                                     // 2201
+function currentDateArray(config) {                                                                                  // 2202
+    // hooks is actually the exported moment object                                                                  // 2203
+    var nowValue = new Date(hooks.now());                                                                            // 2204
+    if (config._useUTC) {                                                                                            // 2205
+        return [nowValue.getUTCFullYear(), nowValue.getUTCMonth(), nowValue.getUTCDate()];                           // 2206
+    }                                                                                                                // 2207
+    return [nowValue.getFullYear(), nowValue.getMonth(), nowValue.getDate()];                                        // 2208
+}                                                                                                                    // 2209
+                                                                                                                     // 2210
+// convert an array to a date.                                                                                       // 2211
+// the array should mirror the parameters below                                                                      // 2212
+// note: all values past the year are optional and will default to the lowest possible value.                        // 2213
+// [year, month, day , hour, minute, second, millisecond]                                                            // 2214
+function configFromArray (config) {                                                                                  // 2215
+    var i, date, input = [], currentDate, yearToUse;                                                                 // 2216
+                                                                                                                     // 2217
+    if (config._d) {                                                                                                 // 2218
+        return;                                                                                                      // 2219
+    }                                                                                                                // 2220
+                                                                                                                     // 2221
+    currentDate = currentDateArray(config);                                                                          // 2222
+                                                                                                                     // 2223
+    //compute day of the year from weeks and weekdays                                                                // 2224
+    if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {                                          // 2225
+        dayOfYearFromWeekInfo(config);                                                                               // 2226
+    }                                                                                                                // 2227
+                                                                                                                     // 2228
+    //if the day of the year is set, figure out what it is                                                           // 2229
+    if (config._dayOfYear != null) {                                                                                 // 2230
+        yearToUse = defaults(config._a[YEAR], currentDate[YEAR]);                                                    // 2231
+                                                                                                                     // 2232
+        if (config._dayOfYear > daysInYear(yearToUse) || config._dayOfYear === 0) {                                  // 2233
+            getParsingFlags(config)._overflowDayOfYear = true;                                                       // 2234
+        }                                                                                                            // 2235
+                                                                                                                     // 2236
+        date = createUTCDate(yearToUse, 0, config._dayOfYear);                                                       // 2237
+        config._a[MONTH] = date.getUTCMonth();                                                                       // 2238
+        config._a[DATE] = date.getUTCDate();                                                                         // 2239
+    }                                                                                                                // 2240
+                                                                                                                     // 2241
+    // Default to current date.                                                                                      // 2242
+    // * if no year, month, day of month are given, default to today                                                 // 2243
+    // * if day of month is given, default month and year                                                            // 2244
+    // * if month is given, default only year                                                                        // 2245
+    // * if year is given, don't default anything                                                                    // 2246
+    for (i = 0; i < 3 && config._a[i] == null; ++i) {                                                                // 2247
+        config._a[i] = input[i] = currentDate[i];                                                                    // 2248
+    }                                                                                                                // 2249
+                                                                                                                     // 2250
+    // Zero out whatever was not defaulted, including time                                                           // 2251
+    for (; i < 7; i++) {                                                                                             // 2252
+        config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];                         // 2253
+    }                                                                                                                // 2254
+                                                                                                                     // 2255
+    // Check for 24:00:00.000                                                                                        // 2256
+    if (config._a[HOUR] === 24 &&                                                                                    // 2257
+            config._a[MINUTE] === 0 &&                                                                               // 2258
+            config._a[SECOND] === 0 &&                                                                               // 2259
+            config._a[MILLISECOND] === 0) {                                                                          // 2260
+        config._nextDay = true;                                                                                      // 2261
+        config._a[HOUR] = 0;                                                                                         // 2262
+    }                                                                                                                // 2263
+                                                                                                                     // 2264
+    config._d = (config._useUTC ? createUTCDate : createDate).apply(null, input);                                    // 2265
+    // Apply timezone offset from input. The actual utcOffset can be changed                                         // 2266
+    // with parseZone.                                                                                               // 2267
+    if (config._tzm != null) {                                                                                       // 2268
+        config._d.setUTCMinutes(config._d.getUTCMinutes() - config._tzm);                                            // 2269
+    }                                                                                                                // 2270
+                                                                                                                     // 2271
+    if (config._nextDay) {                                                                                           // 2272
+        config._a[HOUR] = 24;                                                                                        // 2273
+    }                                                                                                                // 2274
+}                                                                                                                    // 2275
+                                                                                                                     // 2276
+function dayOfYearFromWeekInfo(config) {                                                                             // 2277
+    var w, weekYear, week, weekday, dow, doy, temp, weekdayOverflow;                                                 // 2278
+                                                                                                                     // 2279
+    w = config._w;                                                                                                   // 2280
+    if (w.GG != null || w.W != null || w.E != null) {                                                                // 2281
+        dow = 1;                                                                                                     // 2282
+        doy = 4;                                                                                                     // 2283
+                                                                                                                     // 2284
+        // TODO: We need to take the current isoWeekYear, but that depends on                                        // 2285
+        // how we interpret now (local, utc, fixed offset). So create                                                // 2286
+        // a now version of current config (take local/utc/offset flags, and                                         // 2287
+        // create now).                                                                                              // 2288
+        weekYear = defaults(w.GG, config._a[YEAR], weekOfYear(createLocal(), 1, 4).year);                            // 2289
+        week = defaults(w.W, 1);                                                                                     // 2290
+        weekday = defaults(w.E, 1);                                                                                  // 2291
+        if (weekday < 1 || weekday > 7) {                                                                            // 2292
+            weekdayOverflow = true;                                                                                  // 2293
+        }                                                                                                            // 2294
+    } else {                                                                                                         // 2295
+        dow = config._locale._week.dow;                                                                              // 2296
+        doy = config._locale._week.doy;                                                                              // 2297
+                                                                                                                     // 2298
+        var curWeek = weekOfYear(createLocal(), dow, doy);                                                           // 2299
+                                                                                                                     // 2300
+        weekYear = defaults(w.gg, config._a[YEAR], curWeek.year);                                                    // 2301
+                                                                                                                     // 2302
+        // Default to current week.                                                                                  // 2303
+        week = defaults(w.w, curWeek.week);                                                                          // 2304
+                                                                                                                     // 2305
+        if (w.d != null) {                                                                                           // 2306
+            // weekday -- low day numbers are considered next week                                                   // 2307
+            weekday = w.d;                                                                                           // 2308
+            if (weekday < 0 || weekday > 6) {                                                                        // 2309
+                weekdayOverflow = true;                                                                              // 2310
+            }                                                                                                        // 2311
+        } else if (w.e != null) {                                                                                    // 2312
+            // local weekday -- counting starts from begining of week                                                // 2313
+            weekday = w.e + dow;                                                                                     // 2314
+            if (w.e < 0 || w.e > 6) {                                                                                // 2315
+                weekdayOverflow = true;                                                                              // 2316
+            }                                                                                                        // 2317
+        } else {                                                                                                     // 2318
+            // default to begining of week                                                                           // 2319
+            weekday = dow;                                                                                           // 2320
+        }                                                                                                            // 2321
+    }                                                                                                                // 2322
+    if (week < 1 || week > weeksInYear(weekYear, dow, doy)) {                                                        // 2323
+        getParsingFlags(config)._overflowWeeks = true;                                                               // 2324
+    } else if (weekdayOverflow != null) {                                                                            // 2325
+        getParsingFlags(config)._overflowWeekday = true;                                                             // 2326
+    } else {                                                                                                         // 2327
+        temp = dayOfYearFromWeeks(weekYear, week, weekday, dow, doy);                                                // 2328
+        config._a[YEAR] = temp.year;                                                                                 // 2329
+        config._dayOfYear = temp.dayOfYear;                                                                          // 2330
+    }                                                                                                                // 2331
+}                                                                                                                    // 2332
+                                                                                                                     // 2333
+// constant that refers to the ISO standard                                                                          // 2334
+hooks.ISO_8601 = function () {};                                                                                     // 2335
+                                                                                                                     // 2336
+// constant that refers to the RFC 2822 form                                                                         // 2337
+hooks.RFC_2822 = function () {};                                                                                     // 2338
+                                                                                                                     // 2339
+// date from string and format string                                                                                // 2340
+function configFromStringAndFormat(config) {                                                                         // 2341
+    // TODO: Move this to another part of the creation flow to prevent circular deps                                 // 2342
+    if (config._f === hooks.ISO_8601) {                                                                              // 2343
+        configFromISO(config);                                                                                       // 2344
+        return;                                                                                                      // 2345
+    }                                                                                                                // 2346
+    if (config._f === hooks.RFC_2822) {                                                                              // 2347
+        configFromRFC2822(config);                                                                                   // 2348
+        return;                                                                                                      // 2349
+    }                                                                                                                // 2350
+    config._a = [];                                                                                                  // 2351
+    getParsingFlags(config).empty = true;                                                                            // 2352
+                                                                                                                     // 2353
+    // This array is used to make a Date, either with `new Date` or `Date.UTC`                                       // 2354
+    var string = '' + config._i,                                                                                     // 2355
+        i, parsedInput, tokens, token, skipped,                                                                      // 2356
+        stringLength = string.length,                                                                                // 2357
+        totalParsedInputLength = 0;                                                                                  // 2358
+                                                                                                                     // 2359
+    tokens = expandFormat(config._f, config._locale).match(formattingTokens) || [];                                  // 2360
+                                                                                                                     // 2361
+    for (i = 0; i < tokens.length; i++) {                                                                            // 2362
+        token = tokens[i];                                                                                           // 2363
+        parsedInput = (string.match(getParseRegexForToken(token, config)) || [])[0];                                 // 2364
+        // console.log('token', token, 'parsedInput', parsedInput,                                                   // 2365
+        //         'regex', getParseRegexForToken(token, config));                                                   // 2366
+        if (parsedInput) {                                                                                           // 2367
+            skipped = string.substr(0, string.indexOf(parsedInput));                                                 // 2368
+            if (skipped.length > 0) {                                                                                // 2369
+                getParsingFlags(config).unusedInput.push(skipped);                                                   // 2370
+            }                                                                                                        // 2371
+            string = string.slice(string.indexOf(parsedInput) + parsedInput.length);                                 // 2372
+            totalParsedInputLength += parsedInput.length;                                                            // 2373
+        }                                                                                                            // 2374
+        // don't parse if it's not a known token                                                                     // 2375
+        if (formatTokenFunctions[token]) {                                                                           // 2376
+            if (parsedInput) {                                                                                       // 2377
+                getParsingFlags(config).empty = false;                                                               // 2378
+            }                                                                                                        // 2379
+            else {                                                                                                   // 2380
+                getParsingFlags(config).unusedTokens.push(token);                                                    // 2381
+            }                                                                                                        // 2382
+            addTimeToArrayFromToken(token, parsedInput, config);                                                     // 2383
+        }                                                                                                            // 2384
+        else if (config._strict && !parsedInput) {                                                                   // 2385
+            getParsingFlags(config).unusedTokens.push(token);                                                        // 2386
+        }                                                                                                            // 2387
+    }                                                                                                                // 2388
+                                                                                                                     // 2389
+    // add remaining unparsed input length to the string                                                             // 2390
+    getParsingFlags(config).charsLeftOver = stringLength - totalParsedInputLength;                                   // 2391
+    if (string.length > 0) {                                                                                         // 2392
+        getParsingFlags(config).unusedInput.push(string);                                                            // 2393
+    }                                                                                                                // 2394
+                                                                                                                     // 2395
+    // clear _12h flag if hour is <= 12                                                                              // 2396
+    if (config._a[HOUR] <= 12 &&                                                                                     // 2397
+        getParsingFlags(config).bigHour === true &&                                                                  // 2398
+        config._a[HOUR] > 0) {                                                                                       // 2399
+        getParsingFlags(config).bigHour = undefined;                                                                 // 2400
+    }                                                                                                                // 2401
+                                                                                                                     // 2402
+    getParsingFlags(config).parsedDateParts = config._a.slice(0);                                                    // 2403
+    getParsingFlags(config).meridiem = config._meridiem;                                                             // 2404
+    // handle meridiem                                                                                               // 2405
+    config._a[HOUR] = meridiemFixWrap(config._locale, config._a[HOUR], config._meridiem);                            // 2406
+                                                                                                                     // 2407
+    configFromArray(config);                                                                                         // 2408
+    checkOverflow(config);                                                                                           // 2409
+}                                                                                                                    // 2410
+                                                                                                                     // 2411
+                                                                                                                     // 2412
+function meridiemFixWrap (locale, hour, meridiem) {                                                                  // 2413
+    var isPm;                                                                                                        // 2414
+                                                                                                                     // 2415
+    if (meridiem == null) {                                                                                          // 2416
+        // nothing to do                                                                                             // 2417
+        return hour;                                                                                                 // 2418
+    }                                                                                                                // 2419
+    if (locale.meridiemHour != null) {                                                                               // 2420
+        return locale.meridiemHour(hour, meridiem);                                                                  // 2421
+    } else if (locale.isPM != null) {                                                                                // 2422
+        // Fallback                                                                                                  // 2423
+        isPm = locale.isPM(meridiem);                                                                                // 2424
+        if (isPm && hour < 12) {                                                                                     // 2425
+            hour += 12;                                                                                              // 2426
+        }                                                                                                            // 2427
+        if (!isPm && hour === 12) {                                                                                  // 2428
+            hour = 0;                                                                                                // 2429
+        }                                                                                                            // 2430
+        return hour;                                                                                                 // 2431
+    } else {                                                                                                         // 2432
+        // this is not supposed to happen                                                                            // 2433
+        return hour;                                                                                                 // 2434
+    }                                                                                                                // 2435
+}                                                                                                                    // 2436
+                                                                                                                     // 2437
+// date from string and array of format strings                                                                      // 2438
+function configFromStringAndArray(config) {                                                                          // 2439
+    var tempConfig,                                                                                                  // 2440
+        bestMoment,                                                                                                  // 2441
+                                                                                                                     // 2442
+        scoreToBeat,                                                                                                 // 2443
+        i,                                                                                                           // 2444
+        currentScore;                                                                                                // 2445
+                                                                                                                     // 2446
+    if (config._f.length === 0) {                                                                                    // 2447
+        getParsingFlags(config).invalidFormat = true;                                                                // 2448
+        config._d = new Date(NaN);                                                                                   // 2449
+        return;                                                                                                      // 2450
+    }                                                                                                                // 2451
+                                                                                                                     // 2452
+    for (i = 0; i < config._f.length; i++) {                                                                         // 2453
+        currentScore = 0;                                                                                            // 2454
+        tempConfig = copyConfig({}, config);                                                                         // 2455
+        if (config._useUTC != null) {                                                                                // 2456
+            tempConfig._useUTC = config._useUTC;                                                                     // 2457
+        }                                                                                                            // 2458
+        tempConfig._f = config._f[i];                                                                                // 2459
+        configFromStringAndFormat(tempConfig);                                                                       // 2460
+                                                                                                                     // 2461
+        if (!isValid(tempConfig)) {                                                                                  // 2462
+            continue;                                                                                                // 2463
+        }                                                                                                            // 2464
+                                                                                                                     // 2465
+        // if there is any input that was not parsed add a penalty for that format                                   // 2466
+        currentScore += getParsingFlags(tempConfig).charsLeftOver;                                                   // 2467
+                                                                                                                     // 2468
+        //or tokens                                                                                                  // 2469
+        currentScore += getParsingFlags(tempConfig).unusedTokens.length * 10;                                        // 2470
+                                                                                                                     // 2471
+        getParsingFlags(tempConfig).score = currentScore;                                                            // 2472
+                                                                                                                     // 2473
+        if (scoreToBeat == null || currentScore < scoreToBeat) {                                                     // 2474
+            scoreToBeat = currentScore;                                                                              // 2475
+            bestMoment = tempConfig;                                                                                 // 2476
+        }                                                                                                            // 2477
+    }                                                                                                                // 2478
+                                                                                                                     // 2479
+    extend(config, bestMoment || tempConfig);                                                                        // 2480
+}                                                                                                                    // 2481
+                                                                                                                     // 2482
+function configFromObject(config) {                                                                                  // 2483
+    if (config._d) {                                                                                                 // 2484
+        return;                                                                                                      // 2485
+    }                                                                                                                // 2486
+                                                                                                                     // 2487
+    var i = normalizeObjectUnits(config._i);                                                                         // 2488
+    config._a = map([i.year, i.month, i.day || i.date, i.hour, i.minute, i.second, i.millisecond], function (obj) {  // 2489
+        return obj && parseInt(obj, 10);                                                                             // 2490
+    });                                                                                                              // 2491
+                                                                                                                     // 2492
+    configFromArray(config);                                                                                         // 2493
+}                                                                                                                    // 2494
+                                                                                                                     // 2495
+function createFromConfig (config) {                                                                                 // 2496
+    var res = new Moment(checkOverflow(prepareConfig(config)));                                                      // 2497
+    if (res._nextDay) {                                                                                              // 2498
+        // Adding is smart enough around DST                                                                         // 2499
+        res.add(1, 'd');                                                                                             // 2500
+        res._nextDay = undefined;                                                                                    // 2501
+    }                                                                                                                // 2502
+                                                                                                                     // 2503
+    return res;                                                                                                      // 2504
+}                                                                                                                    // 2505
+                                                                                                                     // 2506
+function prepareConfig (config) {                                                                                    // 2507
+    var input = config._i,                                                                                           // 2508
+        format = config._f;                                                                                          // 2509
+                                                                                                                     // 2510
+    config._locale = config._locale || getLocale(config._l);                                                         // 2511
+                                                                                                                     // 2512
+    if (input === null || (format === undefined && input === '')) {                                                  // 2513
+        return createInvalid({nullInput: true});                                                                     // 2514
+    }                                                                                                                // 2515
+                                                                                                                     // 2516
+    if (typeof input === 'string') {                                                                                 // 2517
+        config._i = input = config._locale.preparse(input);                                                          // 2518
+    }                                                                                                                // 2519
+                                                                                                                     // 2520
+    if (isMoment(input)) {                                                                                           // 2521
+        return new Moment(checkOverflow(input));                                                                     // 2522
+    } else if (isDate(input)) {                                                                                      // 2523
+        config._d = input;                                                                                           // 2524
+    } else if (isArray(format)) {                                                                                    // 2525
+        configFromStringAndArray(config);                                                                            // 2526
+    } else if (format) {                                                                                             // 2527
+        configFromStringAndFormat(config);                                                                           // 2528
+    }  else {                                                                                                        // 2529
+        configFromInput(config);                                                                                     // 2530
+    }                                                                                                                // 2531
+                                                                                                                     // 2532
+    if (!isValid(config)) {                                                                                          // 2533
+        config._d = null;                                                                                            // 2534
+    }                                                                                                                // 2535
+                                                                                                                     // 2536
+    return config;                                                                                                   // 2537
+}                                                                                                                    // 2538
+                                                                                                                     // 2539
+function configFromInput(config) {                                                                                   // 2540
+    var input = config._i;                                                                                           // 2541
+    if (isUndefined(input)) {                                                                                        // 2542
+        config._d = new Date(hooks.now());                                                                           // 2543
+    } else if (isDate(input)) {                                                                                      // 2544
+        config._d = new Date(input.valueOf());                                                                       // 2545
+    } else if (typeof input === 'string') {                                                                          // 2546
+        configFromString(config);                                                                                    // 2547
+    } else if (isArray(input)) {                                                                                     // 2548
+        config._a = map(input.slice(0), function (obj) {                                                             // 2549
+            return parseInt(obj, 10);                                                                                // 2550
+        });                                                                                                          // 2551
+        configFromArray(config);                                                                                     // 2552
+    } else if (isObject(input)) {                                                                                    // 2553
+        configFromObject(config);                                                                                    // 2554
+    } else if (isNumber(input)) {                                                                                    // 2555
+        // from milliseconds                                                                                         // 2556
+        config._d = new Date(input);                                                                                 // 2557
+    } else {                                                                                                         // 2558
+        hooks.createFromInputFallback(config);                                                                       // 2559
+    }                                                                                                                // 2560
+}                                                                                                                    // 2561
+                                                                                                                     // 2562
+function createLocalOrUTC (input, format, locale, strict, isUTC) {                                                   // 2563
+    var c = {};                                                                                                      // 2564
+                                                                                                                     // 2565
+    if (locale === true || locale === false) {                                                                       // 2566
+        strict = locale;                                                                                             // 2567
+        locale = undefined;                                                                                          // 2568
+    }                                                                                                                // 2569
+                                                                                                                     // 2570
+    if ((isObject(input) && isObjectEmpty(input)) ||                                                                 // 2571
+            (isArray(input) && input.length === 0)) {                                                                // 2572
+        input = undefined;                                                                                           // 2573
+    }                                                                                                                // 2574
+    // object construction must be done this way.                                                                    // 2575
+    // https://github.com/moment/moment/issues/1423                                                                  // 2576
+    c._isAMomentObject = true;                                                                                       // 2577
+    c._useUTC = c._isUTC = isUTC;                                                                                    // 2578
+    c._l = locale;                                                                                                   // 2579
+    c._i = input;                                                                                                    // 2580
+    c._f = format;                                                                                                   // 2581
+    c._strict = strict;                                                                                              // 2582
+                                                                                                                     // 2583
+    return createFromConfig(c);                                                                                      // 2584
+}                                                                                                                    // 2585
+                                                                                                                     // 2586
+function createLocal (input, format, locale, strict) {                                                               // 2587
+    return createLocalOrUTC(input, format, locale, strict, false);                                                   // 2588
+}                                                                                                                    // 2589
+                                                                                                                     // 2590
+var prototypeMin = deprecate(                                                                                        // 2591
+    'moment().min is deprecated, use moment.max instead. http://momentjs.com/guides/#/warnings/min-max/',            // 2592
+    function () {                                                                                                    // 2593
+        var other = createLocal.apply(null, arguments);                                                              // 2594
+        if (this.isValid() && other.isValid()) {                                                                     // 2595
+            return other < this ? this : other;                                                                      // 2596
+        } else {                                                                                                     // 2597
+            return createInvalid();                                                                                  // 2598
+        }                                                                                                            // 2599
+    }                                                                                                                // 2600
+);                                                                                                                   // 2601
+                                                                                                                     // 2602
+var prototypeMax = deprecate(                                                                                        // 2603
+    'moment().max is deprecated, use moment.min instead. http://momentjs.com/guides/#/warnings/min-max/',            // 2604
+    function () {                                                                                                    // 2605
+        var other = createLocal.apply(null, arguments);                                                              // 2606
+        if (this.isValid() && other.isValid()) {                                                                     // 2607
+            return other > this ? this : other;                                                                      // 2608
+        } else {                                                                                                     // 2609
+            return createInvalid();                                                                                  // 2610
+        }                                                                                                            // 2611
+    }                                                                                                                // 2612
+);                                                                                                                   // 2613
+                                                                                                                     // 2614
+// Pick a moment m from moments so that m[fn](other) is true for all                                                 // 2615
+// other. This relies on the function fn to be transitive.                                                           // 2616
+//                                                                                                                   // 2617
+// moments should either be an array of moment objects or an array, whose                                            // 2618
+// first element is an array of moment objects.                                                                      // 2619
+function pickBy(fn, moments) {                                                                                       // 2620
+    var res, i;                                                                                                      // 2621
+    if (moments.length === 1 && isArray(moments[0])) {                                                               // 2622
+        moments = moments[0];                                                                                        // 2623
+    }                                                                                                                // 2624
+    if (!moments.length) {                                                                                           // 2625
+        return createLocal();                                                                                        // 2626
+    }                                                                                                                // 2627
+    res = moments[0];                                                                                                // 2628
+    for (i = 1; i < moments.length; ++i) {                                                                           // 2629
+        if (!moments[i].isValid() || moments[i][fn](res)) {                                                          // 2630
+            res = moments[i];                                                                                        // 2631
+        }                                                                                                            // 2632
+    }                                                                                                                // 2633
+    return res;                                                                                                      // 2634
+}                                                                                                                    // 2635
+                                                                                                                     // 2636
+// TODO: Use [].sort instead?                                                                                        // 2637
+function min () {                                                                                                    // 2638
+    var args = [].slice.call(arguments, 0);                                                                          // 2639
+                                                                                                                     // 2640
+    return pickBy('isBefore', args);                                                                                 // 2641
+}                                                                                                                    // 2642
+                                                                                                                     // 2643
+function max () {                                                                                                    // 2644
+    var args = [].slice.call(arguments, 0);                                                                          // 2645
+                                                                                                                     // 2646
+    return pickBy('isAfter', args);                                                                                  // 2647
+}                                                                                                                    // 2648
+                                                                                                                     // 2649
+var now = function () {                                                                                              // 2650
+    return Date.now ? Date.now() : +(new Date());                                                                    // 2651
+};                                                                                                                   // 2652
+                                                                                                                     // 2653
+var ordering = ['year', 'quarter', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millisecond'];               // 2654
+                                                                                                                     // 2655
+function isDurationValid(m) {                                                                                        // 2656
+    for (var key in m) {                                                                                             // 2657
+        if (!(ordering.indexOf(key) !== -1 && (m[key] == null || !isNaN(m[key])))) {                                 // 2658
+            return false;                                                                                            // 2659
+        }                                                                                                            // 2660
+    }                                                                                                                // 2661
+                                                                                                                     // 2662
+    var unitHasDecimal = false;                                                                                      // 2663
+    for (var i = 0; i < ordering.length; ++i) {                                                                      // 2664
+        if (m[ordering[i]]) {                                                                                        // 2665
+            if (unitHasDecimal) {                                                                                    // 2666
+                return false; // only allow non-integers for smallest unit                                           // 2667
+            }                                                                                                        // 2668
+            if (parseFloat(m[ordering[i]]) !== toInt(m[ordering[i]])) {                                              // 2669
+                unitHasDecimal = true;                                                                               // 2670
+            }                                                                                                        // 2671
+        }                                                                                                            // 2672
+    }                                                                                                                // 2673
+                                                                                                                     // 2674
+    return true;                                                                                                     // 2675
+}                                                                                                                    // 2676
+                                                                                                                     // 2677
+function isValid$1() {                                                                                               // 2678
+    return this._isValid;                                                                                            // 2679
+}                                                                                                                    // 2680
+                                                                                                                     // 2681
+function createInvalid$1() {                                                                                         // 2682
+    return createDuration(NaN);                                                                                      // 2683
+}                                                                                                                    // 2684
+                                                                                                                     // 2685
+function Duration (duration) {                                                                                       // 2686
+    var normalizedInput = normalizeObjectUnits(duration),                                                            // 2687
+        years = normalizedInput.year || 0,                                                                           // 2688
+        quarters = normalizedInput.quarter || 0,                                                                     // 2689
+        months = normalizedInput.month || 0,                                                                         // 2690
+        weeks = normalizedInput.week || 0,                                                                           // 2691
+        days = normalizedInput.day || 0,                                                                             // 2692
+        hours = normalizedInput.hour || 0,                                                                           // 2693
+        minutes = normalizedInput.minute || 0,                                                                       // 2694
+        seconds = normalizedInput.second || 0,                                                                       // 2695
+        milliseconds = normalizedInput.millisecond || 0;                                                             // 2696
+                                                                                                                     // 2697
+    this._isValid = isDurationValid(normalizedInput);                                                                // 2698
+                                                                                                                     // 2699
+    // representation for dateAddRemove                                                                              // 2700
+    this._milliseconds = +milliseconds +                                                                             // 2701
+        seconds * 1e3 + // 1000                                                                                      // 2702
+        minutes * 6e4 + // 1000 * 60                                                                                 // 2703
+        hours * 1000 * 60 * 60; //using 1000 * 60 * 60 instead of 36e5 to avoid floating point rounding errors https://github.com/moment/moment/issues/2978
+    // Because of dateAddRemove treats 24 hours as different from a                                                  // 2705
+    // day when working around DST, we need to store them separately                                                 // 2706
+    this._days = +days +                                                                                             // 2707
+        weeks * 7;                                                                                                   // 2708
+    // It is impossible translate months into days without knowing                                                   // 2709
+    // which months you are are talking about, so we have to store                                                   // 2710
+    // it separately.                                                                                                // 2711
+    this._months = +months +                                                                                         // 2712
+        quarters * 3 +                                                                                               // 2713
+        years * 12;                                                                                                  // 2714
+                                                                                                                     // 2715
+    this._data = {};                                                                                                 // 2716
+                                                                                                                     // 2717
+    this._locale = getLocale();                                                                                      // 2718
+                                                                                                                     // 2719
+    this._bubble();                                                                                                  // 2720
+}                                                                                                                    // 2721
+                                                                                                                     // 2722
+function isDuration (obj) {                                                                                          // 2723
+    return obj instanceof Duration;                                                                                  // 2724
+}                                                                                                                    // 2725
+                                                                                                                     // 2726
+function absRound (number) {                                                                                         // 2727
+    if (number < 0) {                                                                                                // 2728
+        return Math.round(-1 * number) * -1;                                                                         // 2729
+    } else {                                                                                                         // 2730
+        return Math.round(number);                                                                                   // 2731
+    }                                                                                                                // 2732
+}                                                                                                                    // 2733
+                                                                                                                     // 2734
+// FORMATTING                                                                                                        // 2735
+                                                                                                                     // 2736
+function offset (token, separator) {                                                                                 // 2737
+    addFormatToken(token, 0, 0, function () {                                                                        // 2738
+        var offset = this.utcOffset();                                                                               // 2739
+        var sign = '+';                                                                                              // 2740
+        if (offset < 0) {                                                                                            // 2741
+            offset = -offset;                                                                                        // 2742
+            sign = '-';                                                                                              // 2743
+        }                                                                                                            // 2744
+        return sign + zeroFill(~~(offset / 60), 2) + separator + zeroFill(~~(offset) % 60, 2);                       // 2745
+    });                                                                                                              // 2746
+}                                                                                                                    // 2747
+                                                                                                                     // 2748
+offset('Z', ':');                                                                                                    // 2749
+offset('ZZ', '');                                                                                                    // 2750
+                                                                                                                     // 2751
+// PARSING                                                                                                           // 2752
+                                                                                                                     // 2753
+addRegexToken('Z',  matchShortOffset);                                                                               // 2754
+addRegexToken('ZZ', matchShortOffset);                                                                               // 2755
+addParseToken(['Z', 'ZZ'], function (input, array, config) {                                                         // 2756
+    config._useUTC = true;                                                                                           // 2757
+    config._tzm = offsetFromString(matchShortOffset, input);                                                         // 2758
+});                                                                                                                  // 2759
+                                                                                                                     // 2760
+// HELPERS                                                                                                           // 2761
+                                                                                                                     // 2762
+// timezone chunker                                                                                                  // 2763
+// '+10:00' > ['10',  '00']                                                                                          // 2764
+// '-1530'  > ['-15', '30']                                                                                          // 2765
+var chunkOffset = /([\+\-]|\d\d)/gi;                                                                                 // 2766
+                                                                                                                     // 2767
+function offsetFromString(matcher, string) {                                                                         // 2768
+    var matches = (string || '').match(matcher);                                                                     // 2769
+                                                                                                                     // 2770
+    if (matches === null) {                                                                                          // 2771
+        return null;                                                                                                 // 2772
+    }                                                                                                                // 2773
+                                                                                                                     // 2774
+    var chunk   = matches[matches.length - 1] || [];                                                                 // 2775
+    var parts   = (chunk + '').match(chunkOffset) || ['-', 0, 0];                                                    // 2776
+    var minutes = +(parts[1] * 60) + toInt(parts[2]);                                                                // 2777
+                                                                                                                     // 2778
+    return minutes === 0 ?                                                                                           // 2779
+      0 :                                                                                                            // 2780
+      parts[0] === '+' ? minutes : -minutes;                                                                         // 2781
+}                                                                                                                    // 2782
+                                                                                                                     // 2783
+// Return a moment from input, that is local/utc/zone equivalent to model.                                           // 2784
+function cloneWithOffset(input, model) {                                                                             // 2785
+    var res, diff;                                                                                                   // 2786
+    if (model._isUTC) {                                                                                              // 2787
+        res = model.clone();                                                                                         // 2788
+        diff = (isMoment(input) || isDate(input) ? input.valueOf() : createLocal(input).valueOf()) - res.valueOf();  // 2789
+        // Use low-level api, because this fn is low-level api.                                                      // 2790
+        res._d.setTime(res._d.valueOf() + diff);                                                                     // 2791
+        hooks.updateOffset(res, false);                                                                              // 2792
+        return res;                                                                                                  // 2793
+    } else {                                                                                                         // 2794
+        return createLocal(input).local();                                                                           // 2795
+    }                                                                                                                // 2796
+}                                                                                                                    // 2797
+                                                                                                                     // 2798
+function getDateOffset (m) {                                                                                         // 2799
+    // On Firefox.24 Date#getTimezoneOffset returns a floating point.                                                // 2800
+    // https://github.com/moment/moment/pull/1871                                                                    // 2801
+    return -Math.round(m._d.getTimezoneOffset() / 15) * 15;                                                          // 2802
+}                                                                                                                    // 2803
+                                                                                                                     // 2804
+// HOOKS                                                                                                             // 2805
+                                                                                                                     // 2806
+// This function will be called whenever a moment is mutated.                                                        // 2807
+// It is intended to keep the offset in sync with the timezone.                                                      // 2808
+hooks.updateOffset = function () {};                                                                                 // 2809
+                                                                                                                     // 2810
+// MOMENTS                                                                                                           // 2811
+                                                                                                                     // 2812
+// keepLocalTime = true means only change the timezone, without                                                      // 2813
+// affecting the local hour. So 5:31:26 +0300 --[utcOffset(2, true)]-->                                              // 2814
+// 5:31:26 +0200 It is possible that 5:31:26 doesn't exist with offset                                               // 2815
+// +0200, so we adjust the time as needed, to be valid.                                                              // 2816
+//                                                                                                                   // 2817
+// Keeping the time actually adds/subtracts (one hour)                                                               // 2818
+// from the actual represented time. That is why we call updateOffset                                                // 2819
+// a second time. In case it wants us to change the offset again                                                     // 2820
+// _changeInProgress == true case, then we have to adjust, because                                                   // 2821
+// there is no such time in the given timezone.                                                                      // 2822
+function getSetOffset (input, keepLocalTime, keepMinutes) {                                                          // 2823
+    var offset = this._offset || 0,                                                                                  // 2824
+        localAdjust;                                                                                                 // 2825
+    if (!this.isValid()) {                                                                                           // 2826
+        return input != null ? this : NaN;                                                                           // 2827
+    }                                                                                                                // 2828
+    if (input != null) {                                                                                             // 2829
+        if (typeof input === 'string') {                                                                             // 2830
+            input = offsetFromString(matchShortOffset, input);                                                       // 2831
+            if (input === null) {                                                                                    // 2832
+                return this;                                                                                         // 2833
+            }                                                                                                        // 2834
+        } else if (Math.abs(input) < 16 && !keepMinutes) {                                                           // 2835
+            input = input * 60;                                                                                      // 2836
+        }                                                                                                            // 2837
+        if (!this._isUTC && keepLocalTime) {                                                                         // 2838
+            localAdjust = getDateOffset(this);                                                                       // 2839
+        }                                                                                                            // 2840
+        this._offset = input;                                                                                        // 2841
+        this._isUTC = true;                                                                                          // 2842
+        if (localAdjust != null) {                                                                                   // 2843
+            this.add(localAdjust, 'm');                                                                              // 2844
+        }                                                                                                            // 2845
+        if (offset !== input) {                                                                                      // 2846
+            if (!keepLocalTime || this._changeInProgress) {                                                          // 2847
+                addSubtract(this, createDuration(input - offset, 'm'), 1, false);                                    // 2848
+            } else if (!this._changeInProgress) {                                                                    // 2849
+                this._changeInProgress = true;                                                                       // 2850
+                hooks.updateOffset(this, true);                                                                      // 2851
+                this._changeInProgress = null;                                                                       // 2852
+            }                                                                                                        // 2853
+        }                                                                                                            // 2854
+        return this;                                                                                                 // 2855
+    } else {                                                                                                         // 2856
+        return this._isUTC ? offset : getDateOffset(this);                                                           // 2857
+    }                                                                                                                // 2858
+}                                                                                                                    // 2859
+                                                                                                                     // 2860
+function getSetZone (input, keepLocalTime) {                                                                         // 2861
+    if (input != null) {                                                                                             // 2862
+        if (typeof input !== 'string') {                                                                             // 2863
+            input = -input;                                                                                          // 2864
+        }                                                                                                            // 2865
+                                                                                                                     // 2866
+        this.utcOffset(input, keepLocalTime);                                                                        // 2867
+                                                                                                                     // 2868
+        return this;                                                                                                 // 2869
+    } else {                                                                                                         // 2870
+        return -this.utcOffset();                                                                                    // 2871
+    }                                                                                                                // 2872
+}                                                                                                                    // 2873
+                                                                                                                     // 2874
+function setOffsetToUTC (keepLocalTime) {                                                                            // 2875
+    return this.utcOffset(0, keepLocalTime);                                                                         // 2876
+}                                                                                                                    // 2877
+                                                                                                                     // 2878
+function setOffsetToLocal (keepLocalTime) {                                                                          // 2879
+    if (this._isUTC) {                                                                                               // 2880
+        this.utcOffset(0, keepLocalTime);                                                                            // 2881
+        this._isUTC = false;                                                                                         // 2882
+                                                                                                                     // 2883
+        if (keepLocalTime) {                                                                                         // 2884
+            this.subtract(getDateOffset(this), 'm');                                                                 // 2885
+        }                                                                                                            // 2886
+    }                                                                                                                // 2887
+    return this;                                                                                                     // 2888
+}                                                                                                                    // 2889
+                                                                                                                     // 2890
+function setOffsetToParsedOffset () {                                                                                // 2891
+    if (this._tzm != null) {                                                                                         // 2892
+        this.utcOffset(this._tzm, false, true);                                                                      // 2893
+    } else if (typeof this._i === 'string') {                                                                        // 2894
+        var tZone = offsetFromString(matchOffset, this._i);                                                          // 2895
+        if (tZone != null) {                                                                                         // 2896
+            this.utcOffset(tZone);                                                                                   // 2897
+        }                                                                                                            // 2898
+        else {                                                                                                       // 2899
+            this.utcOffset(0, true);                                                                                 // 2900
+        }                                                                                                            // 2901
+    }                                                                                                                // 2902
+    return this;                                                                                                     // 2903
+}                                                                                                                    // 2904
+                                                                                                                     // 2905
+function hasAlignedHourOffset (input) {                                                                              // 2906
+    if (!this.isValid()) {                                                                                           // 2907
+        return false;                                                                                                // 2908
+    }                                                                                                                // 2909
+    input = input ? createLocal(input).utcOffset() : 0;                                                              // 2910
+                                                                                                                     // 2911
+    return (this.utcOffset() - input) % 60 === 0;                                                                    // 2912
+}                                                                                                                    // 2913
+                                                                                                                     // 2914
+function isDaylightSavingTime () {                                                                                   // 2915
+    return (                                                                                                         // 2916
+        this.utcOffset() > this.clone().month(0).utcOffset() ||                                                      // 2917
+        this.utcOffset() > this.clone().month(5).utcOffset()                                                         // 2918
+    );                                                                                                               // 2919
+}                                                                                                                    // 2920
+                                                                                                                     // 2921
+function isDaylightSavingTimeShifted () {                                                                            // 2922
+    if (!isUndefined(this._isDSTShifted)) {                                                                          // 2923
+        return this._isDSTShifted;                                                                                   // 2924
+    }                                                                                                                // 2925
+                                                                                                                     // 2926
+    var c = {};                                                                                                      // 2927
+                                                                                                                     // 2928
+    copyConfig(c, this);                                                                                             // 2929
+    c = prepareConfig(c);                                                                                            // 2930
+                                                                                                                     // 2931
+    if (c._a) {                                                                                                      // 2932
+        var other = c._isUTC ? createUTC(c._a) : createLocal(c._a);                                                  // 2933
+        this._isDSTShifted = this.isValid() &&                                                                       // 2934
+            compareArrays(c._a, other.toArray()) > 0;                                                                // 2935
+    } else {                                                                                                         // 2936
+        this._isDSTShifted = false;                                                                                  // 2937
+    }                                                                                                                // 2938
+                                                                                                                     // 2939
+    return this._isDSTShifted;                                                                                       // 2940
+}                                                                                                                    // 2941
+                                                                                                                     // 2942
+function isLocal () {                                                                                                // 2943
+    return this.isValid() ? !this._isUTC : false;                                                                    // 2944
+}                                                                                                                    // 2945
+                                                                                                                     // 2946
+function isUtcOffset () {                                                                                            // 2947
+    return this.isValid() ? this._isUTC : false;                                                                     // 2948
+}                                                                                                                    // 2949
+                                                                                                                     // 2950
+function isUtc () {                                                                                                  // 2951
+    return this.isValid() ? this._isUTC && this._offset === 0 : false;                                               // 2952
+}                                                                                                                    // 2953
+                                                                                                                     // 2954
+// ASP.NET json date format regex                                                                                    // 2955
+var aspNetRegex = /^(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)(\.\d*)?)?$/;                                           // 2956
+                                                                                                                     // 2957
+// from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html                         // 2958
+// somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere                                         // 2959
+// and further modified to allow for strings containing both week and day                                            // 2960
+var isoRegex = /^(-)?P(?:(-?[0-9,.]*)Y)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)W)?(?:(-?[0-9,.]*)D)?(?:T(?:(-?[0-9,.]*)H)?(?:(-?[0-9,.]*)M)?(?:(-?[0-9,.]*)S)?)?$/;
+                                                                                                                     // 2962
+function createDuration (input, key) {                                                                               // 2963
+    var duration = input,                                                                                            // 2964
+        // matching against regexp is expensive, do it on demand                                                     // 2965
+        match = null,                                                                                                // 2966
+        sign,                                                                                                        // 2967
+        ret,                                                                                                         // 2968
+        diffRes;                                                                                                     // 2969
+                                                                                                                     // 2970
+    if (isDuration(input)) {                                                                                         // 2971
+        duration = {                                                                                                 // 2972
+            ms : input._milliseconds,                                                                                // 2973
+            d  : input._days,                                                                                        // 2974
+            M  : input._months                                                                                       // 2975
+        };                                                                                                           // 2976
+    } else if (isNumber(input)) {                                                                                    // 2977
+        duration = {};                                                                                               // 2978
+        if (key) {                                                                                                   // 2979
+            duration[key] = input;                                                                                   // 2980
+        } else {                                                                                                     // 2981
+            duration.milliseconds = input;                                                                           // 2982
+        }                                                                                                            // 2983
+    } else if (!!(match = aspNetRegex.exec(input))) {                                                                // 2984
+        sign = (match[1] === '-') ? -1 : 1;                                                                          // 2985
+        duration = {                                                                                                 // 2986
+            y  : 0,                                                                                                  // 2987
+            d  : toInt(match[DATE])                         * sign,                                                  // 2988
+            h  : toInt(match[HOUR])                         * sign,                                                  // 2989
+            m  : toInt(match[MINUTE])                       * sign,                                                  // 2990
+            s  : toInt(match[SECOND])                       * sign,                                                  // 2991
+            ms : toInt(absRound(match[MILLISECOND] * 1000)) * sign // the millisecond decimal point is included in the match
+        };                                                                                                           // 2993
+    } else if (!!(match = isoRegex.exec(input))) {                                                                   // 2994
+        sign = (match[1] === '-') ? -1 : 1;                                                                          // 2995
+        duration = {                                                                                                 // 2996
+            y : parseIso(match[2], sign),                                                                            // 2997
+            M : parseIso(match[3], sign),                                                                            // 2998
+            w : parseIso(match[4], sign),                                                                            // 2999
+            d : parseIso(match[5], sign),                                                                            // 3000
+            h : parseIso(match[6], sign),                                                                            // 3001
+            m : parseIso(match[7], sign),                                                                            // 3002
+            s : parseIso(match[8], sign)                                                                             // 3003
+        };                                                                                                           // 3004
+    } else if (duration == null) {// checks for null or undefined                                                    // 3005
+        duration = {};                                                                                               // 3006
+    } else if (typeof duration === 'object' && ('from' in duration || 'to' in duration)) {                           // 3007
+        diffRes = momentsDifference(createLocal(duration.from), createLocal(duration.to));                           // 3008
+                                                                                                                     // 3009
+        duration = {};                                                                                               // 3010
+        duration.ms = diffRes.milliseconds;                                                                          // 3011
+        duration.M = diffRes.months;                                                                                 // 3012
+    }                                                                                                                // 3013
+                                                                                                                     // 3014
+    ret = new Duration(duration);                                                                                    // 3015
+                                                                                                                     // 3016
+    if (isDuration(input) && hasOwnProp(input, '_locale')) {                                                         // 3017
+        ret._locale = input._locale;                                                                                 // 3018
+    }                                                                                                                // 3019
+                                                                                                                     // 3020
+    return ret;                                                                                                      // 3021
+}                                                                                                                    // 3022
+                                                                                                                     // 3023
+createDuration.fn = Duration.prototype;                                                                              // 3024
+createDuration.invalid = createInvalid$1;                                                                            // 3025
+                                                                                                                     // 3026
+function parseIso (inp, sign) {                                                                                      // 3027
+    // We'd normally use ~~inp for this, but unfortunately it also                                                   // 3028
+    // converts floats to ints.                                                                                      // 3029
+    // inp may be undefined, so careful calling replace on it.                                                       // 3030
+    var res = inp && parseFloat(inp.replace(',', '.'));                                                              // 3031
+    // apply sign while we're at it                                                                                  // 3032
+    return (isNaN(res) ? 0 : res) * sign;                                                                            // 3033
+}                                                                                                                    // 3034
+                                                                                                                     // 3035
+function positiveMomentsDifference(base, other) {                                                                    // 3036
+    var res = {milliseconds: 0, months: 0};                                                                          // 3037
+                                                                                                                     // 3038
+    res.months = other.month() - base.month() +                                                                      // 3039
+        (other.year() - base.year()) * 12;                                                                           // 3040
+    if (base.clone().add(res.months, 'M').isAfter(other)) {                                                          // 3041
+        --res.months;                                                                                                // 3042
+    }                                                                                                                // 3043
+                                                                                                                     // 3044
+    res.milliseconds = +other - +(base.clone().add(res.months, 'M'));                                                // 3045
+                                                                                                                     // 3046
+    return res;                                                                                                      // 3047
+}                                                                                                                    // 3048
+                                                                                                                     // 3049
+function momentsDifference(base, other) {                                                                            // 3050
+    var res;                                                                                                         // 3051
+    if (!(base.isValid() && other.isValid())) {                                                                      // 3052
+        return {milliseconds: 0, months: 0};                                                                         // 3053
+    }                                                                                                                // 3054
+                                                                                                                     // 3055
+    other = cloneWithOffset(other, base);                                                                            // 3056
+    if (base.isBefore(other)) {                                                                                      // 3057
+        res = positiveMomentsDifference(base, other);                                                                // 3058
+    } else {                                                                                                         // 3059
+        res = positiveMomentsDifference(other, base);                                                                // 3060
+        res.milliseconds = -res.milliseconds;                                                                        // 3061
+        res.months = -res.months;                                                                                    // 3062
+    }                                                                                                                // 3063
+                                                                                                                     // 3064
+    return res;                                                                                                      // 3065
+}                                                                                                                    // 3066
+                                                                                                                     // 3067
+// TODO: remove 'name' arg after deprecation is removed                                                              // 3068
+function createAdder(direction, name) {                                                                              // 3069
+    return function (val, period) {                                                                                  // 3070
+        var dur, tmp;                                                                                                // 3071
+        //invert the arguments, but complain about it                                                                // 3072
+        if (period !== null && !isNaN(+period)) {                                                                    // 3073
+            deprecateSimple(name, 'moment().' + name  + '(period, number) is deprecated. Please use moment().' + name + '(number, period). ' +
+            'See http://momentjs.com/guides/#/warnings/add-inverted-param/ for more info.');                         // 3075
+            tmp = val; val = period; period = tmp;                                                                   // 3076
+        }                                                                                                            // 3077
+                                                                                                                     // 3078
+        val = typeof val === 'string' ? +val : val;                                                                  // 3079
+        dur = createDuration(val, period);                                                                           // 3080
+        addSubtract(this, dur, direction);                                                                           // 3081
+        return this;                                                                                                 // 3082
+    };                                                                                                               // 3083
+}                                                                                                                    // 3084
+                                                                                                                     // 3085
+function addSubtract (mom, duration, isAdding, updateOffset) {                                                       // 3086
+    var milliseconds = duration._milliseconds,                                                                       // 3087
+        days = absRound(duration._days),                                                                             // 3088
+        months = absRound(duration._months);                                                                         // 3089
+                                                                                                                     // 3090
+    if (!mom.isValid()) {                                                                                            // 3091
+        // No op                                                                                                     // 3092
+        return;                                                                                                      // 3093
+    }                                                                                                                // 3094
+                                                                                                                     // 3095
+    updateOffset = updateOffset == null ? true : updateOffset;                                                       // 3096
+                                                                                                                     // 3097
+    if (milliseconds) {                                                                                              // 3098
+        mom._d.setTime(mom._d.valueOf() + milliseconds * isAdding);                                                  // 3099
+    }                                                                                                                // 3100
+    if (days) {                                                                                                      // 3101
+        set$1(mom, 'Date', get(mom, 'Date') + days * isAdding);                                                      // 3102
+    }                                                                                                                // 3103
+    if (months) {                                                                                                    // 3104
+        setMonth(mom, get(mom, 'Month') + months * isAdding);                                                        // 3105
+    }                                                                                                                // 3106
+    if (updateOffset) {                                                                                              // 3107
+        hooks.updateOffset(mom, days || months);                                                                     // 3108
+    }                                                                                                                // 3109
+}                                                                                                                    // 3110
+                                                                                                                     // 3111
+var add      = createAdder(1, 'add');                                                                                // 3112
+var subtract = createAdder(-1, 'subtract');                                                                          // 3113
+                                                                                                                     // 3114
+function getCalendarFormat(myMoment, now) {                                                                          // 3115
+    var diff = myMoment.diff(now, 'days', true);                                                                     // 3116
+    return diff < -6 ? 'sameElse' :                                                                                  // 3117
+            diff < -1 ? 'lastWeek' :                                                                                 // 3118
+            diff < 0 ? 'lastDay' :                                                                                   // 3119
+            diff < 1 ? 'sameDay' :                                                                                   // 3120
+            diff < 2 ? 'nextDay' :                                                                                   // 3121
+            diff < 7 ? 'nextWeek' : 'sameElse';                                                                      // 3122
+}                                                                                                                    // 3123
+                                                                                                                     // 3124
+function calendar$1 (time, formats) {                                                                                // 3125
+    // We want to compare the start of today, vs this.                                                               // 3126
+    // Getting start-of-today depends on whether we're local/utc/offset or not.                                      // 3127
+    var now = time || createLocal(),                                                                                 // 3128
+        sod = cloneWithOffset(now, this).startOf('day'),                                                             // 3129
+        format = hooks.calendarFormat(this, sod) || 'sameElse';                                                      // 3130
+                                                                                                                     // 3131
+    var output = formats && (isFunction(formats[format]) ? formats[format].call(this, now) : formats[format]);       // 3132
+                                                                                                                     // 3133
+    return this.format(output || this.localeData().calendar(format, this, createLocal(now)));                        // 3134
+}                                                                                                                    // 3135
+                                                                                                                     // 3136
+function clone () {                                                                                                  // 3137
+    return new Moment(this);                                                                                         // 3138
+}                                                                                                                    // 3139
+                                                                                                                     // 3140
+function isAfter (input, units) {                                                                                    // 3141
+    var localInput = isMoment(input) ? input : createLocal(input);                                                   // 3142
+    if (!(this.isValid() && localInput.isValid())) {                                                                 // 3143
+        return false;                                                                                                // 3144
+    }                                                                                                                // 3145
+    units = normalizeUnits(!isUndefined(units) ? units : 'millisecond');                                             // 3146
+    if (units === 'millisecond') {                                                                                   // 3147
+        return this.valueOf() > localInput.valueOf();                                                                // 3148
+    } else {                                                                                                         // 3149
+        return localInput.valueOf() < this.clone().startOf(units).valueOf();                                         // 3150
+    }                                                                                                                // 3151
+}                                                                                                                    // 3152
+                                                                                                                     // 3153
+function isBefore (input, units) {                                                                                   // 3154
+    var localInput = isMoment(input) ? input : createLocal(input);                                                   // 3155
+    if (!(this.isValid() && localInput.isValid())) {                                                                 // 3156
+        return false;                                                                                                // 3157
+    }                                                                                                                // 3158
+    units = normalizeUnits(!isUndefined(units) ? units : 'millisecond');                                             // 3159
+    if (units === 'millisecond') {                                                                                   // 3160
+        return this.valueOf() < localInput.valueOf();                                                                // 3161
+    } else {                                                                                                         // 3162
+        return this.clone().endOf(units).valueOf() < localInput.valueOf();                                           // 3163
+    }                                                                                                                // 3164
+}                                                                                                                    // 3165
+                                                                                                                     // 3166
+function isBetween (from, to, units, inclusivity) {                                                                  // 3167
+    inclusivity = inclusivity || '()';                                                                               // 3168
+    return (inclusivity[0] === '(' ? this.isAfter(from, units) : !this.isBefore(from, units)) &&                     // 3169
+        (inclusivity[1] === ')' ? this.isBefore(to, units) : !this.isAfter(to, units));                              // 3170
+}                                                                                                                    // 3171
+                                                                                                                     // 3172
+function isSame (input, units) {                                                                                     // 3173
+    var localInput = isMoment(input) ? input : createLocal(input),                                                   // 3174
+        inputMs;                                                                                                     // 3175
+    if (!(this.isValid() && localInput.isValid())) {                                                                 // 3176
+        return false;                                                                                                // 3177
+    }                                                                                                                // 3178
+    units = normalizeUnits(units || 'millisecond');                                                                  // 3179
+    if (units === 'millisecond') {                                                                                   // 3180
+        return this.valueOf() === localInput.valueOf();                                                              // 3181
+    } else {                                                                                                         // 3182
+        inputMs = localInput.valueOf();                                                                              // 3183
+        return this.clone().startOf(units).valueOf() <= inputMs && inputMs <= this.clone().endOf(units).valueOf();   // 3184
+    }                                                                                                                // 3185
+}                                                                                                                    // 3186
+                                                                                                                     // 3187
+function isSameOrAfter (input, units) {                                                                              // 3188
+    return this.isSame(input, units) || this.isAfter(input,units);                                                   // 3189
+}                                                                                                                    // 3190
+                                                                                                                     // 3191
+function isSameOrBefore (input, units) {                                                                             // 3192
+    return this.isSame(input, units) || this.isBefore(input,units);                                                  // 3193
+}                                                                                                                    // 3194
+                                                                                                                     // 3195
+function diff (input, units, asFloat) {                                                                              // 3196
+    var that,                                                                                                        // 3197
+        zoneDelta,                                                                                                   // 3198
+        delta, output;                                                                                               // 3199
+                                                                                                                     // 3200
+    if (!this.isValid()) {                                                                                           // 3201
+        return NaN;                                                                                                  // 3202
+    }                                                                                                                // 3203
+                                                                                                                     // 3204
+    that = cloneWithOffset(input, this);                                                                             // 3205
+                                                                                                                     // 3206
+    if (!that.isValid()) {                                                                                           // 3207
+        return NaN;                                                                                                  // 3208
+    }                                                                                                                // 3209
+                                                                                                                     // 3210
+    zoneDelta = (that.utcOffset() - this.utcOffset()) * 6e4;                                                         // 3211
+                                                                                                                     // 3212
+    units = normalizeUnits(units);                                                                                   // 3213
+                                                                                                                     // 3214
+    if (units === 'year' || units === 'month' || units === 'quarter') {                                              // 3215
+        output = monthDiff(this, that);                                                                              // 3216
+        if (units === 'quarter') {                                                                                   // 3217
+            output = output / 3;                                                                                     // 3218
+        } else if (units === 'year') {                                                                               // 3219
+            output = output / 12;                                                                                    // 3220
+        }                                                                                                            // 3221
+    } else {                                                                                                         // 3222
+        delta = this - that;                                                                                         // 3223
+        output = units === 'second' ? delta / 1e3 : // 1000                                                          // 3224
+            units === 'minute' ? delta / 6e4 : // 1000 * 60                                                          // 3225
+            units === 'hour' ? delta / 36e5 : // 1000 * 60 * 60                                                      // 3226
+            units === 'day' ? (delta - zoneDelta) / 864e5 : // 1000 * 60 * 60 * 24, negate dst                       // 3227
+            units === 'week' ? (delta - zoneDelta) / 6048e5 : // 1000 * 60 * 60 * 24 * 7, negate dst                 // 3228
+            delta;                                                                                                   // 3229
+    }                                                                                                                // 3230
+    return asFloat ? output : absFloor(output);                                                                      // 3231
+}                                                                                                                    // 3232
+                                                                                                                     // 3233
+function monthDiff (a, b) {                                                                                          // 3234
+    // difference in months                                                                                          // 3235
+    var wholeMonthDiff = ((b.year() - a.year()) * 12) + (b.month() - a.month()),                                     // 3236
+        // b is in (anchor - 1 month, anchor + 1 month)                                                              // 3237
+        anchor = a.clone().add(wholeMonthDiff, 'months'),                                                            // 3238
+        anchor2, adjust;                                                                                             // 3239
+                                                                                                                     // 3240
+    if (b - anchor < 0) {                                                                                            // 3241
+        anchor2 = a.clone().add(wholeMonthDiff - 1, 'months');                                                       // 3242
+        // linear across the month                                                                                   // 3243
+        adjust = (b - anchor) / (anchor - anchor2);                                                                  // 3244
+    } else {                                                                                                         // 3245
+        anchor2 = a.clone().add(wholeMonthDiff + 1, 'months');                                                       // 3246
+        // linear across the month                                                                                   // 3247
+        adjust = (b - anchor) / (anchor2 - anchor);                                                                  // 3248
+    }                                                                                                                // 3249
+                                                                                                                     // 3250
+    //check for negative zero, return zero if negative zero                                                          // 3251
+    return -(wholeMonthDiff + adjust) || 0;                                                                          // 3252
+}                                                                                                                    // 3253
+                                                                                                                     // 3254
+hooks.defaultFormat = 'YYYY-MM-DDTHH:mm:ssZ';                                                                        // 3255
+hooks.defaultFormatUtc = 'YYYY-MM-DDTHH:mm:ss[Z]';                                                                   // 3256
+                                                                                                                     // 3257
+function toString () {                                                                                               // 3258
+    return this.clone().locale('en').format('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ');                                     // 3259
+}                                                                                                                    // 3260
+                                                                                                                     // 3261
+function toISOString() {                                                                                             // 3262
+    if (!this.isValid()) {                                                                                           // 3263
+        return null;                                                                                                 // 3264
+    }                                                                                                                // 3265
+    var m = this.clone().utc();                                                                                      // 3266
+    if (m.year() < 0 || m.year() > 9999) {                                                                           // 3267
+        return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]');                                                    // 3268
+    }                                                                                                                // 3269
+    if (isFunction(Date.prototype.toISOString)) {                                                                    // 3270
+        // native implementation is ~50x faster, use it when we can                                                  // 3271
+        return this.toDate().toISOString();                                                                          // 3272
+    }                                                                                                                // 3273
+    return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');                                                          // 3274
+}                                                                                                                    // 3275
+                                                                                                                     // 3276
+/**                                                                                                                  // 3277
+ * Return a human readable representation of a moment that can                                                       // 3278
+ * also be evaluated to get a new moment which is the same                                                           // 3279
+ *                                                                                                                   // 3280
+ * @link https://nodejs.org/dist/latest/docs/api/util.html#util_custom_inspect_function_on_objects                   // 3281
+ */                                                                                                                  // 3282
+function inspect () {                                                                                                // 3283
+    if (!this.isValid()) {                                                                                           // 3284
+        return 'moment.invalid(/* ' + this._i + ' */)';                                                              // 3285
+    }                                                                                                                // 3286
+    var func = 'moment';                                                                                             // 3287
+    var zone = '';                                                                                                   // 3288
+    if (!this.isLocal()) {                                                                                           // 3289
+        func = this.utcOffset() === 0 ? 'moment.utc' : 'moment.parseZone';                                           // 3290
+        zone = 'Z';                                                                                                  // 3291
+    }                                                                                                                // 3292
+    var prefix = '[' + func + '("]';                                                                                 // 3293
+    var year = (0 <= this.year() && this.year() <= 9999) ? 'YYYY' : 'YYYYYY';                                        // 3294
+    var datetime = '-MM-DD[T]HH:mm:ss.SSS';                                                                          // 3295
+    var suffix = zone + '[")]';                                                                                      // 3296
+                                                                                                                     // 3297
+    return this.format(prefix + year + datetime + suffix);                                                           // 3298
+}                                                                                                                    // 3299
+                                                                                                                     // 3300
+function format (inputString) {                                                                                      // 3301
+    if (!inputString) {                                                                                              // 3302
+        inputString = this.isUtc() ? hooks.defaultFormatUtc : hooks.defaultFormat;                                   // 3303
+    }                                                                                                                // 3304
+    var output = formatMoment(this, inputString);                                                                    // 3305
+    return this.localeData().postformat(output);                                                                     // 3306
+}                                                                                                                    // 3307
+                                                                                                                     // 3308
+function from (time, withoutSuffix) {                                                                                // 3309
+    if (this.isValid() &&                                                                                            // 3310
+            ((isMoment(time) && time.isValid()) ||                                                                   // 3311
+             createLocal(time).isValid())) {                                                                         // 3312
+        return createDuration({to: this, from: time}).locale(this.locale()).humanize(!withoutSuffix);                // 3313
+    } else {                                                                                                         // 3314
+        return this.localeData().invalidDate();                                                                      // 3315
+    }                                                                                                                // 3316
+}                                                                                                                    // 3317
+                                                                                                                     // 3318
+function fromNow (withoutSuffix) {                                                                                   // 3319
+    return this.from(createLocal(), withoutSuffix);                                                                  // 3320
+}                                                                                                                    // 3321
+                                                                                                                     // 3322
+function to (time, withoutSuffix) {                                                                                  // 3323
+    if (this.isValid() &&                                                                                            // 3324
+            ((isMoment(time) && time.isValid()) ||                                                                   // 3325
+             createLocal(time).isValid())) {                                                                         // 3326
+        return createDuration({from: this, to: time}).locale(this.locale()).humanize(!withoutSuffix);                // 3327
+    } else {                                                                                                         // 3328
+        return this.localeData().invalidDate();                                                                      // 3329
+    }                                                                                                                // 3330
+}                                                                                                                    // 3331
+                                                                                                                     // 3332
+function toNow (withoutSuffix) {                                                                                     // 3333
+    return this.to(createLocal(), withoutSuffix);                                                                    // 3334
+}                                                                                                                    // 3335
+                                                                                                                     // 3336
+// If passed a locale key, it will set the locale for this                                                           // 3337
+// instance.  Otherwise, it will return the locale configuration                                                     // 3338
+// variables for this instance.                                                                                      // 3339
+function locale (key) {                                                                                              // 3340
+    var newLocaleData;                                                                                               // 3341
+                                                                                                                     // 3342
+    if (key === undefined) {                                                                                         // 3343
+        return this._locale._abbr;                                                                                   // 3344
+    } else {                                                                                                         // 3345
+        newLocaleData = getLocale(key);                                                                              // 3346
+        if (newLocaleData != null) {                                                                                 // 3347
+            this._locale = newLocaleData;                                                                            // 3348
+        }                                                                                                            // 3349
+        return this;                                                                                                 // 3350
+    }                                                                                                                // 3351
+}                                                                                                                    // 3352
+                                                                                                                     // 3353
+var lang = deprecate(                                                                                                // 3354
+    'moment().lang() is deprecated. Instead, use moment().localeData() to get the language configuration. Use moment().locale() to change languages.',
+    function (key) {                                                                                                 // 3356
+        if (key === undefined) {                                                                                     // 3357
+            return this.localeData();                                                                                // 3358
+        } else {                                                                                                     // 3359
+            return this.locale(key);                                                                                 // 3360
+        }                                                                                                            // 3361
+    }                                                                                                                // 3362
+);                                                                                                                   // 3363
+                                                                                                                     // 3364
+function localeData () {                                                                                             // 3365
+    return this._locale;                                                                                             // 3366
+}                                                                                                                    // 3367
+                                                                                                                     // 3368
+function startOf (units) {                                                                                           // 3369
+    units = normalizeUnits(units);                                                                                   // 3370
+    // the following switch intentionally omits break keywords                                                       // 3371
+    // to utilize falling through the cases.                                                                         // 3372
+    switch (units) {                                                                                                 // 3373
+        case 'year':                                                                                                 // 3374
+            this.month(0);                                                                                           // 3375
+            /* falls through */                                                                                      // 3376
+        case 'quarter':                                                                                              // 3377
+        case 'month':                                                                                                // 3378
+            this.date(1);                                                                                            // 3379
+            /* falls through */                                                                                      // 3380
+        case 'week':                                                                                                 // 3381
+        case 'isoWeek':                                                                                              // 3382
+        case 'day':                                                                                                  // 3383
+        case 'date':                                                                                                 // 3384
+            this.hours(0);                                                                                           // 3385
+            /* falls through */                                                                                      // 3386
+        case 'hour':                                                                                                 // 3387
+            this.minutes(0);                                                                                         // 3388
+            /* falls through */                                                                                      // 3389
+        case 'minute':                                                                                               // 3390
+            this.seconds(0);                                                                                         // 3391
+            /* falls through */                                                                                      // 3392
+        case 'second':                                                                                               // 3393
+            this.milliseconds(0);                                                                                    // 3394
+    }                                                                                                                // 3395
+                                                                                                                     // 3396
+    // weeks are a special case                                                                                      // 3397
+    if (units === 'week') {                                                                                          // 3398
+        this.weekday(0);                                                                                             // 3399
+    }                                                                                                                // 3400
+    if (units === 'isoWeek') {                                                                                       // 3401
+        this.isoWeekday(1);                                                                                          // 3402
+    }                                                                                                                // 3403
+                                                                                                                     // 3404
+    // quarters are also special                                                                                     // 3405
+    if (units === 'quarter') {                                                                                       // 3406
+        this.month(Math.floor(this.month() / 3) * 3);                                                                // 3407
+    }                                                                                                                // 3408
+                                                                                                                     // 3409
+    return this;                                                                                                     // 3410
+}                                                                                                                    // 3411
+                                                                                                                     // 3412
+function endOf (units) {                                                                                             // 3413
+    units = normalizeUnits(units);                                                                                   // 3414
+    if (units === undefined || units === 'millisecond') {                                                            // 3415
+        return this;                                                                                                 // 3416
+    }                                                                                                                // 3417
+                                                                                                                     // 3418
+    // 'date' is an alias for 'day', so it should be considered as such.                                             // 3419
+    if (units === 'date') {                                                                                          // 3420
+        units = 'day';                                                                                               // 3421
+    }                                                                                                                // 3422
+                                                                                                                     // 3423
+    return this.startOf(units).add(1, (units === 'isoWeek' ? 'week' : units)).subtract(1, 'ms');                     // 3424
+}                                                                                                                    // 3425
+                                                                                                                     // 3426
+function valueOf () {                                                                                                // 3427
+    return this._d.valueOf() - ((this._offset || 0) * 60000);                                                        // 3428
+}                                                                                                                    // 3429
+                                                                                                                     // 3430
+function unix () {                                                                                                   // 3431
+    return Math.floor(this.valueOf() / 1000);                                                                        // 3432
+}                                                                                                                    // 3433
+                                                                                                                     // 3434
+function toDate () {                                                                                                 // 3435
+    return new Date(this.valueOf());                                                                                 // 3436
+}                                                                                                                    // 3437
+                                                                                                                     // 3438
+function toArray () {                                                                                                // 3439
+    var m = this;                                                                                                    // 3440
+    return [m.year(), m.month(), m.date(), m.hour(), m.minute(), m.second(), m.millisecond()];                       // 3441
+}                                                                                                                    // 3442
+                                                                                                                     // 3443
+function toObject () {                                                                                               // 3444
+    var m = this;                                                                                                    // 3445
+    return {                                                                                                         // 3446
+        years: m.year(),                                                                                             // 3447
+        months: m.month(),                                                                                           // 3448
+        date: m.date(),                                                                                              // 3449
+        hours: m.hours(),                                                                                            // 3450
+        minutes: m.minutes(),                                                                                        // 3451
+        seconds: m.seconds(),                                                                                        // 3452
+        milliseconds: m.milliseconds()                                                                               // 3453
+    };                                                                                                               // 3454
+}                                                                                                                    // 3455
+                                                                                                                     // 3456
+function toJSON () {                                                                                                 // 3457
+    // new Date(NaN).toJSON() === null                                                                               // 3458
+    return this.isValid() ? this.toISOString() : null;                                                               // 3459
+}                                                                                                                    // 3460
+                                                                                                                     // 3461
+function isValid$2 () {                                                                                              // 3462
+    return isValid(this);                                                                                            // 3463
+}                                                                                                                    // 3464
+                                                                                                                     // 3465
+function parsingFlags () {                                                                                           // 3466
+    return extend({}, getParsingFlags(this));                                                                        // 3467
+}                                                                                                                    // 3468
+                                                                                                                     // 3469
+function invalidAt () {                                                                                              // 3470
+    return getParsingFlags(this).overflow;                                                                           // 3471
+}                                                                                                                    // 3472
+                                                                                                                     // 3473
+function creationData() {                                                                                            // 3474
+    return {                                                                                                         // 3475
+        input: this._i,                                                                                              // 3476
+        format: this._f,                                                                                             // 3477
+        locale: this._locale,                                                                                        // 3478
+        isUTC: this._isUTC,                                                                                          // 3479
+        strict: this._strict                                                                                         // 3480
+    };                                                                                                               // 3481
+}                                                                                                                    // 3482
+                                                                                                                     // 3483
+// FORMATTING                                                                                                        // 3484
+                                                                                                                     // 3485
+addFormatToken(0, ['gg', 2], 0, function () {                                                                        // 3486
+    return this.weekYear() % 100;                                                                                    // 3487
+});                                                                                                                  // 3488
+                                                                                                                     // 3489
+addFormatToken(0, ['GG', 2], 0, function () {                                                                        // 3490
+    return this.isoWeekYear() % 100;                                                                                 // 3491
+});                                                                                                                  // 3492
+                                                                                                                     // 3493
+function addWeekYearFormatToken (token, getter) {                                                                    // 3494
+    addFormatToken(0, [token, token.length], 0, getter);                                                             // 3495
+}                                                                                                                    // 3496
+                                                                                                                     // 3497
+addWeekYearFormatToken('gggg',     'weekYear');                                                                      // 3498
+addWeekYearFormatToken('ggggg',    'weekYear');                                                                      // 3499
+addWeekYearFormatToken('GGGG',  'isoWeekYear');                                                                      // 3500
+addWeekYearFormatToken('GGGGG', 'isoWeekYear');                                                                      // 3501
+                                                                                                                     // 3502
+// ALIASES                                                                                                           // 3503
+                                                                                                                     // 3504
+addUnitAlias('weekYear', 'gg');                                                                                      // 3505
+addUnitAlias('isoWeekYear', 'GG');                                                                                   // 3506
+                                                                                                                     // 3507
+// PRIORITY                                                                                                          // 3508
+                                                                                                                     // 3509
+addUnitPriority('weekYear', 1);                                                                                      // 3510
+addUnitPriority('isoWeekYear', 1);                                                                                   // 3511
+                                                                                                                     // 3512
+                                                                                                                     // 3513
+// PARSING                                                                                                           // 3514
+                                                                                                                     // 3515
+addRegexToken('G',      matchSigned);                                                                                // 3516
+addRegexToken('g',      matchSigned);                                                                                // 3517
+addRegexToken('GG',     match1to2, match2);                                                                          // 3518
+addRegexToken('gg',     match1to2, match2);                                                                          // 3519
+addRegexToken('GGGG',   match1to4, match4);                                                                          // 3520
+addRegexToken('gggg',   match1to4, match4);                                                                          // 3521
+addRegexToken('GGGGG',  match1to6, match6);                                                                          // 3522
+addRegexToken('ggggg',  match1to6, match6);                                                                          // 3523
+                                                                                                                     // 3524
+addWeekParseToken(['gggg', 'ggggg', 'GGGG', 'GGGGG'], function (input, week, config, token) {                        // 3525
+    week[token.substr(0, 2)] = toInt(input);                                                                         // 3526
+});                                                                                                                  // 3527
+                                                                                                                     // 3528
+addWeekParseToken(['gg', 'GG'], function (input, week, config, token) {                                              // 3529
+    week[token] = hooks.parseTwoDigitYear(input);                                                                    // 3530
+});                                                                                                                  // 3531
+                                                                                                                     // 3532
+// MOMENTS                                                                                                           // 3533
+                                                                                                                     // 3534
+function getSetWeekYear (input) {                                                                                    // 3535
+    return getSetWeekYearHelper.call(this,                                                                           // 3536
+            input,                                                                                                   // 3537
+            this.week(),                                                                                             // 3538
+            this.weekday(),                                                                                          // 3539
+            this.localeData()._week.dow,                                                                             // 3540
+            this.localeData()._week.doy);                                                                            // 3541
+}                                                                                                                    // 3542
+                                                                                                                     // 3543
+function getSetISOWeekYear (input) {                                                                                 // 3544
+    return getSetWeekYearHelper.call(this,                                                                           // 3545
+            input, this.isoWeek(), this.isoWeekday(), 1, 4);                                                         // 3546
+}                                                                                                                    // 3547
+                                                                                                                     // 3548
+function getISOWeeksInYear () {                                                                                      // 3549
+    return weeksInYear(this.year(), 1, 4);                                                                           // 3550
+}                                                                                                                    // 3551
+                                                                                                                     // 3552
+function getWeeksInYear () {                                                                                         // 3553
+    var weekInfo = this.localeData()._week;                                                                          // 3554
+    return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);                                                     // 3555
+}                                                                                                                    // 3556
+                                                                                                                     // 3557
+function getSetWeekYearHelper(input, week, weekday, dow, doy) {                                                      // 3558
+    var weeksTarget;                                                                                                 // 3559
+    if (input == null) {                                                                                             // 3560
+        return weekOfYear(this, dow, doy).year;                                                                      // 3561
+    } else {                                                                                                         // 3562
+        weeksTarget = weeksInYear(input, dow, doy);                                                                  // 3563
+        if (week > weeksTarget) {                                                                                    // 3564
+            week = weeksTarget;                                                                                      // 3565
+        }                                                                                                            // 3566
+        return setWeekAll.call(this, input, week, weekday, dow, doy);                                                // 3567
+    }                                                                                                                // 3568
+}                                                                                                                    // 3569
+                                                                                                                     // 3570
+function setWeekAll(weekYear, week, weekday, dow, doy) {                                                             // 3571
+    var dayOfYearData = dayOfYearFromWeeks(weekYear, week, weekday, dow, doy),                                       // 3572
+        date = createUTCDate(dayOfYearData.year, 0, dayOfYearData.dayOfYear);                                        // 3573
+                                                                                                                     // 3574
+    this.year(date.getUTCFullYear());                                                                                // 3575
+    this.month(date.getUTCMonth());                                                                                  // 3576
+    this.date(date.getUTCDate());                                                                                    // 3577
+    return this;                                                                                                     // 3578
+}                                                                                                                    // 3579
+                                                                                                                     // 3580
+// FORMATTING                                                                                                        // 3581
+                                                                                                                     // 3582
+addFormatToken('Q', 0, 'Qo', 'quarter');                                                                             // 3583
+                                                                                                                     // 3584
+// ALIASES                                                                                                           // 3585
+                                                                                                                     // 3586
+addUnitAlias('quarter', 'Q');                                                                                        // 3587
+                                                                                                                     // 3588
+// PRIORITY                                                                                                          // 3589
+                                                                                                                     // 3590
+addUnitPriority('quarter', 7);                                                                                       // 3591
+                                                                                                                     // 3592
+// PARSING                                                                                                           // 3593
+                                                                                                                     // 3594
+addRegexToken('Q', match1);                                                                                          // 3595
+addParseToken('Q', function (input, array) {                                                                         // 3596
+    array[MONTH] = (toInt(input) - 1) * 3;                                                                           // 3597
+});                                                                                                                  // 3598
+                                                                                                                     // 3599
+// MOMENTS                                                                                                           // 3600
+                                                                                                                     // 3601
+function getSetQuarter (input) {                                                                                     // 3602
+    return input == null ? Math.ceil((this.month() + 1) / 3) : this.month((input - 1) * 3 + this.month() % 3);       // 3603
+}                                                                                                                    // 3604
+                                                                                                                     // 3605
+// FORMATTING                                                                                                        // 3606
+                                                                                                                     // 3607
+addFormatToken('D', ['DD', 2], 'Do', 'date');                                                                        // 3608
+                                                                                                                     // 3609
+// ALIASES                                                                                                           // 3610
+                                                                                                                     // 3611
+addUnitAlias('date', 'D');                                                                                           // 3612
+                                                                                                                     // 3613
+// PRIOROITY                                                                                                         // 3614
+addUnitPriority('date', 9);                                                                                          // 3615
+                                                                                                                     // 3616
+// PARSING                                                                                                           // 3617
+                                                                                                                     // 3618
+addRegexToken('D',  match1to2);                                                                                      // 3619
+addRegexToken('DD', match1to2, match2);                                                                              // 3620
+addRegexToken('Do', function (isStrict, locale) {                                                                    // 3621
+    // TODO: Remove "ordinalParse" fallback in next major release.                                                   // 3622
+    return isStrict ?                                                                                                // 3623
+      (locale._dayOfMonthOrdinalParse || locale._ordinalParse) :                                                     // 3624
+      locale._dayOfMonthOrdinalParseLenient;                                                                         // 3625
+});                                                                                                                  // 3626
+                                                                                                                     // 3627
+addParseToken(['D', 'DD'], DATE);                                                                                    // 3628
+addParseToken('Do', function (input, array) {                                                                        // 3629
+    array[DATE] = toInt(input.match(match1to2)[0], 10);                                                              // 3630
+});                                                                                                                  // 3631
+                                                                                                                     // 3632
+// MOMENTS                                                                                                           // 3633
+                                                                                                                     // 3634
+var getSetDayOfMonth = makeGetSet('Date', true);                                                                     // 3635
+                                                                                                                     // 3636
+// FORMATTING                                                                                                        // 3637
+                                                                                                                     // 3638
+addFormatToken('DDD', ['DDDD', 3], 'DDDo', 'dayOfYear');                                                             // 3639
+                                                                                                                     // 3640
+// ALIASES                                                                                                           // 3641
+                                                                                                                     // 3642
+addUnitAlias('dayOfYear', 'DDD');                                                                                    // 3643
+                                                                                                                     // 3644
+// PRIORITY                                                                                                          // 3645
+addUnitPriority('dayOfYear', 4);                                                                                     // 3646
+                                                                                                                     // 3647
+// PARSING                                                                                                           // 3648
+                                                                                                                     // 3649
+addRegexToken('DDD',  match1to3);                                                                                    // 3650
+addRegexToken('DDDD', match3);                                                                                       // 3651
+addParseToken(['DDD', 'DDDD'], function (input, array, config) {                                                     // 3652
+    config._dayOfYear = toInt(input);                                                                                // 3653
+});                                                                                                                  // 3654
+                                                                                                                     // 3655
+// HELPERS                                                                                                           // 3656
+                                                                                                                     // 3657
+// MOMENTS                                                                                                           // 3658
+                                                                                                                     // 3659
+function getSetDayOfYear (input) {                                                                                   // 3660
+    var dayOfYear = Math.round((this.clone().startOf('day') - this.clone().startOf('year')) / 864e5) + 1;            // 3661
+    return input == null ? dayOfYear : this.add((input - dayOfYear), 'd');                                           // 3662
+}                                                                                                                    // 3663
+                                                                                                                     // 3664
+// FORMATTING                                                                                                        // 3665
+                                                                                                                     // 3666
+addFormatToken('m', ['mm', 2], 0, 'minute');                                                                         // 3667
+                                                                                                                     // 3668
+// ALIASES                                                                                                           // 3669
+                                                                                                                     // 3670
+addUnitAlias('minute', 'm');                                                                                         // 3671
+                                                                                                                     // 3672
+// PRIORITY                                                                                                          // 3673
+                                                                                                                     // 3674
+addUnitPriority('minute', 14);                                                                                       // 3675
+                                                                                                                     // 3676
+// PARSING                                                                                                           // 3677
+                                                                                                                     // 3678
+addRegexToken('m',  match1to2);                                                                                      // 3679
+addRegexToken('mm', match1to2, match2);                                                                              // 3680
+addParseToken(['m', 'mm'], MINUTE);                                                                                  // 3681
+                                                                                                                     // 3682
+// MOMENTS                                                                                                           // 3683
+                                                                                                                     // 3684
+var getSetMinute = makeGetSet('Minutes', false);                                                                     // 3685
+                                                                                                                     // 3686
+// FORMATTING                                                                                                        // 3687
+                                                                                                                     // 3688
+addFormatToken('s', ['ss', 2], 0, 'second');                                                                         // 3689
+                                                                                                                     // 3690
+// ALIASES                                                                                                           // 3691
+                                                                                                                     // 3692
+addUnitAlias('second', 's');                                                                                         // 3693
+                                                                                                                     // 3694
+// PRIORITY                                                                                                          // 3695
+                                                                                                                     // 3696
+addUnitPriority('second', 15);                                                                                       // 3697
+                                                                                                                     // 3698
+// PARSING                                                                                                           // 3699
+                                                                                                                     // 3700
+addRegexToken('s',  match1to2);                                                                                      // 3701
+addRegexToken('ss', match1to2, match2);                                                                              // 3702
+addParseToken(['s', 'ss'], SECOND);                                                                                  // 3703
+                                                                                                                     // 3704
+// MOMENTS                                                                                                           // 3705
+                                                                                                                     // 3706
+var getSetSecond = makeGetSet('Seconds', false);                                                                     // 3707
+                                                                                                                     // 3708
+// FORMATTING                                                                                                        // 3709
+                                                                                                                     // 3710
+addFormatToken('S', 0, 0, function () {                                                                              // 3711
+    return ~~(this.millisecond() / 100);                                                                             // 3712
+});                                                                                                                  // 3713
+                                                                                                                     // 3714
+addFormatToken(0, ['SS', 2], 0, function () {                                                                        // 3715
+    return ~~(this.millisecond() / 10);                                                                              // 3716
+});                                                                                                                  // 3717
+                                                                                                                     // 3718
+addFormatToken(0, ['SSS', 3], 0, 'millisecond');                                                                     // 3719
+addFormatToken(0, ['SSSS', 4], 0, function () {                                                                      // 3720
+    return this.millisecond() * 10;                                                                                  // 3721
+});                                                                                                                  // 3722
+addFormatToken(0, ['SSSSS', 5], 0, function () {                                                                     // 3723
+    return this.millisecond() * 100;                                                                                 // 3724
+});                                                                                                                  // 3725
+addFormatToken(0, ['SSSSSS', 6], 0, function () {                                                                    // 3726
+    return this.millisecond() * 1000;                                                                                // 3727
+});                                                                                                                  // 3728
+addFormatToken(0, ['SSSSSSS', 7], 0, function () {                                                                   // 3729
+    return this.millisecond() * 10000;                                                                               // 3730
+});                                                                                                                  // 3731
+addFormatToken(0, ['SSSSSSSS', 8], 0, function () {                                                                  // 3732
+    return this.millisecond() * 100000;                                                                              // 3733
+});                                                                                                                  // 3734
+addFormatToken(0, ['SSSSSSSSS', 9], 0, function () {                                                                 // 3735
+    return this.millisecond() * 1000000;                                                                             // 3736
+});                                                                                                                  // 3737
+                                                                                                                     // 3738
+                                                                                                                     // 3739
+// ALIASES                                                                                                           // 3740
+                                                                                                                     // 3741
+addUnitAlias('millisecond', 'ms');                                                                                   // 3742
+                                                                                                                     // 3743
+// PRIORITY                                                                                                          // 3744
+                                                                                                                     // 3745
+addUnitPriority('millisecond', 16);                                                                                  // 3746
+                                                                                                                     // 3747
+// PARSING                                                                                                           // 3748
+                                                                                                                     // 3749
+addRegexToken('S',    match1to3, match1);                                                                            // 3750
+addRegexToken('SS',   match1to3, match2);                                                                            // 3751
+addRegexToken('SSS',  match1to3, match3);                                                                            // 3752
+                                                                                                                     // 3753
+var token;                                                                                                           // 3754
+for (token = 'SSSS'; token.length <= 9; token += 'S') {                                                              // 3755
+    addRegexToken(token, matchUnsigned);                                                                             // 3756
+}                                                                                                                    // 3757
+                                                                                                                     // 3758
+function parseMs(input, array) {                                                                                     // 3759
+    array[MILLISECOND] = toInt(('0.' + input) * 1000);                                                               // 3760
+}                                                                                                                    // 3761
+                                                                                                                     // 3762
+for (token = 'S'; token.length <= 9; token += 'S') {                                                                 // 3763
+    addParseToken(token, parseMs);                                                                                   // 3764
+}                                                                                                                    // 3765
+// MOMENTS                                                                                                           // 3766
+                                                                                                                     // 3767
+var getSetMillisecond = makeGetSet('Milliseconds', false);                                                           // 3768
+                                                                                                                     // 3769
+// FORMATTING                                                                                                        // 3770
+                                                                                                                     // 3771
+addFormatToken('z',  0, 0, 'zoneAbbr');                                                                              // 3772
+addFormatToken('zz', 0, 0, 'zoneName');                                                                              // 3773
+                                                                                                                     // 3774
+// MOMENTS                                                                                                           // 3775
+                                                                                                                     // 3776
+function getZoneAbbr () {                                                                                            // 3777
+    return this._isUTC ? 'UTC' : '';                                                                                 // 3778
+}                                                                                                                    // 3779
+                                                                                                                     // 3780
+function getZoneName () {                                                                                            // 3781
+    return this._isUTC ? 'Coordinated Universal Time' : '';                                                          // 3782
+}                                                                                                                    // 3783
+                                                                                                                     // 3784
+var proto = Moment.prototype;                                                                                        // 3785
+                                                                                                                     // 3786
+proto.add               = add;                                                                                       // 3787
+proto.calendar          = calendar$1;                                                                                // 3788
+proto.clone             = clone;                                                                                     // 3789
+proto.diff              = diff;                                                                                      // 3790
+proto.endOf             = endOf;                                                                                     // 3791
+proto.format            = format;                                                                                    // 3792
+proto.from              = from;                                                                                      // 3793
+proto.fromNow           = fromNow;                                                                                   // 3794
+proto.to                = to;                                                                                        // 3795
+proto.toNow             = toNow;                                                                                     // 3796
+proto.get               = stringGet;                                                                                 // 3797
+proto.invalidAt         = invalidAt;                                                                                 // 3798
+proto.isAfter           = isAfter;                                                                                   // 3799
+proto.isBefore          = isBefore;                                                                                  // 3800
+proto.isBetween         = isBetween;                                                                                 // 3801
+proto.isSame            = isSame;                                                                                    // 3802
+proto.isSameOrAfter     = isSameOrAfter;                                                                             // 3803
+proto.isSameOrBefore    = isSameOrBefore;                                                                            // 3804
+proto.isValid           = isValid$2;                                                                                 // 3805
+proto.lang              = lang;                                                                                      // 3806
+proto.locale            = locale;                                                                                    // 3807
+proto.localeData        = localeData;                                                                                // 3808
+proto.max               = prototypeMax;                                                                              // 3809
+proto.min               = prototypeMin;                                                                              // 3810
+proto.parsingFlags      = parsingFlags;                                                                              // 3811
+proto.set               = stringSet;                                                                                 // 3812
+proto.startOf           = startOf;                                                                                   // 3813
+proto.subtract          = subtract;                                                                                  // 3814
+proto.toArray           = toArray;                                                                                   // 3815
+proto.toObject          = toObject;                                                                                  // 3816
+proto.toDate            = toDate;                                                                                    // 3817
+proto.toISOString       = toISOString;                                                                               // 3818
+proto.inspect           = inspect;                                                                                   // 3819
+proto.toJSON            = toJSON;                                                                                    // 3820
+proto.toString          = toString;                                                                                  // 3821
+proto.unix              = unix;                                                                                      // 3822
+proto.valueOf           = valueOf;                                                                                   // 3823
+proto.creationData      = creationData;                                                                              // 3824
+                                                                                                                     // 3825
+// Year                                                                                                              // 3826
+proto.year       = getSetYear;                                                                                       // 3827
+proto.isLeapYear = getIsLeapYear;                                                                                    // 3828
+                                                                                                                     // 3829
+// Week Year                                                                                                         // 3830
+proto.weekYear    = getSetWeekYear;                                                                                  // 3831
+proto.isoWeekYear = getSetISOWeekYear;                                                                               // 3832
+                                                                                                                     // 3833
+// Quarter                                                                                                           // 3834
+proto.quarter = proto.quarters = getSetQuarter;                                                                      // 3835
+                                                                                                                     // 3836
+// Month                                                                                                             // 3837
+proto.month       = getSetMonth;                                                                                     // 3838
+proto.daysInMonth = getDaysInMonth;                                                                                  // 3839
+                                                                                                                     // 3840
+// Week                                                                                                              // 3841
+proto.week           = proto.weeks        = getSetWeek;                                                              // 3842
+proto.isoWeek        = proto.isoWeeks     = getSetISOWeek;                                                           // 3843
+proto.weeksInYear    = getWeeksInYear;                                                                               // 3844
+proto.isoWeeksInYear = getISOWeeksInYear;                                                                            // 3845
+                                                                                                                     // 3846
+// Day                                                                                                               // 3847
+proto.date       = getSetDayOfMonth;                                                                                 // 3848
+proto.day        = proto.days             = getSetDayOfWeek;                                                         // 3849
+proto.weekday    = getSetLocaleDayOfWeek;                                                                            // 3850
+proto.isoWeekday = getSetISODayOfWeek;                                                                               // 3851
+proto.dayOfYear  = getSetDayOfYear;                                                                                  // 3852
+                                                                                                                     // 3853
+// Hour                                                                                                              // 3854
+proto.hour = proto.hours = getSetHour;                                                                               // 3855
+                                                                                                                     // 3856
+// Minute                                                                                                            // 3857
+proto.minute = proto.minutes = getSetMinute;                                                                         // 3858
+                                                                                                                     // 3859
+// Second                                                                                                            // 3860
+proto.second = proto.seconds = getSetSecond;                                                                         // 3861
+                                                                                                                     // 3862
+// Millisecond                                                                                                       // 3863
+proto.millisecond = proto.milliseconds = getSetMillisecond;                                                          // 3864
+                                                                                                                     // 3865
+// Offset                                                                                                            // 3866
+proto.utcOffset            = getSetOffset;                                                                           // 3867
+proto.utc                  = setOffsetToUTC;                                                                         // 3868
+proto.local                = setOffsetToLocal;                                                                       // 3869
+proto.parseZone            = setOffsetToParsedOffset;                                                                // 3870
+proto.hasAlignedHourOffset = hasAlignedHourOffset;                                                                   // 3871
+proto.isDST                = isDaylightSavingTime;                                                                   // 3872
+proto.isLocal              = isLocal;                                                                                // 3873
+proto.isUtcOffset          = isUtcOffset;                                                                            // 3874
+proto.isUtc                = isUtc;                                                                                  // 3875
+proto.isUTC                = isUtc;                                                                                  // 3876
+                                                                                                                     // 3877
+// Timezone                                                                                                          // 3878
+proto.zoneAbbr = getZoneAbbr;                                                                                        // 3879
+proto.zoneName = getZoneName;                                                                                        // 3880
+                                                                                                                     // 3881
+// Deprecations                                                                                                      // 3882
+proto.dates  = deprecate('dates accessor is deprecated. Use date instead.', getSetDayOfMonth);                       // 3883
+proto.months = deprecate('months accessor is deprecated. Use month instead', getSetMonth);                           // 3884
+proto.years  = deprecate('years accessor is deprecated. Use year instead', getSetYear);                              // 3885
+proto.zone   = deprecate('moment().zone is deprecated, use moment().utcOffset instead. http://momentjs.com/guides/#/warnings/zone/', getSetZone);
+proto.isDSTShifted = deprecate('isDSTShifted is deprecated. See http://momentjs.com/guides/#/warnings/dst-shifted/ for more information', isDaylightSavingTimeShifted);
+                                                                                                                     // 3888
+function createUnix (input) {                                                                                        // 3889
+    return createLocal(input * 1000);                                                                                // 3890
+}                                                                                                                    // 3891
+                                                                                                                     // 3892
+function createInZone () {                                                                                           // 3893
+    return createLocal.apply(null, arguments).parseZone();                                                           // 3894
+}                                                                                                                    // 3895
+                                                                                                                     // 3896
+function preParsePostFormat (string) {                                                                               // 3897
+    return string;                                                                                                   // 3898
+}                                                                                                                    // 3899
+                                                                                                                     // 3900
+var proto$1 = Locale.prototype;                                                                                      // 3901
+                                                                                                                     // 3902
+proto$1.calendar        = calendar;                                                                                  // 3903
+proto$1.longDateFormat  = longDateFormat;                                                                            // 3904
+proto$1.invalidDate     = invalidDate;                                                                               // 3905
+proto$1.ordinal         = ordinal;                                                                                   // 3906
+proto$1.preparse        = preParsePostFormat;                                                                        // 3907
+proto$1.postformat      = preParsePostFormat;                                                                        // 3908
+proto$1.relativeTime    = relativeTime;                                                                              // 3909
+proto$1.pastFuture      = pastFuture;                                                                                // 3910
+proto$1.set             = set;                                                                                       // 3911
+                                                                                                                     // 3912
+// Month                                                                                                             // 3913
+proto$1.months            =        localeMonths;                                                                     // 3914
+proto$1.monthsShort       =        localeMonthsShort;                                                                // 3915
+proto$1.monthsParse       =        localeMonthsParse;                                                                // 3916
+proto$1.monthsRegex       = monthsRegex;                                                                             // 3917
+proto$1.monthsShortRegex  = monthsShortRegex;                                                                        // 3918
+                                                                                                                     // 3919
+// Week                                                                                                              // 3920
+proto$1.week = localeWeek;                                                                                           // 3921
+proto$1.firstDayOfYear = localeFirstDayOfYear;                                                                       // 3922
+proto$1.firstDayOfWeek = localeFirstDayOfWeek;                                                                       // 3923
+                                                                                                                     // 3924
+// Day of Week                                                                                                       // 3925
+proto$1.weekdays       =        localeWeekdays;                                                                      // 3926
+proto$1.weekdaysMin    =        localeWeekdaysMin;                                                                   // 3927
+proto$1.weekdaysShort  =        localeWeekdaysShort;                                                                 // 3928
+proto$1.weekdaysParse  =        localeWeekdaysParse;                                                                 // 3929
+                                                                                                                     // 3930
+proto$1.weekdaysRegex       =        weekdaysRegex;                                                                  // 3931
+proto$1.weekdaysShortRegex  =        weekdaysShortRegex;                                                             // 3932
+proto$1.weekdaysMinRegex    =        weekdaysMinRegex;                                                               // 3933
+                                                                                                                     // 3934
+// Hours                                                                                                             // 3935
+proto$1.isPM = localeIsPM;                                                                                           // 3936
+proto$1.meridiem = localeMeridiem;                                                                                   // 3937
+                                                                                                                     // 3938
+function get$1 (format, index, field, setter) {                                                                      // 3939
+    var locale = getLocale();                                                                                        // 3940
+    var utc = createUTC().set(setter, index);                                                                        // 3941
+    return locale[field](utc, format);                                                                               // 3942
+}                                                                                                                    // 3943
+                                                                                                                     // 3944
+function listMonthsImpl (format, index, field) {                                                                     // 3945
+    if (isNumber(format)) {                                                                                          // 3946
+        index = format;                                                                                              // 3947
+        format = undefined;                                                                                          // 3948
+    }                                                                                                                // 3949
+                                                                                                                     // 3950
+    format = format || '';                                                                                           // 3951
+                                                                                                                     // 3952
+    if (index != null) {                                                                                             // 3953
+        return get$1(format, index, field, 'month');                                                                 // 3954
+    }                                                                                                                // 3955
+                                                                                                                     // 3956
+    var i;                                                                                                           // 3957
+    var out = [];                                                                                                    // 3958
+    for (i = 0; i < 12; i++) {                                                                                       // 3959
+        out[i] = get$1(format, i, field, 'month');                                                                   // 3960
+    }                                                                                                                // 3961
+    return out;                                                                                                      // 3962
+}                                                                                                                    // 3963
+                                                                                                                     // 3964
+// ()                                                                                                                // 3965
+// (5)                                                                                                               // 3966
+// (fmt, 5)                                                                                                          // 3967
+// (fmt)                                                                                                             // 3968
+// (true)                                                                                                            // 3969
+// (true, 5)                                                                                                         // 3970
+// (true, fmt, 5)                                                                                                    // 3971
+// (true, fmt)                                                                                                       // 3972
+function listWeekdaysImpl (localeSorted, format, index, field) {                                                     // 3973
+    if (typeof localeSorted === 'boolean') {                                                                         // 3974
+        if (isNumber(format)) {                                                                                      // 3975
+            index = format;                                                                                          // 3976
+            format = undefined;                                                                                      // 3977
+        }                                                                                                            // 3978
+                                                                                                                     // 3979
+        format = format || '';                                                                                       // 3980
+    } else {                                                                                                         // 3981
+        format = localeSorted;                                                                                       // 3982
+        index = format;                                                                                              // 3983
+        localeSorted = false;                                                                                        // 3984
+                                                                                                                     // 3985
+        if (isNumber(format)) {                                                                                      // 3986
+            index = format;                                                                                          // 3987
+            format = undefined;                                                                                      // 3988
+        }                                                                                                            // 3989
+                                                                                                                     // 3990
+        format = format || '';                                                                                       // 3991
+    }                                                                                                                // 3992
+                                                                                                                     // 3993
+    var locale = getLocale(),                                                                                        // 3994
+        shift = localeSorted ? locale._week.dow : 0;                                                                 // 3995
+                                                                                                                     // 3996
+    if (index != null) {                                                                                             // 3997
+        return get$1(format, (index + shift) % 7, field, 'day');                                                     // 3998
+    }                                                                                                                // 3999
+                                                                                                                     // 4000
+    var i;                                                                                                           // 4001
+    var out = [];                                                                                                    // 4002
+    for (i = 0; i < 7; i++) {                                                                                        // 4003
+        out[i] = get$1(format, (i + shift) % 7, field, 'day');                                                       // 4004
+    }                                                                                                                // 4005
+    return out;                                                                                                      // 4006
+}                                                                                                                    // 4007
+                                                                                                                     // 4008
+function listMonths (format, index) {                                                                                // 4009
+    return listMonthsImpl(format, index, 'months');                                                                  // 4010
+}                                                                                                                    // 4011
+                                                                                                                     // 4012
+function listMonthsShort (format, index) {                                                                           // 4013
+    return listMonthsImpl(format, index, 'monthsShort');                                                             // 4014
+}                                                                                                                    // 4015
+                                                                                                                     // 4016
+function listWeekdays (localeSorted, format, index) {                                                                // 4017
+    return listWeekdaysImpl(localeSorted, format, index, 'weekdays');                                                // 4018
+}                                                                                                                    // 4019
+                                                                                                                     // 4020
+function listWeekdaysShort (localeSorted, format, index) {                                                           // 4021
+    return listWeekdaysImpl(localeSorted, format, index, 'weekdaysShort');                                           // 4022
+}                                                                                                                    // 4023
+                                                                                                                     // 4024
+function listWeekdaysMin (localeSorted, format, index) {                                                             // 4025
+    return listWeekdaysImpl(localeSorted, format, index, 'weekdaysMin');                                             // 4026
+}                                                                                                                    // 4027
+                                                                                                                     // 4028
+getSetGlobalLocale('en', {                                                                                           // 4029
+    dayOfMonthOrdinalParse: /\d{1,2}(th|st|nd|rd)/,                                                                  // 4030
+    ordinal : function (number) {                                                                                    // 4031
+        var b = number % 10,                                                                                         // 4032
+            output = (toInt(number % 100 / 10) === 1) ? 'th' :                                                       // 4033
+            (b === 1) ? 'st' :                                                                                       // 4034
+            (b === 2) ? 'nd' :                                                                                       // 4035
+            (b === 3) ? 'rd' : 'th';                                                                                 // 4036
+        return number + output;                                                                                      // 4037
+    }                                                                                                                // 4038
+});                                                                                                                  // 4039
+                                                                                                                     // 4040
+// Side effect imports                                                                                               // 4041
+hooks.lang = deprecate('moment.lang is deprecated. Use moment.locale instead.', getSetGlobalLocale);                 // 4042
+hooks.langData = deprecate('moment.langData is deprecated. Use moment.localeData instead.', getLocale);              // 4043
+                                                                                                                     // 4044
+var mathAbs = Math.abs;                                                                                              // 4045
+                                                                                                                     // 4046
+function abs () {                                                                                                    // 4047
+    var data           = this._data;                                                                                 // 4048
+                                                                                                                     // 4049
+    this._milliseconds = mathAbs(this._milliseconds);                                                                // 4050
+    this._days         = mathAbs(this._days);                                                                        // 4051
+    this._months       = mathAbs(this._months);                                                                      // 4052
+                                                                                                                     // 4053
+    data.milliseconds  = mathAbs(data.milliseconds);                                                                 // 4054
+    data.seconds       = mathAbs(data.seconds);                                                                      // 4055
+    data.minutes       = mathAbs(data.minutes);                                                                      // 4056
+    data.hours         = mathAbs(data.hours);                                                                        // 4057
+    data.months        = mathAbs(data.months);                                                                       // 4058
+    data.years         = mathAbs(data.years);                                                                        // 4059
+                                                                                                                     // 4060
+    return this;                                                                                                     // 4061
+}                                                                                                                    // 4062
+                                                                                                                     // 4063
+function addSubtract$1 (duration, input, value, direction) {                                                         // 4064
+    var other = createDuration(input, value);                                                                        // 4065
+                                                                                                                     // 4066
+    duration._milliseconds += direction * other._milliseconds;                                                       // 4067
+    duration._days         += direction * other._days;                                                               // 4068
+    duration._months       += direction * other._months;                                                             // 4069
+                                                                                                                     // 4070
+    return duration._bubble();                                                                                       // 4071
+}                                                                                                                    // 4072
+                                                                                                                     // 4073
+// supports only 2.0-style add(1, 's') or add(duration)                                                              // 4074
+function add$1 (input, value) {                                                                                      // 4075
+    return addSubtract$1(this, input, value, 1);                                                                     // 4076
+}                                                                                                                    // 4077
+                                                                                                                     // 4078
+// supports only 2.0-style subtract(1, 's') or subtract(duration)                                                    // 4079
+function subtract$1 (input, value) {                                                                                 // 4080
+    return addSubtract$1(this, input, value, -1);                                                                    // 4081
+}                                                                                                                    // 4082
+                                                                                                                     // 4083
+function absCeil (number) {                                                                                          // 4084
+    if (number < 0) {                                                                                                // 4085
+        return Math.floor(number);                                                                                   // 4086
+    } else {                                                                                                         // 4087
+        return Math.ceil(number);                                                                                    // 4088
+    }                                                                                                                // 4089
+}                                                                                                                    // 4090
+                                                                                                                     // 4091
+function bubble () {                                                                                                 // 4092
+    var milliseconds = this._milliseconds;                                                                           // 4093
+    var days         = this._days;                                                                                   // 4094
+    var months       = this._months;                                                                                 // 4095
+    var data         = this._data;                                                                                   // 4096
+    var seconds, minutes, hours, years, monthsFromDays;                                                              // 4097
+                                                                                                                     // 4098
+    // if we have a mix of positive and negative values, bubble down first                                           // 4099
+    // check: https://github.com/moment/moment/issues/2166                                                           // 4100
+    if (!((milliseconds >= 0 && days >= 0 && months >= 0) ||                                                         // 4101
+            (milliseconds <= 0 && days <= 0 && months <= 0))) {                                                      // 4102
+        milliseconds += absCeil(monthsToDays(months) + days) * 864e5;                                                // 4103
+        days = 0;                                                                                                    // 4104
+        months = 0;                                                                                                  // 4105
+    }                                                                                                                // 4106
+                                                                                                                     // 4107
+    // The following code bubbles up values, see the tests for                                                       // 4108
+    // examples of what that means.                                                                                  // 4109
+    data.milliseconds = milliseconds % 1000;                                                                         // 4110
+                                                                                                                     // 4111
+    seconds           = absFloor(milliseconds / 1000);                                                               // 4112
+    data.seconds      = seconds % 60;                                                                                // 4113
+                                                                                                                     // 4114
+    minutes           = absFloor(seconds / 60);                                                                      // 4115
+    data.minutes      = minutes % 60;                                                                                // 4116
+                                                                                                                     // 4117
+    hours             = absFloor(minutes / 60);                                                                      // 4118
+    data.hours        = hours % 24;                                                                                  // 4119
+                                                                                                                     // 4120
+    days += absFloor(hours / 24);                                                                                    // 4121
+                                                                                                                     // 4122
+    // convert days to months                                                                                        // 4123
+    monthsFromDays = absFloor(daysToMonths(days));                                                                   // 4124
+    months += monthsFromDays;                                                                                        // 4125
+    days -= absCeil(monthsToDays(monthsFromDays));                                                                   // 4126
+                                                                                                                     // 4127
+    // 12 months -> 1 year                                                                                           // 4128
+    years = absFloor(months / 12);                                                                                   // 4129
+    months %= 12;                                                                                                    // 4130
+                                                                                                                     // 4131
+    data.days   = days;                                                                                              // 4132
+    data.months = months;                                                                                            // 4133
+    data.years  = years;                                                                                             // 4134
+                                                                                                                     // 4135
+    return this;                                                                                                     // 4136
+}                                                                                                                    // 4137
+                                                                                                                     // 4138
+function daysToMonths (days) {                                                                                       // 4139
+    // 400 years have 146097 days (taking into account leap year rules)                                              // 4140
+    // 400 years have 12 months === 4800                                                                             // 4141
+    return days * 4800 / 146097;                                                                                     // 4142
+}                                                                                                                    // 4143
+                                                                                                                     // 4144
+function monthsToDays (months) {                                                                                     // 4145
+    // the reverse of daysToMonths                                                                                   // 4146
+    return months * 146097 / 4800;                                                                                   // 4147
+}                                                                                                                    // 4148
+                                                                                                                     // 4149
+function as (units) {                                                                                                // 4150
+    if (!this.isValid()) {                                                                                           // 4151
+        return NaN;                                                                                                  // 4152
+    }                                                                                                                // 4153
+    var days;                                                                                                        // 4154
+    var months;                                                                                                      // 4155
+    var milliseconds = this._milliseconds;                                                                           // 4156
+                                                                                                                     // 4157
+    units = normalizeUnits(units);                                                                                   // 4158
+                                                                                                                     // 4159
+    if (units === 'month' || units === 'year') {                                                                     // 4160
+        days   = this._days   + milliseconds / 864e5;                                                                // 4161
+        months = this._months + daysToMonths(days);                                                                  // 4162
+        return units === 'month' ? months : months / 12;                                                             // 4163
+    } else {                                                                                                         // 4164
+        // handle milliseconds separately because of floating point math errors (issue #1867)                        // 4165
+        days = this._days + Math.round(monthsToDays(this._months));                                                  // 4166
+        switch (units) {                                                                                             // 4167
+            case 'week'   : return days / 7     + milliseconds / 6048e5;                                             // 4168
+            case 'day'    : return days         + milliseconds / 864e5;                                              // 4169
+            case 'hour'   : return days * 24    + milliseconds / 36e5;                                               // 4170
+            case 'minute' : return days * 1440  + milliseconds / 6e4;                                                // 4171
+            case 'second' : return days * 86400 + milliseconds / 1000;                                               // 4172
+            // Math.floor prevents floating point math errors here                                                   // 4173
+            case 'millisecond': return Math.floor(days * 864e5) + milliseconds;                                      // 4174
+            default: throw new Error('Unknown unit ' + units);                                                       // 4175
+        }                                                                                                            // 4176
+    }                                                                                                                // 4177
+}                                                                                                                    // 4178
+                                                                                                                     // 4179
+// TODO: Use this.as('ms')?                                                                                          // 4180
+function valueOf$1 () {                                                                                              // 4181
+    if (!this.isValid()) {                                                                                           // 4182
+        return NaN;                                                                                                  // 4183
+    }                                                                                                                // 4184
+    return (                                                                                                         // 4185
+        this._milliseconds +                                                                                         // 4186
+        this._days * 864e5 +                                                                                         // 4187
+        (this._months % 12) * 2592e6 +                                                                               // 4188
+        toInt(this._months / 12) * 31536e6                                                                           // 4189
+    );                                                                                                               // 4190
+}                                                                                                                    // 4191
+                                                                                                                     // 4192
+function makeAs (alias) {                                                                                            // 4193
+    return function () {                                                                                             // 4194
+        return this.as(alias);                                                                                       // 4195
+    };                                                                                                               // 4196
+}                                                                                                                    // 4197
+                                                                                                                     // 4198
+var asMilliseconds = makeAs('ms');                                                                                   // 4199
+var asSeconds      = makeAs('s');                                                                                    // 4200
+var asMinutes      = makeAs('m');                                                                                    // 4201
+var asHours        = makeAs('h');                                                                                    // 4202
+var asDays         = makeAs('d');                                                                                    // 4203
+var asWeeks        = makeAs('w');                                                                                    // 4204
+var asMonths       = makeAs('M');                                                                                    // 4205
+var asYears        = makeAs('y');                                                                                    // 4206
+                                                                                                                     // 4207
+function get$2 (units) {                                                                                             // 4208
+    units = normalizeUnits(units);                                                                                   // 4209
+    return this.isValid() ? this[units + 's']() : NaN;                                                               // 4210
+}                                                                                                                    // 4211
+                                                                                                                     // 4212
+function makeGetter(name) {                                                                                          // 4213
+    return function () {                                                                                             // 4214
+        return this.isValid() ? this._data[name] : NaN;                                                              // 4215
+    };                                                                                                               // 4216
+}                                                                                                                    // 4217
+                                                                                                                     // 4218
+var milliseconds = makeGetter('milliseconds');                                                                       // 4219
+var seconds      = makeGetter('seconds');                                                                            // 4220
+var minutes      = makeGetter('minutes');                                                                            // 4221
+var hours        = makeGetter('hours');                                                                              // 4222
+var days         = makeGetter('days');                                                                               // 4223
+var months       = makeGetter('months');                                                                             // 4224
+var years        = makeGetter('years');                                                                              // 4225
+                                                                                                                     // 4226
+function weeks () {                                                                                                  // 4227
+    return absFloor(this.days() / 7);                                                                                // 4228
+}                                                                                                                    // 4229
+                                                                                                                     // 4230
+var round = Math.round;                                                                                              // 4231
+var thresholds = {                                                                                                   // 4232
+    ss: 44,         // a few seconds to seconds                                                                      // 4233
+    s : 45,         // seconds to minute                                                                             // 4234
+    m : 45,         // minutes to hour                                                                               // 4235
+    h : 22,         // hours to day                                                                                  // 4236
+    d : 26,         // days to month                                                                                 // 4237
+    M : 11          // months to year                                                                                // 4238
+};                                                                                                                   // 4239
+                                                                                                                     // 4240
+// helper function for moment.fn.from, moment.fn.fromNow, and moment.duration.fn.humanize                            // 4241
+function substituteTimeAgo(string, number, withoutSuffix, isFuture, locale) {                                        // 4242
+    return locale.relativeTime(number || 1, !!withoutSuffix, string, isFuture);                                      // 4243
+}                                                                                                                    // 4244
+                                                                                                                     // 4245
+function relativeTime$1 (posNegDuration, withoutSuffix, locale) {                                                    // 4246
+    var duration = createDuration(posNegDuration).abs();                                                             // 4247
+    var seconds  = round(duration.as('s'));                                                                          // 4248
+    var minutes  = round(duration.as('m'));                                                                          // 4249
+    var hours    = round(duration.as('h'));                                                                          // 4250
+    var days     = round(duration.as('d'));                                                                          // 4251
+    var months   = round(duration.as('M'));                                                                          // 4252
+    var years    = round(duration.as('y'));                                                                          // 4253
+                                                                                                                     // 4254
+    var a = seconds <= thresholds.ss && ['s', seconds]  ||                                                           // 4255
+            seconds < thresholds.s   && ['ss', seconds] ||                                                           // 4256
+            minutes <= 1             && ['m']           ||                                                           // 4257
+            minutes < thresholds.m   && ['mm', minutes] ||                                                           // 4258
+            hours   <= 1             && ['h']           ||                                                           // 4259
+            hours   < thresholds.h   && ['hh', hours]   ||                                                           // 4260
+            days    <= 1             && ['d']           ||                                                           // 4261
+            days    < thresholds.d   && ['dd', days]    ||                                                           // 4262
+            months  <= 1             && ['M']           ||                                                           // 4263
+            months  < thresholds.M   && ['MM', months]  ||                                                           // 4264
+            years   <= 1             && ['y']           || ['yy', years];                                            // 4265
+                                                                                                                     // 4266
+    a[2] = withoutSuffix;                                                                                            // 4267
+    a[3] = +posNegDuration > 0;                                                                                      // 4268
+    a[4] = locale;                                                                                                   // 4269
+    return substituteTimeAgo.apply(null, a);                                                                         // 4270
+}                                                                                                                    // 4271
+                                                                                                                     // 4272
+// This function allows you to set the rounding function for relative time strings                                   // 4273
+function getSetRelativeTimeRounding (roundingFunction) {                                                             // 4274
+    if (roundingFunction === undefined) {                                                                            // 4275
+        return round;                                                                                                // 4276
+    }                                                                                                                // 4277
+    if (typeof(roundingFunction) === 'function') {                                                                   // 4278
+        round = roundingFunction;                                                                                    // 4279
+        return true;                                                                                                 // 4280
+    }                                                                                                                // 4281
+    return false;                                                                                                    // 4282
+}                                                                                                                    // 4283
+                                                                                                                     // 4284
+// This function allows you to set a threshold for relative time strings                                             // 4285
+function getSetRelativeTimeThreshold (threshold, limit) {                                                            // 4286
+    if (thresholds[threshold] === undefined) {                                                                       // 4287
+        return false;                                                                                                // 4288
+    }                                                                                                                // 4289
+    if (limit === undefined) {                                                                                       // 4290
+        return thresholds[threshold];                                                                                // 4291
+    }                                                                                                                // 4292
+    thresholds[threshold] = limit;                                                                                   // 4293
+    if (threshold === 's') {                                                                                         // 4294
+        thresholds.ss = limit - 1;                                                                                   // 4295
+    }                                                                                                                // 4296
+    return true;                                                                                                     // 4297
+}                                                                                                                    // 4298
+                                                                                                                     // 4299
+function humanize (withSuffix) {                                                                                     // 4300
+    if (!this.isValid()) {                                                                                           // 4301
+        return this.localeData().invalidDate();                                                                      // 4302
+    }                                                                                                                // 4303
+                                                                                                                     // 4304
+    var locale = this.localeData();                                                                                  // 4305
+    var output = relativeTime$1(this, !withSuffix, locale);                                                          // 4306
+                                                                                                                     // 4307
+    if (withSuffix) {                                                                                                // 4308
+        output = locale.pastFuture(+this, output);                                                                   // 4309
+    }                                                                                                                // 4310
+                                                                                                                     // 4311
+    return locale.postformat(output);                                                                                // 4312
+}                                                                                                                    // 4313
+                                                                                                                     // 4314
+var abs$1 = Math.abs;                                                                                                // 4315
+                                                                                                                     // 4316
+function toISOString$1() {                                                                                           // 4317
+    // for ISO strings we do not use the normal bubbling rules:                                                      // 4318
+    //  * milliseconds bubble up until they become hours                                                             // 4319
+    //  * days do not bubble at all                                                                                  // 4320
+    //  * months bubble up until they become years                                                                   // 4321
+    // This is because there is no context-free conversion between hours and days                                    // 4322
+    // (think of clock changes)                                                                                      // 4323
+    // and also not between days and months (28-31 days per month)                                                   // 4324
+    if (!this.isValid()) {                                                                                           // 4325
+        return this.localeData().invalidDate();                                                                      // 4326
+    }                                                                                                                // 4327
+                                                                                                                     // 4328
+    var seconds = abs$1(this._milliseconds) / 1000;                                                                  // 4329
+    var days         = abs$1(this._days);                                                                            // 4330
+    var months       = abs$1(this._months);                                                                          // 4331
+    var minutes, hours, years;                                                                                       // 4332
+                                                                                                                     // 4333
+    // 3600 seconds -> 60 minutes -> 1 hour                                                                          // 4334
+    minutes           = absFloor(seconds / 60);                                                                      // 4335
+    hours             = absFloor(minutes / 60);                                                                      // 4336
+    seconds %= 60;                                                                                                   // 4337
+    minutes %= 60;                                                                                                   // 4338
+                                                                                                                     // 4339
+    // 12 months -> 1 year                                                                                           // 4340
+    years  = absFloor(months / 12);                                                                                  // 4341
+    months %= 12;                                                                                                    // 4342
+                                                                                                                     // 4343
+                                                                                                                     // 4344
+    // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js                  // 4345
+    var Y = years;                                                                                                   // 4346
+    var M = months;                                                                                                  // 4347
+    var D = days;                                                                                                    // 4348
+    var h = hours;                                                                                                   // 4349
+    var m = minutes;                                                                                                 // 4350
+    var s = seconds;                                                                                                 // 4351
+    var total = this.asSeconds();                                                                                    // 4352
+                                                                                                                     // 4353
+    if (!total) {                                                                                                    // 4354
+        // this is the same as C#'s (Noda) and python (isodate)...                                                   // 4355
+        // but not other JS (goog.date)                                                                              // 4356
+        return 'P0D';                                                                                                // 4357
+    }                                                                                                                // 4358
+                                                                                                                     // 4359
+    return (total < 0 ? '-' : '') +                                                                                  // 4360
+        'P' +                                                                                                        // 4361
+        (Y ? Y + 'Y' : '') +                                                                                         // 4362
+        (M ? M + 'M' : '') +                                                                                         // 4363
+        (D ? D + 'D' : '') +                                                                                         // 4364
+        ((h || m || s) ? 'T' : '') +                                                                                 // 4365
+        (h ? h + 'H' : '') +                                                                                         // 4366
+        (m ? m + 'M' : '') +                                                                                         // 4367
+        (s ? s + 'S' : '');                                                                                          // 4368
+}                                                                                                                    // 4369
+                                                                                                                     // 4370
+var proto$2 = Duration.prototype;                                                                                    // 4371
+                                                                                                                     // 4372
+proto$2.isValid        = isValid$1;                                                                                  // 4373
+proto$2.abs            = abs;                                                                                        // 4374
+proto$2.add            = add$1;                                                                                      // 4375
+proto$2.subtract       = subtract$1;                                                                                 // 4376
+proto$2.as             = as;                                                                                         // 4377
+proto$2.asMilliseconds = asMilliseconds;                                                                             // 4378
+proto$2.asSeconds      = asSeconds;                                                                                  // 4379
+proto$2.asMinutes      = asMinutes;                                                                                  // 4380
+proto$2.asHours        = asHours;                                                                                    // 4381
+proto$2.asDays         = asDays;                                                                                     // 4382
+proto$2.asWeeks        = asWeeks;                                                                                    // 4383
+proto$2.asMonths       = asMonths;                                                                                   // 4384
+proto$2.asYears        = asYears;                                                                                    // 4385
+proto$2.valueOf        = valueOf$1;                                                                                  // 4386
+proto$2._bubble        = bubble;                                                                                     // 4387
+proto$2.get            = get$2;                                                                                      // 4388
+proto$2.milliseconds   = milliseconds;                                                                               // 4389
+proto$2.seconds        = seconds;                                                                                    // 4390
+proto$2.minutes        = minutes;                                                                                    // 4391
+proto$2.hours          = hours;                                                                                      // 4392
+proto$2.days           = days;                                                                                       // 4393
+proto$2.weeks          = weeks;                                                                                      // 4394
+proto$2.months         = months;                                                                                     // 4395
+proto$2.years          = years;                                                                                      // 4396
+proto$2.humanize       = humanize;                                                                                   // 4397
+proto$2.toISOString    = toISOString$1;                                                                              // 4398
+proto$2.toString       = toISOString$1;                                                                              // 4399
+proto$2.toJSON         = toISOString$1;                                                                              // 4400
+proto$2.locale         = locale;                                                                                     // 4401
+proto$2.localeData     = localeData;                                                                                 // 4402
+                                                                                                                     // 4403
+// Deprecations                                                                                                      // 4404
+proto$2.toIsoString = deprecate('toIsoString() is deprecated. Please use toISOString() instead (notice the capitals)', toISOString$1);
+proto$2.lang = lang;                                                                                                 // 4406
+                                                                                                                     // 4407
+// Side effect imports                                                                                               // 4408
+                                                                                                                     // 4409
+// FORMATTING                                                                                                        // 4410
+                                                                                                                     // 4411
+addFormatToken('X', 0, 0, 'unix');                                                                                   // 4412
+addFormatToken('x', 0, 0, 'valueOf');                                                                                // 4413
+                                                                                                                     // 4414
+// PARSING                                                                                                           // 4415
+                                                                                                                     // 4416
+addRegexToken('x', matchSigned);                                                                                     // 4417
+addRegexToken('X', matchTimestamp);                                                                                  // 4418
+addParseToken('X', function (input, array, config) {                                                                 // 4419
+    config._d = new Date(parseFloat(input, 10) * 1000);                                                              // 4420
+});                                                                                                                  // 4421
+addParseToken('x', function (input, array, config) {                                                                 // 4422
+    config._d = new Date(toInt(input));                                                                              // 4423
+});                                                                                                                  // 4424
+                                                                                                                     // 4425
+// Side effect imports                                                                                               // 4426
+                                                                                                                     // 4427
+                                                                                                                     // 4428
+hooks.version = '2.18.1';                                                                                            // 4429
+                                                                                                                     // 4430
+setHookCallback(createLocal);                                                                                        // 4431
+                                                                                                                     // 4432
+hooks.fn                    = proto;                                                                                 // 4433
+hooks.min                   = min;                                                                                   // 4434
+hooks.max                   = max;                                                                                   // 4435
+hooks.now                   = now;                                                                                   // 4436
+hooks.utc                   = createUTC;                                                                             // 4437
+hooks.unix                  = createUnix;                                                                            // 4438
+hooks.months                = listMonths;                                                                            // 4439
+hooks.isDate                = isDate;                                                                                // 4440
+hooks.locale                = getSetGlobalLocale;                                                                    // 4441
+hooks.invalid               = createInvalid;                                                                         // 4442
+hooks.duration              = createDuration;                                                                        // 4443
+hooks.isMoment              = isMoment;                                                                              // 4444
+hooks.weekdays              = listWeekdays;                                                                          // 4445
+hooks.parseZone             = createInZone;                                                                          // 4446
+hooks.localeData            = getLocale;                                                                             // 4447
+hooks.isDuration            = isDuration;                                                                            // 4448
+hooks.monthsShort           = listMonthsShort;                                                                       // 4449
+hooks.weekdaysMin           = listWeekdaysMin;                                                                       // 4450
+hooks.defineLocale          = defineLocale;                                                                          // 4451
+hooks.updateLocale          = updateLocale;                                                                          // 4452
+hooks.locales               = listLocales;                                                                           // 4453
+hooks.weekdaysShort         = listWeekdaysShort;                                                                     // 4454
+hooks.normalizeUnits        = normalizeUnits;                                                                        // 4455
+hooks.relativeTimeRounding = getSetRelativeTimeRounding;                                                             // 4456
+hooks.relativeTimeThreshold = getSetRelativeTimeThreshold;                                                           // 4457
+hooks.calendarFormat        = getCalendarFormat;                                                                     // 4458
+hooks.prototype             = proto;                                                                                 // 4459
+                                                                                                                     // 4460
+return hooks;                                                                                                        // 4461
+                                                                                                                     // 4462
+})));                                                                                                                // 4463
+                                                                                                                     // 4464
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+}).call(this);
+
+
+
+
+
+
+(function(){
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                                   //
+// packages/momentjs_moment/export.js                                                                                //
+//                                                                                                                   //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                                                                                     //
 // moment.js makes `moment` global on the window (or global) object, while Meteor expects a file-scoped global variable
-moment = this.moment;                                                                                                  // 2
-try {                                                                                                                  // 3
-    delete this.moment;                                                                                                // 4
-} catch (e) {                                                                                                          // 5
-}                                                                                                                      // 6
-                                                                                                                       // 7
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                                                                     // 3229
-}).call(this);                                                       // 3230
-                                                                     // 3231
-///////////////////////////////////////////////////////////////////////
+moment = this.moment;                                                                                                // 2
+try {                                                                                                                // 3
+    delete this.moment;                                                                                              // 4
+} catch (e) {                                                                                                        // 5
+}                                                                                                                    // 6
+                                                                                                                     // 7
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }).call(this);
 

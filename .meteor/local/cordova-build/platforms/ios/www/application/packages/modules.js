@@ -16,9 +16,6 @@ var global = Package.meteor.global;
 var meteorEnv = Package.meteor.meteorEnv;
 var meteorInstall = Package['modules-runtime'].meteorInstall;
 
-/* Package-scope variables */
-var process;
-
 var require = meteorInstall({"node_modules":{"meteor":{"modules":{"client.js":function(require,exports){
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,28 +177,48 @@ install("matb33:bootstrap-glyphicons");                                         
 install("coffeescript");                                                                                               // 102
 install("zimme:active-route");                                                                                         // 103
 install("gwendall:auth-client-callbacks");                                                                             // 104
-install("datariot:ganalytics");                                                                                        // 105
-install("standard-minifier-css");                                                                                      // 106
-install("standard-minifier-js");                                                                                       // 107
-install("shell-server");                                                                                               // 108
-install("dynamic-import", "meteor/dynamic-import/client.js");                                                          // 109
-install("twbs:bootstrap");                                                                                             // 110
-install("stylus");                                                                                                     // 111
-install("anti:i18n");                                                                                                  // 112
-install("ian:accounts-ui-bootstrap-3");                                                                                // 113
-install("livedata");                                                                                                   // 114
-install("momentjs:moment");                                                                                            // 115
-install("aldeed:autoform");                                                                                            // 116
-install("webapp", "meteor/webapp/webapp_cordova.js");                                                                  // 117
-install("hot-code-push");                                                                                              // 118
-install("mobile-status-bar");                                                                                          // 119
-install("launch-screen");                                                                                              // 120
-install("url");                                                                                                        // 121
-install("http");                                                                                                       // 122
-install("autoupdate");                                                                                                 // 123
-install("mdg:validation-error");                                                                                       // 124
-install("service-configuration");                                                                                      // 125
-                                                                                                                       // 126
+install("lai:collection-extensions");                                                                                  // 105
+install("dburles:mongo-collection-instances");                                                                         // 106
+install("meteortoys:toykit");                                                                                          // 107
+install("msavin:mongol");                                                                                              // 108
+install("msavin:jetsetter");                                                                                           // 109
+install("gwendall:body-events");                                                                                       // 110
+install("meteortoys:blueprint");                                                                                       // 111
+install("meteortoys:authenticate");                                                                                    // 112
+install("meteortoys:shell");                                                                                           // 113
+install("meteortoys:method");                                                                                          // 114
+install("meteortoys:result");                                                                                          // 115
+install("meteortoys:autopub");                                                                                         // 116
+install("meteortoys:pub");                                                                                             // 117
+install("meteortoys:sub");                                                                                             // 118
+install("meteortoys:email");                                                                                           // 119
+install("meteortoys:listen");                                                                                          // 120
+install("meteortoys:throttle");                                                                                        // 121
+install("meteortoys:status");                                                                                          // 122
+install("meteortoys:hotreload");                                                                                       // 123
+install("meteortoys:allthings");                                                                                       // 124
+install("datariot:ganalytics");                                                                                        // 125
+install("standard-minifier-css");                                                                                      // 126
+install("standard-minifier-js");                                                                                       // 127
+install("shell-server");                                                                                               // 128
+install("dynamic-import", "meteor/dynamic-import/client.js");                                                          // 129
+install("twbs:bootstrap");                                                                                             // 130
+install("stylus");                                                                                                     // 131
+install("anti:i18n");                                                                                                  // 132
+install("ian:accounts-ui-bootstrap-3");                                                                                // 133
+install("livedata");                                                                                                   // 134
+install("momentjs:moment");                                                                                            // 135
+install("aldeed:autoform");                                                                                            // 136
+install("webapp", "meteor/webapp/webapp_cordova.js");                                                                  // 137
+install("hot-code-push");                                                                                              // 138
+install("mobile-status-bar");                                                                                          // 139
+install("launch-screen");                                                                                              // 140
+install("url");                                                                                                        // 141
+install("http");                                                                                                       // 142
+install("autoupdate");                                                                                                 // 143
+install("mdg:validation-error");                                                                                       // 144
+install("service-configuration");                                                                                      // 145
+                                                                                                                       // 146
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 },"process.js":function(require,exports,module){
@@ -212,39 +229,43 @@ install("service-configuration");                                               
 //                                                                                                                     //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                                                                                                        //
-try {                                                                                                                  // 1
-  // The application can run `npm install process` to provide its own                                                  // 2
-  // process stub; otherwise this module will provide a partial stub.                                                  // 3
-  process = global.process || require("process");                                                                      // 4
-} catch (noProcess) {                                                                                                  // 5
-  process = {};                                                                                                        // 6
-}                                                                                                                      // 7
-                                                                                                                       // 8
-if (Meteor.isServer) {                                                                                                 // 9
-  // Make require("process") work on the server in all versions of Node.                                               // 10
-  meteorInstall({                                                                                                      // 11
-    node_modules: {                                                                                                    // 12
-      "process.js": function (r, e, module) {                                                                          // 13
-        module.exports = process;                                                                                      // 14
-      }                                                                                                                // 15
-    }                                                                                                                  // 16
-  });                                                                                                                  // 17
-} else {                                                                                                               // 18
-  process.platform = "browser";                                                                                        // 19
-  process.nextTick = process.nextTick || Meteor._setImmediate;                                                         // 20
-}                                                                                                                      // 21
-                                                                                                                       // 22
-if (typeof process.env !== "object") {                                                                                 // 23
-  process.env = {};                                                                                                    // 24
+if (! global.process) {                                                                                                // 1
+  try {                                                                                                                // 2
+    // The application can run `npm install process` to provide its own                                                // 3
+    // process stub; otherwise this module will provide a partial stub.                                                // 4
+    global.process = require("process");                                                                               // 5
+  } catch (missing) {                                                                                                  // 6
+    global.process = {};                                                                                               // 7
+  }                                                                                                                    // 8
+}                                                                                                                      // 9
+                                                                                                                       // 10
+var proc = global.process;                                                                                             // 11
+                                                                                                                       // 12
+if (Meteor.isServer) {                                                                                                 // 13
+  // Make require("process") work on the server in all versions of Node.                                               // 14
+  meteorInstall({                                                                                                      // 15
+    node_modules: {                                                                                                    // 16
+      "process.js": function (r, e, module) {                                                                          // 17
+        module.exports = proc;                                                                                         // 18
+      }                                                                                                                // 19
+    }                                                                                                                  // 20
+  });                                                                                                                  // 21
+} else {                                                                                                               // 22
+  proc.platform = "browser";                                                                                           // 23
+  proc.nextTick = proc.nextTick || Meteor._setImmediate;                                                               // 24
 }                                                                                                                      // 25
                                                                                                                        // 26
-var hasOwn = Object.prototype.hasOwnProperty;                                                                          // 27
-for (var key in meteorEnv) {                                                                                           // 28
-  if (hasOwn.call(meteorEnv, key)) {                                                                                   // 29
-    process.env[key] = meteorEnv[key];                                                                                 // 30
-  }                                                                                                                    // 31
-}                                                                                                                      // 32
-                                                                                                                       // 33
+if (typeof proc.env !== "object") {                                                                                    // 27
+  proc.env = {};                                                                                                       // 28
+}                                                                                                                      // 29
+                                                                                                                       // 30
+var hasOwn = Object.prototype.hasOwnProperty;                                                                          // 31
+for (var key in meteorEnv) {                                                                                           // 32
+  if (hasOwn.call(meteorEnv, key)) {                                                                                   // 33
+    proc.env[key] = meteorEnv[key];                                                                                    // 34
+  }                                                                                                                    // 35
+}                                                                                                                      // 36
+                                                                                                                       // 37
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 },"reify.js":function(require,exports,module){
@@ -10898,8 +10919,7 @@ if (typeof Package === 'undefined') Package = {};
   for (var s in symbols)
     (s in pkg) || (pkg[s] = symbols[s]);
 })(Package.modules = exports, {
-  meteorInstall: meteorInstall,
-  process: process
+  meteorInstall: meteorInstall
 });
 
 })();

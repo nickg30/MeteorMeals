@@ -15,7 +15,6 @@ var Meteor = Package.meteor.Meteor;
 var global = Package.meteor.global;
 var meteorEnv = Package.meteor.meteorEnv;
 var meteorInstall = Package.modules.meteorInstall;
-var process = Package.modules.process;
 
 /* Package-scope variables */
 var Promise;
@@ -70,7 +69,7 @@ exports.Promise.prototype.done = function (onFulfilled, onRejected) {           
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                  //
-// ../../.0.8.9.1k3ivtk++os+web.browser+web.cordova/npm/node_modules/meteor-promise/package.json                    //
+// ../../.0.8.9.djhwu4++os+web.browser+web.cordova/npm/node_modules/meteor-promise/package.json                     //
 //                                                                                                                  //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                                                                                                     //

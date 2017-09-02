@@ -20,9 +20,6 @@ var ReactiveDict = Package['reactive-dict'].ReactiveDict;
 var _ = Package.underscore._;
 var meteorBabelHelpers = Package['babel-runtime'].meteorBabelHelpers;
 var Promise = Package.promise.Promise;
-var Symbol = Package['ecmascript-runtime-client'].Symbol;
-var Map = Package['ecmascript-runtime-client'].Map;
-var Set = Package['ecmascript-runtime-client'].Set;
 
 /* Package-scope variables */
 var __coffeescriptShare, ActiveRoute;

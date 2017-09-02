@@ -42,7 +42,7 @@
     <allow-intent href="itms:*" />
     <allow-intent href="itms-apps:*" />
     <allow-navigation href="http://localhost" />
-    <access origin="*://meteorbox.herokuapp.com" />
+    <access origin="*://meteormeals.herokuapp.com" />
     <icon height="120" src="resources/iphone_2x.icon.png" width="120" />
     <icon height="180" src="resources/iphone_3x.icon.png" width="180" />
     <icon height="76" src="resources/ipad.icon.png" width="76" />

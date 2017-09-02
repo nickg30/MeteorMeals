@@ -25,7 +25,6 @@ var Random = Package.random.Random;
 var DiffSequence = Package['diff-sequence'].DiffSequence;
 var GeoJSON = Package['geojson-utils'].GeoJSON;
 var meteorInstall = Package.modules.meteorInstall;
-var process = Package.modules.process;
 var meteorBabelHelpers = Package['babel-runtime'].meteorBabelHelpers;
 var Promise = Package.promise.Promise;
 var Symbol = Package['ecmascript-runtime-client'].Symbol;

@@ -10,7 +10,7 @@ var require = meteorInstall({"client":{"layouts":{"template.HomeLayout.js":funct
 Template.__checkName("HomeLayout");                                                                // 2
 Template["HomeLayout"] = new Template("Template.HomeLayout", (function() {                         // 3
   var view = this;                                                                                 // 4
-  return [ Spacebars.include(view.lookupTemplate("Header")), HTML.Raw('\n\t\t<main>\n\t\t\t<div class="billboard">\n\t\t\t\t<h2>Organize your Meals</h2>\n\t\t\t</div>\n\t\t</main>') ];
+  return [ Spacebars.include(view.lookupTemplate("Header")), HTML.Raw('\n\t\t<main>\n\t\t\t<div class="billboard">\n\t\t\t\t<h1>Meteor Box</h1>\n\t\t\t\t<h4>Quick, fresh, chef curated meals from around the world delivered to your door...</h4>\n\t\t\t</div>\n\t\t\t<footer>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>About Us</li>\n\t\t\t\t\t<li>Contact</li>\n\t\t\t\t\t<li>Legal</li>\n\t\t\t\t</ul>\n\t\t\t\t<p>MeteorBox 2017</p>\n\t\t\t</footer>\n\t\t</main>') ];
 }));                                                                                               // 6
                                                                                                    // 7
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,23 +78,6 @@ Template.__checkName("SideNav");                                                
 Template["SideNav"] = new Template("Template.SideNav", (function() {                               // 3
   var view = this;                                                                                 // 4
   return HTML.Raw('<nav class="side-nav">\n\t\t<ul>\n\t\t\t<li><a href="/recipe-book"><i class="fa fa-list"></i>Menu</a></li>\n\t\t\t<li><a href="/menu"><i class="fa fa-map-o"></i>My Box</a></li>\n\t\t\t<li><a href="/shopping-list"><i class="fa fa-shopping-cart"></i>Checkout</a></li>\n\t\t</ul>\n\t</nav>');
-}));                                                                                               // 6
-                                                                                                   // 7
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-}},"profile":{"template.Profile.js":function(){
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                                 //
-// client/profile/template.Profile.js                                                              //
-//                                                                                                 //
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-                                                                                                   //
-                                                                                                   // 1
-Template.__checkName("profile");                                                                   // 2
-Template["profile"] = new Template("Template.profile", (function() {                               // 3
-  var view = this;                                                                                 // 4
-  return HTML.Raw("<h1>Hello</h1>}}");                                                             // 5
 }));                                                                                               // 6
                                                                                                    // 7
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -679,7 +662,6 @@ require("./client/layouts/template.HomeLayout.js");
 require("./client/layouts/template.MainLayout.js");
 require("./client/partials/template.Header.js");
 require("./client/partials/template.SideNav.js");
-require("./client/profile/template.Profile.js");
 require("./client/recipes/template.NewRecipe.js");
 require("./client/recipes/template.Recipe.js");
 require("./client/recipes/template.RecipeSingle.js");

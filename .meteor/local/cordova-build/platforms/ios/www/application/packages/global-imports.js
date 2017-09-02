@@ -33,7 +33,6 @@ Handlebars = Package.ui.Handlebars;
 Spacebars = Package.spacebars.Spacebars;
 Template = Package['templating-runtime'].Template;
 meteorInstall = Package.modules.meteorInstall;
-process = Package.modules.process;
 Promise = Package.promise.Promise;
 Collection2 = Package['aldeed:collection2-core'].Collection2;
 Accounts = Package['accounts-base'].Accounts;

@@ -22,7 +22,6 @@ var Match = Package.check.Match;
 var EJSON = Package.ejson.EJSON;
 var DDP = Package['ddp-client'].DDP;
 var meteorInstall = Package.modules.meteorInstall;
-var process = Package.modules.process;
 var meteorBabelHelpers = Package['babel-runtime'].meteorBabelHelpers;
 var Promise = Package.promise.Promise;
 var Symbol = Package['ecmascript-runtime-client'].Symbol;

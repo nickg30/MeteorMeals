@@ -21,7 +21,6 @@ var ReactiveDict = Package['reactive-dict'].ReactiveDict;
 var ReactiveVar = Package['reactive-var'].ReactiveVar;
 var EJSON = Package.ejson.EJSON;
 var meteorInstall = Package.modules.meteorInstall;
-var process = Package.modules.process;
 
 /* Package-scope variables */
 var page, qs, Triggers, Router, Group, Route, FlowRouter;
@@ -2044,7 +2043,7 @@ function pathToRegexp (path, keys, options) {                                   
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                    //
-// ../../.2.12.1.xf9ic7++os+web.browser+web.cordova/npm/node_modules/page/node_modules/path-to-regexp/node_modules/is //
+// ../../.2.12.1.10tyco3++os+web.browser+web.cordova/npm/node_modules/page/node_modules/path-to-regexp/node_modules/i //
 //                                                                                                                    //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                                                                                                       //
@@ -2072,7 +2071,7 @@ module.exports = Array.isArray || function (arr) {                              
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                                                    //
-// ../../.2.12.1.xf9ic7++os+web.browser+web.cordova/npm/node_modules/qs/package.json                                  //
+// ../../.2.12.1.10tyco3++os+web.browser+web.cordova/npm/node_modules/qs/package.json                                 //
 //                                                                                                                    //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                                                                                                       //
