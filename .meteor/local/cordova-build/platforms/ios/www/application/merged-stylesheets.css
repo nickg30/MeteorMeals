@@ -16130,7 +16130,7 @@ footer p {
 }
 
 footer {
-  margin-top: 40px;
+  margin-top: 10%;
 }
 
 footer ul {
@@ -16142,6 +16142,7 @@ footer ul {
   -webkit-align-content: center;
   -ms-flex-line-pack: center;
   align-content: center;
+  font-family: 'Lato';
 }
 
 footer ul li {
@@ -16150,6 +16151,11 @@ footer ul li {
   text-align: center;
   padding: 14px 16px;
   text-decoration: none;
+  font-family: 'Lato';
+}
+
+input {
+  font-family: 'Lato';
 }
 
 header {
@@ -16203,6 +16209,7 @@ a {
   top: 22px;
   left: 80px;
   list-style: none;
+  font-family: 'Lato' !important;
 }
 
 .boxPriceMenu {
@@ -16215,6 +16222,10 @@ a {
 
 .dropdown a {
   color: #fdfffc;
+}
+
+.dropdown-toggle {
+  font-family: Lato;
 }
 
 .logo {
