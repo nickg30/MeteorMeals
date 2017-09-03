@@ -1047,11 +1047,11 @@
       "where": "client",
       "type": "css",
       "cacheable": true,
-      "url": "/merged-stylesheets.css?hash=905dc45931198d12426ea81cd3a74b50340d1fba",
+      "url": "/merged-stylesheets.css?hash=94953f4dd6854fb21488a9790b128acd05d85ccb",
       "sourceMap": "merged-stylesheets.css.map",
-      "sourceMapUrl": "/905dc45931198d12426ea81cd3a74b50340d1fba.map",
-      "size": 447677,
-      "hash": "905dc45931198d12426ea81cd3a74b50340d1fba"
+      "sourceMapUrl": "/94953f4dd6854fb21488a9790b128acd05d85ccb.map",
+      "size": 447678,
+      "hash": "94953f4dd6854fb21488a9790b128acd05d85ccb"
     },
     {
       "path": "packages/fortawesome_fontawesome/upstream/fonts/fontawesome-webfont.eot",
@@ -1248,6 +1248,15 @@
       "type": "asset",
       "cacheable": false,
       "url": "/img/logo-small.png",
+      "size": 4242,
+      "hash": "ae46d289427cf86e4faa277a5547caeb4b693e91"
+    },
+    {
+      "path": "app/img/logo-small2.png",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/logo-small2.png",
       "size": 3394,
       "hash": "902adacf6316c53adce93d33c70d6baf2981ca6b"
     },

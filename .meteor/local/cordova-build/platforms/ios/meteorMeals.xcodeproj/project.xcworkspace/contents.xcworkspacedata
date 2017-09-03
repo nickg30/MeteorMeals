@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:">
+      location = "self:/Users/programuser/Documents/Code/Portfolio/meteorMeals/.meteor/local/cordova-build/platforms/ios/meteorMeals.xcodeproj">
    </FileRef>
 </Workspace>
