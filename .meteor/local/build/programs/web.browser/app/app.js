@@ -10,7 +10,7 @@ var require = meteorInstall({"client":{"layouts":{"template.HomeLayout.js":funct
 Template.__checkName("HomeLayout");                                                                // 2
 Template["HomeLayout"] = new Template("Template.HomeLayout", (function() {                         // 3
   var view = this;                                                                                 // 4
-  return [ Spacebars.include(view.lookupTemplate("Header")), HTML.Raw('\n\t\t<main>\n\t\t\t<div class="billboard">\n\t\t\t\t<h1>Blazing Box</h1>\n\t\t\t\t<h4>Quick, fresh, chef curated meals from around the world delivered to your door...</h4>\n\t\t\t</div>\n\t\t\t<footer>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>About Us</li>\n\t\t\t\t\t<li>Contact</li>\n\t\t\t\t\t<li>Legal</li>\n\t\t\t\t</ul>\n\t\t\t\t<p>MeteorBox 2017</p>\n\t\t\t</footer>\n\t\t</main>') ];
+  return [ Spacebars.include(view.lookupTemplate("Header")), HTML.Raw('\n\t\t<main>\n\t\t\t<div class="billboard">\n\t\t\t\t<h1>Blazing Box</h1>\n\t\t\t\t<h4>Quick, fresh, chef curated meals from around the world delivered to your door...</h4>\n\t\t\t</div>\n\t\t\t<footer>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>About Us</li>\n\t\t\t\t\t<li>Contact</li>\n\t\t\t\t\t<li>Legal</li>\n\t\t\t\t</ul>\n\t\t\t\t<p>Blazing Box 2017</p>\n\t\t\t</footer>\n\t\t</main>') ];
 }));                                                                                               // 6
                                                                                                    // 7
 /////////////////////////////////////////////////////////////////////////////////////////////////////
