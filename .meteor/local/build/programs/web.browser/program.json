@@ -1225,6 +1225,15 @@
       "hash": "c064a7571b04de61e124f11581e9b84f910b88c5"
     },
     {
+      "path": "app/img/Default~iphone.afdesign",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/Default~iphone.afdesign",
+      "size": 117656,
+      "hash": "1da4334eb959d99ed7aa0d804c8efae50b7ca787"
+    },
+    {
       "path": "app/img/japan.jpg",
       "where": "client",
       "type": "asset",
@@ -1259,6 +1268,15 @@
       "url": "/img/logo-small2.png",
       "size": 3394,
       "hash": "902adacf6316c53adce93d33c70d6baf2981ca6b"
+    },
+    {
+      "path": "app/img/logo.afdesign",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/logo.afdesign",
+      "size": 38067,
+      "hash": "7af9e6b4416c3d7103751eb96e17d495c734bbcc"
     },
     {
       "path": "head.html",
