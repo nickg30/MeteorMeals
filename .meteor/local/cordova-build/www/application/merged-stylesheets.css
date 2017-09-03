@@ -16586,7 +16586,7 @@ textarea.static-input {
 
 .side-nav i {
   display: block;
-  font-size: 2em;
+  font-size: 1.2em;
   margin-bottom: 10px;
 }
 
@@ -16629,6 +16629,10 @@ textarea.static-input {
   .side-nav a.active {
     border-left: 10px solid #fff86e;
   }
+}
+
+.recipes {
+  padding-bottom: 130px;
 }
 
 .recipe,
