@@ -16777,6 +16777,10 @@ textarea.static-input {
   left: 20px;
 }
 
+#login-other-options a {
+  color: #222;
+}
+
 @-webkit-keyframes card {
   0% {
     -webkit-transform: translate3d(0, 0, 0);
