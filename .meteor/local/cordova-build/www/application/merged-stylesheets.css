@@ -16773,12 +16773,13 @@ textarea.static-input {
 }
 
 .pull-right {
-  float: left !important;
+  float: right !important;
   left: 20px;
 }
 
 #login-other-options a {
   color: #222;
+  float: right;
 }
 
 @-webkit-keyframes card {

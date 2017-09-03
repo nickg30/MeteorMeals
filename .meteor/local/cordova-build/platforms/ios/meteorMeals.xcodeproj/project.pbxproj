@@ -5,6 +5,7 @@
 	};
 	objectVersion = 46;
 	objects = {
+
 /* Begin PBXBuildFile section */
 		0207DA581B56EA530066E2B4 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0207DA571B56EA530066E2B4 /* Images.xcassets */; };
 		093FBA88C7B34E5793EBB40B /* GCDWebServerFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 925FF89BE33C47DC8DD78FE2 /* GCDWebServerFunctions.m */; };
@@ -74,7 +75,7 @@
 		192A565C7F2E42C2ABB6F57D /* CDVWKWebViewUIDelegate.h */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = CDVWKWebViewUIDelegate.h; path = "cordova-plugin-wkwebview-engine/CDVWKWebViewUIDelegate.h"; sourceTree = "<group>"; };
 		1D3623240D0F684500981E51 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		1D3623250D0F684500981E51 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		1D6058910D05DD3D006BFB54 /* meteorMeals.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = meteorMeals.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1D6058910D05DD3D006BFB54 /* Blazing Box.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Blazing Box.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		211A4E4D020D49C38F55A789 /* GCDWebServerRequest.h */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = GCDWebServerRequest.h; path = "cordova-plugin-meteor-webapp/GCDWebServerRequest.h"; sourceTree = "<group>"; };
 		24664E919E8F420EB1E33D47 /* WebAppConfiguration.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = WebAppConfiguration.swift; path = "cordova-plugin-meteor-webapp/WebAppConfiguration.swift"; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -182,7 +183,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1D6058910D05DD3D006BFB54 /* meteorMeals.app */,
+				1D6058910D05DD3D006BFB54 /* Blazing Box.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -349,7 +350,7 @@
 			);
 			name = meteorMeals;
 			productName = meteorMeals;
-			productReference = 1D6058910D05DD3D006BFB54 /* meteorMeals.app */;
+			productReference = 1D6058910D05DD3D006BFB54 /* Blazing Box.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -502,7 +503,7 @@
 				INFOPLIST_FILE = "meteorMeals/meteorMeals-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.id10q9tai1jbua0k1w13x6r;
-				PRODUCT_NAME = meteorMeals;
+				PRODUCT_NAME = "Blazing Box";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
@@ -525,7 +526,7 @@
 				INFOPLIST_FILE = "meteorMeals/meteorMeals-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.id10q9tai1jbua0k1w13x6r;
-				PRODUCT_NAME = meteorMeals;
+				PRODUCT_NAME = "Blazing Box";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Release;

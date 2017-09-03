@@ -1016,11 +1016,11 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/app/app.js?hash=3d2a75acdaf90da4cc5505389be748e39a100f82",
+      "url": "/app/app.js?hash=18193934ca5dbf94d2def13fd78f7c25787c7061",
       "sourceMap": "app/app.js.map",
-      "sourceMapUrl": "/app/3d2a75acdaf90da4cc5505389be748e39a100f82.map",
-      "size": 64316,
-      "hash": "3d2a75acdaf90da4cc5505389be748e39a100f82"
+      "sourceMapUrl": "/app/18193934ca5dbf94d2def13fd78f7c25787c7061.map",
+      "size": 64317,
+      "hash": "18193934ca5dbf94d2def13fd78f7c25787c7061"
     },
     {
       "path": "packages/mdg_validation-error.js",
@@ -1225,6 +1225,33 @@
       "hash": "c064a7571b04de61e124f11581e9b84f910b88c5"
     },
     {
+      "path": "app/img/Default-667h.afdesign",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/Default-667h.afdesign",
+      "size": 118188,
+      "hash": "fa90e1ae54b7b621efa0f1a6ba4629d739cac14d"
+    },
+    {
+      "path": "app/img/Default-736h.afdesign",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/Default-736h.afdesign",
+      "size": 111719,
+      "hash": "41cfcb4c6a466c68a5ee7110dc0e28db477dda08"
+    },
+    {
+      "path": "app/img/Default@2x~iphone.afdesign",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/Default@2x~iphone.afdesign",
+      "size": 120961,
+      "hash": "184301fb0f8b30e1cb5496c369108e7b8e06218c"
+    },
+    {
       "path": "app/img/Default~iphone.afdesign",
       "where": "client",
       "type": "asset",
@@ -1277,6 +1304,24 @@
       "url": "/img/logo.afdesign",
       "size": 38067,
       "hash": "7af9e6b4416c3d7103751eb96e17d495c734bbcc"
+    },
+    {
+      "path": "app/img/logo2.afdesign",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/logo2.afdesign",
+      "size": 29061,
+      "hash": "82bb3e4c4a2db618cf7d15d2aaa2a21a88ffcdd2"
+    },
+    {
+      "path": "app/img/splash.afdesign",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/splash.afdesign",
+      "size": 121004,
+      "hash": "a67fb2f2056d67304dde12a540a267617039c365"
     },
     {
       "path": "head.html",
