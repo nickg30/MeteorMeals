@@ -16631,6 +16631,10 @@ textarea.static-input {
   }
 }
 
+.recipes {
+  padding-bottom: 130px;
+}
+
 .recipe,
 .menu-item,
 .shopping-list {
