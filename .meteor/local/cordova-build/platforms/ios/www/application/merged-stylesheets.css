@@ -16274,6 +16274,7 @@ a {
   margin-left: auto;
   margin-right: auto;
   margin-top: 20px;
+  padding-bottom: 120px;
 }
 
 .main-layout:before {
@@ -16629,10 +16630,6 @@ textarea.static-input {
   .side-nav a.active {
     border-left: 10px solid #fff86e;
   }
-}
-
-.recipes {
-  padding-bottom: 130px;
 }
 
 .recipe,
