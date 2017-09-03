@@ -16126,6 +16126,7 @@ footer p {
   color: #fdfffc;
   text-align: center;
   padding: 24px;
+  font-family: 'Lato';
 }
 
 footer {
@@ -16253,6 +16254,7 @@ a {
 
 .billboard h4 {
   color: #fffbb4;
+  font-family: 'Lato';
 }
 
 .main-layout {

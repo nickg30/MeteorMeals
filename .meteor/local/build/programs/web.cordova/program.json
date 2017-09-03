@@ -1076,11 +1076,11 @@
       "where": "client",
       "type": "css",
       "cacheable": true,
-      "url": "/merged-stylesheets.css?hash=324d42a76c65ee07c141ba1d6e74c0d61245142d",
+      "url": "/merged-stylesheets.css?hash=2cd7875c08fb56b9c5d9f2a00d450965f3a0df89",
       "sourceMap": "merged-stylesheets.css.map",
-      "sourceMapUrl": "/324d42a76c65ee07c141ba1d6e74c0d61245142d.map",
-      "size": 447398,
-      "hash": "324d42a76c65ee07c141ba1d6e74c0d61245142d"
+      "sourceMapUrl": "/2cd7875c08fb56b9c5d9f2a00d450965f3a0df89.map",
+      "size": 447511,
+      "hash": "2cd7875c08fb56b9c5d9f2a00d450965f3a0df89"
     },
     {
       "path": "packages/fortawesome_fontawesome/upstream/fonts/fontawesome-webfont.eot",
@@ -1243,87 +1243,6 @@
       "url": "/fonts/BalooBhaijaan-Regular.ttf",
       "size": 266384,
       "hash": "868e115be3b6fbbbcb4145635118bca77ec9fa2d"
-    },
-    {
-      "path": "app/fonts/Lato-Black.ttf",
-      "where": "client",
-      "type": "asset",
-      "cacheable": false,
-      "url": "/fonts/Lato-Black.ttf",
-      "size": 114588,
-      "hash": "42ffb0e10cc773ef26b517dd5d5535cb3ec55b71"
-    },
-    {
-      "path": "app/fonts/Lato-BlackItalic.ttf",
-      "where": "client",
-      "type": "asset",
-      "cacheable": false,
-      "url": "/fonts/Lato-BlackItalic.ttf",
-      "size": 111616,
-      "hash": "5901c9c0c73e43f8aa03cb6c6f0f93d7e1bbee89"
-    },
-    {
-      "path": "app/fonts/Lato-Bold.ttf",
-      "where": "client",
-      "type": "asset",
-      "cacheable": false,
-      "url": "/fonts/Lato-Bold.ttf",
-      "size": 121788,
-      "hash": "39381b74720ae00c1c6cedec4a486291d586ac12"
-    },
-    {
-      "path": "app/fonts/Lato-BoldItalic.ttf",
-      "where": "client",
-      "type": "asset",
-      "cacheable": false,
-      "url": "/fonts/Lato-BoldItalic.ttf",
-      "size": 120312,
-      "hash": "fdb6f5231884681acd8f5848190662e51ecb7b71"
-    },
-    {
-      "path": "app/fonts/Lato-Hairline.ttf",
-      "where": "client",
-      "type": "asset",
-      "cacheable": false,
-      "url": "/fonts/Lato-Hairline.ttf",
-      "size": 115316,
-      "hash": "a017050acb292af07c365f6e90fa7811d815dfb6"
-    },
-    {
-      "path": "app/fonts/Lato-HairlineItalic.ttf",
-      "where": "client",
-      "type": "asset",
-      "cacheable": false,
-      "url": "/fonts/Lato-HairlineItalic.ttf",
-      "size": 91460,
-      "hash": "2f9452df87cabbdf586ec593413ce75b9c97aef2"
-    },
-    {
-      "path": "app/fonts/Lato-Italic.ttf",
-      "where": "client",
-      "type": "asset",
-      "cacheable": false,
-      "url": "/fonts/Lato-Italic.ttf",
-      "size": 118352,
-      "hash": "017dd10dd0067070f2f97ab4c3d96f01e3fd5bb2"
-    },
-    {
-      "path": "app/fonts/Lato-Light.ttf",
-      "where": "client",
-      "type": "asset",
-      "cacheable": false,
-      "url": "/fonts/Lato-Light.ttf",
-      "size": 122524,
-      "hash": "1874f64ee5b5326f67c6a143ac7701319885c95b"
-    },
-    {
-      "path": "app/fonts/Lato-LightItalic.ttf",
-      "where": "client",
-      "type": "asset",
-      "cacheable": false,
-      "url": "/fonts/Lato-LightItalic.ttf",
-      "size": 91600,
-      "hash": "b452ce3025d1e8e17162cac78626979e5fd94d69"
     },
     {
       "path": "app/fonts/Lato-Regular.ttf",
