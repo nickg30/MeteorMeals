@@ -16779,7 +16779,7 @@ textarea.static-input {
 
 #login-other-options a {
   color: #222;
-  float: right;
+  float: left !important;
 }
 
 @-webkit-keyframes card {

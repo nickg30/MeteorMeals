@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height">
+  <meta name="msapplication-tap-highlight" content="no">
+  <meta http-equiv="Content-Security-Policy" content="default-src * gap: data: blob: 'unsafe-inline' 'unsafe-eval' ws: wss:;">
+
+
+
+  <link rel="stylesheet" type="text/css" class="__meteor-css__" href="/merged-stylesheets.css?hash=e16aee53a41e16493e2413aa93881bd2b2e3486c">
+
+  <script type="text/javascript">
+    __meteor_runtime_config__ = JSON.parse(decodeURIComponent("%7B%22meteorRelease%22%3A%22METEOR%401.5.1%22%2C%22ROOT_URL%22%3A%22http%3A%2F%2Fmeteormeals.herokuapp.com%2F%22%2C%22ROOT_URL_PATH_PREFIX%22%3A%22%22%2C%22DDP_DEFAULT_CONNECTION_URL%22%3A%22http%3A%2F%2Fmeteormeals.herokuapp.com%2F%22%2C%22autoupdateVersionCordova%22%3A%224ea85018456423ff5679f5c9e05d18ef8272a3f9%22%2C%22appId%22%3A%2210q9tai1jbua0k1w13x6r%22%2C%22meteorEnv%22%3A%7B%22NODE_ENV%22%3A%22development%22%2C%22TEST_METADATA%22%3A%22%7B%7D%22%7D%7D"));
+
+    if (/Android/i.test(navigator.userAgent)) {
+      // When Android app is emulated, it cannot connect to localhost,
+      // instead it should connect to 10.0.2.2
+      // (unless we're using an http proxy; then it works!)
+      if (!__meteor_runtime_config__.httpProxyPort) {
+        __meteor_runtime_config__.ROOT_URL = (__meteor_runtime_config__.ROOT_URL || '').replace(/localhost/i, '10.0.2.2');
+        __meteor_runtime_config__.DDP_DEFAULT_CONNECTION_URL = (__meteor_runtime_config__.DDP_DEFAULT_CONNECTION_URL || '').replace(/localhost/i, '10.0.2.2');
+      }
+    }
+  </script>
+
+  <script type="text/javascript" src="/cordova.js"></script>
+  <script type="text/javascript" src="/packages/meteor.js?hash=9725414143125e6990547986c27b473f43c89e8b"></script>
+  <script type="text/javascript" src="/packages/meteor-base.js?hash=a4d07a6b394e56bbe6ccc773c95e7cdb3434960d"></script>
+  <script type="text/javascript" src="/packages/mobile-experience.js?hash=8ded3e69a3e367f321ab9a2b52e3ecdd2661a365"></script>
+  <script type="text/javascript" src="/packages/babel-compiler.js?hash=a9546d4e245cfe40b406e08d40bf106241f01683"></script>
+  <script type="text/javascript" src="/packages/ecmascript.js?hash=370a8752194bcf73be7fffa3635715d0fbf7853d"></script>
+  <script type="text/javascript" src="/packages/underscore.js?hash=cde485f60699ff9aced3305f70189e39c665183c"></script>
+  <script type="text/javascript" src="/packages/base64.js?hash=0053489bb30bb5c0e3545df151f83e41150344b0"></script>
+  <script type="text/javascript" src="/packages/ejson.js?hash=0f17ced99d522d48cd8f8b2139167fd06babd969"></script>
+  <script type="text/javascript" src="/packages/id-map.js?hash=c7aea8dfa2bf46ff2ae0aa6c6cf09e36abc61d07"></script>
+  <script type="text/javascript" src="/packages/ordered-dict.js?hash=bacdd1852075630a01f7de783e5e8e8aa8541cdc"></script>
+  <script type="text/javascript" src="/packages/tracker.js?hash=997515fa2d5b0530ba07741da556c4b36963ef3b"></script>
+  <script type="text/javascript" src="/packages/modules-runtime.js?hash=8587d188e038b75ecd27ed2469a52b269e38fb62"></script>
+  <script type="text/javascript" src="/packages/modules.js?hash=aa16d066e07a1a765fa8cd705a3b82a12b7b09e7"></script>
+  <script type="text/javascript" src="/packages/ecmascript-runtime.js?hash=ed0d1c9624ff822ac7a673101e02acc5a1471a22"></script>
+  <script type="text/javascript" src="/packages/es5-shim.js?hash=c070fc7aa1536cb75430d62c9dad8eaffe2b3716"></script>
+  <script type="text/javascript" src="/packages/promise.js?hash=ab4bb29ad353fc238d692aa27b2991952fe6e8dd"></script>
+  <script type="text/javascript" src="/packages/babel-runtime.js?hash=68c392a247c1b451536c01816071903b66efd665"></script>
+  <script type="text/javascript" src="/packages/ecmascript-runtime-client.js?hash=236033036aa3b0629009d2af14113e2413052567"></script>
+  <script type="text/javascript" src="/packages/random.js?hash=189ef930765405ef87a31a621407fc34447b8756"></script>
+  <script type="text/javascript" src="/packages/mongo-id.js?hash=345d169d517353f8146292b4abd24061721f8b26"></script>
+  <script type="text/javascript" src="/packages/diff-sequence.js?hash=15014d7b1e11c05111a386992e684ab1d3cc4158"></script>
+  <script type="text/javascript" src="/packages/geojson-utils.js?hash=e9d235fa7a29b6bcb50d7ad0b05751fa169fcc8b"></script>
+  <script type="text/javascript" src="/packages/minimongo.js?hash=2c9e12a56ccaeac2c5965af86a0b89a333afdffc"></script>
+  <script type="text/javascript" src="/packages/check.js?hash=eab389b8683d2f0b47a9d511894c2082fc6155a9"></script>
+  <script type="text/javascript" src="/packages/retry.js?hash=1e409617b538ff3e2b0238b15e45b3380c51a224"></script>
+  <script type="text/javascript" src="/packages/ddp-common.js?hash=83c6dba3051ec76b5c1cd85d39357f0f501add98"></script>
+  <script type="text/javascript" src="/packages/reload.js?hash=02487cd11db41d01f7837ad146e4680a9e8d2e12"></script>
+  <script type="text/javascript" src="/packages/ddp-client.js?hash=8b46f76bbf82e182fe81190d0eea965a685cbd77"></script>
+  <script type="text/javascript" src="/packages/ddp.js?hash=25dc3f428447c81620c91c4245dbc6e4f7d32fb7"></script>
+  <script type="text/javascript" src="/packages/ddp-server.js?hash=1beefbc7bd033ea687e7ab8fbd5694df072662af"></script>
+  <script type="text/javascript" src="/packages/allow-deny.js?hash=f324e5ef7b9fe0a00263085d2afee6de40daf9c3"></script>
+  <script type="text/javascript" src="/packages/mongo.js?hash=9e780cd0a265ae8c93d206cf4aa05462ba2d8af1"></script>
+  <script type="text/javascript" src="/packages/blaze-html-templates.js?hash=6e8335ce66460e45f00da73c7497654c5e26e236"></script>
+  <script type="text/javascript" src="/packages/reactive-dict.js?hash=bf7332fc249b67964ec0050922e2f0ef5bb40850"></script>
+  <script type="text/javascript" src="/packages/session.js?hash=821b0746e602b3be69538d299d6866e222121b54"></script>
+  <script type="text/javascript" src="/packages/jquery.js?hash=e5fc9cebb2e37c48ddfaf76e0ab0b77cb6ce6e52"></script>
+  <script type="text/javascript" src="/packages/reactive-var.js?hash=ec712fa3ae588c4a1e7017f0bb4507c725391225"></script>
+  <script type="text/javascript" src="/packages/kadira_flow-router.js?hash=ae2715c7b22bf7d40d58cbbf8dc4a7d003f75a37"></script>
+  <script type="text/javascript" src="/packages/observe-sequence.js?hash=8fe58036c6ba00c458f54c360a21fd0e41fb7ee0"></script>
+  <script type="text/javascript" src="/packages/deps.js?hash=7313f5a2685c6c2c673c78c15c8ce86ff59ab0c9"></script>
+  <script type="text/javascript" src="/packages/htmljs.js?hash=1ac878018eee6c53ed1375dc7ee75fc6865666ae"></script>
+  <script type="text/javascript" src="/packages/blaze.js?hash=f33d3dfed63a491d24e3aa07ad66c24b5fe8c761"></script>
+  <script type="text/javascript" src="/packages/spacebars.js?hash=ebf9381e7fc625d41acb0df14995b7614360858a"></script>
+  <script type="text/javascript" src="/packages/templating-compiler.js?hash=a71883cdec50e95ca135291415990753ed6d57fc"></script>
+  <script type="text/javascript" src="/packages/templating-runtime.js?hash=c18de19afda6e9f0db7faf3d4382a4c953cabe18"></script>
+  <script type="text/javascript" src="/packages/templating.js?hash=c2cf38de06efb47f67affb2dff9320e5eef33893"></script>
+  <script type="text/javascript" src="/packages/kadira_blaze-layout.js?hash=dbd1396d04e62378fc8792cdef18869a1108cedd"></script>
+  <script type="text/javascript" src="/packages/erasaur_meteor-lodash.js?hash=c721b46881c330964852223237ece22cae000d91"></script>
+  <script type="text/javascript" src="/packages/stolinski_stylus-multi.js?hash=387381c2900c683decb83933cc6ce2fbb7eb0558"></script>
+  <script type="text/javascript" src="/packages/fortawesome_fontawesome.js?hash=155acf54c8d0f60c2ec0ac9c32dfecb29ddfb899"></script>
+  <script type="text/javascript" src="/packages/callback-hook.js?hash=e15ed8aa52e7c647efd9f4854e8a0fe4e40808fc"></script>
+  <script type="text/javascript" src="/packages/spiderable.js?hash=9153598c0a51a94b4be39c04327fcdbda1c98226"></script>
+  <script type="text/javascript" src="/packages/fastclick.js?hash=83277d259c1bde488cbffdb303de8e7b6e52d79e"></script>
+  <script type="text/javascript" src="/packages/ui.js?hash=039c55a98376abd03d9d8cd4100895861b897643"></script>
+  <script type="text/javascript" src="/packages/raix_handlebar-helpers.js?hash=21f9f6526687d2b3c93d5f639c4ea67f9f4c0eb2"></script>
+  <script type="text/javascript" src="/packages/aldeed_simple-schema.js?hash=13e803ef04b6685a7577083e5871767a498b6351"></script>
+  <script type="text/javascript" src="/packages/raix_eventemitter.js?hash=b009bf66474c7942360d5e2bba2398ec847d81dc"></script>
+  <script type="text/javascript" src="/packages/aldeed_collection2-core.js?hash=cd76f0a8f289f873c33e0896e9a86201e64a47d1"></script>
+  <script type="text/javascript" src="/packages/aldeed_schema-index.js?hash=469c30a194a9fecafc1c27805c0fe2f3701fd670"></script>
+  <script type="text/javascript" src="/packages/aldeed_schema-deny.js?hash=c46f0998a459ed45c0c557fcb85c31b85c40e7d4"></script>
+  <script type="text/javascript" src="/packages/aldeed_collection2.js?hash=2a40052f92753d39451338b55e6d318a4bf46a3b"></script>
+  <script type="text/javascript" src="/packages/ddp-rate-limiter.js?hash=457af847f89d207a6ca630c56f06d2a3af3a414c"></script>
+  <script type="text/javascript" src="/packages/localstorage.js?hash=b8f7913d89016e62d42164380fabfc1366797d36"></script>
+  <script type="text/javascript" src="/packages/accounts-base.js?hash=6aa5232f70cc7f781b42d487333d2b4330cff12a"></script>
+  <script type="text/javascript" src="/packages/sha.js?hash=04013281f0c21857cac3458d88a0dd86b20109ba"></script>
+  <script type="text/javascript" src="/packages/srp.js?hash=85fa5b3bc1440273f8fa5125df5443c09f337567"></script>
+  <script type="text/javascript" src="/packages/accounts-password.js?hash=82882a16a9f1ac3f2f525c18941bfabd9ff99cc2"></script>
+  <script type="text/javascript" src="/packages/less.js?hash=f316070a447c127756b4cc6fc87e7ba8f1d543e9"></script>
+  <script type="text/javascript" src="/packages/matb33_bootstrap-base.js?hash=1a35a77b2c20ec129ea8f969307bd8fe2c07cb5b"></script>
+  <script type="text/javascript" src="/packages/matb33_bootstrap-glyphicons.js?hash=540a36cb913d5600bdd01c78f876fe2995f57eec"></script>
+  <script type="text/javascript" src="/packages/coffeescript.js?hash=30be370951f0121a385db0e3d4a6e2bb698f6815"></script>
+  <script type="text/javascript" src="/packages/zimme_active-route.js?hash=bfa089e79cd21801c3b6637459d3415fefc88447"></script>
+  <script type="text/javascript" src="/packages/gwendall_auth-client-callbacks.js?hash=c60c1b003fbbbf34cf94e6e8bd5c73e47167a9db"></script>
+  <script type="text/javascript" src="/packages/lai_collection-extensions.js?hash=6dc576b4d7916e6777ffd39636bf63730cdf28b4"></script>
+  <script type="text/javascript" src="/packages/dburles_mongo-collection-instances.js?hash=90da85b2bd33cd8f89924ff508c36afd228262a0"></script>
+  <script type="text/javascript" src="/packages/meteortoys_toykit.js?hash=4cad57c3ac984a5136313ddf76057c50b5274112"></script>
+  <script type="text/javascript" src="/packages/msavin_mongol.js?hash=a03170e00a2c0f1d8c462a44209fb0564fe6941a"></script>
+  <script type="text/javascript" src="/packages/msavin_jetsetter.js?hash=f253fe825e406ae63716b27e7e2a38d366a24317"></script>
+  <script type="text/javascript" src="/packages/gwendall_body-events.js?hash=f5a4540bb7812036a0e28d4bde33fbacbffd2f5e"></script>
+  <script type="text/javascript" src="/packages/meteortoys_blueprint.js?hash=18a00f6f176ca524064ea7d25b2597d12619d5d3"></script>
+  <script type="text/javascript" src="/packages/meteortoys_authenticate.js?hash=7e1649ef0b29c57d84be0f1d6cdde3f9ff48847a"></script>
+  <script type="text/javascript" src="/packages/meteortoys_shell.js?hash=2a8a3d216979e6ef84d124be39e22e189835d23a"></script>
+  <script type="text/javascript" src="/packages/meteortoys_method.js?hash=52d98f2c1f74004862fae8dcc3451c486bbb5db0"></script>
+  <script type="text/javascript" src="/packages/meteortoys_result.js?hash=95896e490ff65f699448ea9c20c3c9d2dcb2dd56"></script>
+  <script type="text/javascript" src="/packages/meteortoys_autopub.js?hash=d9118313249c3f8c0a393556e9b2e28d8a3ed785"></script>
+  <script type="text/javascript" src="/packages/meteortoys_pub.js?hash=6fc2267e7c8d7cf36c1b42233d7176bc6e53d863"></script>
+  <script type="text/javascript" src="/packages/meteortoys_sub.js?hash=61dae21d5445e5d713e500f091e6e8b7dcdc3e1a"></script>
+  <script type="text/javascript" src="/packages/meteortoys_email.js?hash=72f278ca476499efbffcf4bd532aed46704ba685"></script>
+  <script type="text/javascript" src="/packages/meteortoys_listen.js?hash=4fdd9c3ce782f4815c9565b309bc9ef66b5efcc3"></script>
+  <script type="text/javascript" src="/packages/meteortoys_throttle.js?hash=fee2eaa589d1f63dbf78f64d63783b1ed53bacee"></script>
+  <script type="text/javascript" src="/packages/meteortoys_status.js?hash=849688def154fa5f1667d03c956788e5cb1e2279"></script>
+  <script type="text/javascript" src="/packages/meteortoys_hotreload.js?hash=2f91521d02924776ef5119c09399651d64692a4c"></script>
+  <script type="text/javascript" src="/packages/meteortoys_allthings.js?hash=c1f8044a7baa69061417a1ca936620fce88c1980"></script>
+  <script type="text/javascript" src="/packages/datariot_ganalytics.js?hash=8237b4871e129b8e98c2292baa5eafce6cff6041"></script>
+  <script type="text/javascript" src="/packages/standard-minifier-css.js?hash=cfe82682f4394d3ffc6335555c1f9f3f73294507"></script>
+  <script type="text/javascript" src="/packages/standard-minifier-js.js?hash=041bab58c8a89172eaab795deb5d96e38b64ec37"></script>
+  <script type="text/javascript" src="/packages/shell-server.js?hash=6ff1313e4bf7618e577eb2604a580b2ea9b7631f"></script>
+  <script type="text/javascript" src="/packages/dynamic-import.js?hash=ed7f2688a4ba2209d8a2a7475847024ab2b87f50"></script>
+  <script type="text/javascript" src="/packages/twbs_bootstrap.js?hash=2ee228e6c80c1d9a4b1e67e10006f8a5a425ddda"></script>
+  <script type="text/javascript" src="/packages/stylus.js?hash=dcbbc27dc6329f453854e5b19bd0f8aefa82fb05"></script>
+  <script type="text/javascript" src="/packages/anti_i18n.js?hash=8960dc7613ff1467b213e4ed2dec27fb491d232b"></script>
+  <script type="text/javascript" src="/packages/ian_accounts-ui-bootstrap-3.js?hash=e27c97032efae26b11dd04146509e767d9194a4d"></script>
+  <script type="text/javascript" src="/packages/livedata.js?hash=7cf1831a60b48e304b054aee1ae0f7e38ff35d09"></script>
+  <script type="text/javascript" src="/packages/momentjs_moment.js?hash=06c4eb221ddb3b55fa58d64f5d726d8222fef718"></script>
+  <script type="text/javascript" src="/packages/aldeed_autoform.js?hash=62240ad3bd09e4bcabcb996180d4d6ec136db9a9"></script>
+  <script type="text/javascript" src="/packages/webapp.js?hash=e448c6ebb2384292f7c97e676471a51951a04169"></script>
+  <script type="text/javascript" src="/packages/hot-code-push.js?hash=2e864a0bdd0d5f686115099f8c48eb6c866b5b14"></script>
+  <script type="text/javascript" src="/packages/mobile-status-bar.js?hash=e04ed73b8d8bcbad1c53a2bbb5d130765b637134"></script>
+  <script type="text/javascript" src="/packages/launch-screen.js?hash=2f56943306c7e900ed9f4d894b87f534ebffeaeb"></script>
+  <script type="text/javascript" src="/packages/url.js?hash=137892484d84f8a5ae5824e6fc7ac12745fa43e9"></script>
+  <script type="text/javascript" src="/packages/http.js?hash=2a49a01ff4226b3a07f1eadf69667c3217d481ea"></script>
+  <script type="text/javascript" src="/packages/autoupdate.js?hash=cdfb6b94a347d718a41c216182b9aac5f2910d08"></script>
+  <script type="text/javascript" src="/packages/global-imports.js?hash=bf68012d3ea597b820c2fe33c4f34943aec9894a"></script>
+  <script type="text/javascript" src="/app/app.js?hash=37e0f3bee0ab2e125282b2acb57f6b0449e82dfe"></script>
+  <script type="text/javascript" src="/packages/mdg_validation-error.js?hash=00bd41d76e0e9c5f39234600c40546054201acd9"></script>
+  <script type="text/javascript" src="/packages/service-configuration.js?hash=42ac9ae8eb44f3e73762f9cb0003410397021984"></script>
+
+
+  <meta name="fragment" content="!">
+</head>
+
+<body>
+  
+</body>
+</html>
